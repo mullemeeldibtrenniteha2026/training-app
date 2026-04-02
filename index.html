@@ -354,7 +354,7 @@ input,textarea,select,button { font:inherit; }
 .boot-card p{margin:10px 0 0;color:var(--muted);line-height:1.45}
 .boot-spinner{width:34px;height:34px;margin:0 auto 14px;border-radius:999px;border:3px solid rgba(201,168,106,.2);border-top-color:var(--gold);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.app.booting{visibility:hidden}
+.app.booting{}
 
 </style>
 
@@ -1172,17 +1172,13 @@ let initialSyncResolved = false;
 
 function showBoot(message="Loading your data…") {
   const overlay = document.getElementById("bootOverlay");
-  const app = document.getElementById("mainApp");
   const msg = document.getElementById("bootMessage");
   if(msg) msg.textContent = message;
-  if(overlay) overlay.style.display = "flex";
-  if(app) app.classList.add("booting");
+  if(overlay) overlay.style.display = "none";
 }
 function hideBoot() {
   const overlay = document.getElementById("bootOverlay");
-  const app = document.getElementById("mainApp");
   if(overlay) overlay.style.display = "none";
-  if(app) app.classList.remove("booting");
 }
 function withTimeout(promise, ms=4000) {
   return Promise.race([
@@ -1217,28 +1213,31 @@ function stampLocalUpdatedAt(iso) {
   state._cloudMeta.updated_at = iso;
 }
 async function signInSupabase(email, password) {
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await withTimeout(sb.auth.signInWithPassword({ email, password }), 5000);
   if(error) throw error;
   return data;
 }
 async function signUpSupabase(email, password) {
-  const { data, error } = await sb.auth.signUp({ email, password });
+  const { data, error } = await withTimeout(sb.auth.signUp({ email, password }), 5000);
   if(error) throw error;
   return data;
 }
 async function fetchCloudRow() {
   if(!currentUser) return null;
-  const { data, error } = await sb
-    .from("app_state")
-    .select("state_json, updated_at")
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
+  const { data, error } = await withTimeout(
+    sb.from("app_state")
+      .select("state_json, updated_at")
+      .eq("user_id", currentUser.id)
+      .maybeSingle(),
+    5000
+  );
   if(error) throw error;
   return data || null;
 }
 async function loadCloudState() {
   if(!currentUser) return false;
   const data = await fetchCloudRow();
+  console.log("CLOUD DATA", data);
   if(data && data.state_json) {
     const cloudIso = data.updated_at || null;
     const localIso = getLocalUpdatedAt();
@@ -1258,7 +1257,7 @@ async function loadCloudState() {
       return false;
     }
   }
-  setSyncStatus("Cloud: ready");
+  setSyncStatus("Cloud: empty");
   return false;
 }
 async function saveCloudStateNow() {
@@ -1271,7 +1270,10 @@ async function saveCloudStateNow() {
     state_json: state,
     updated_at: iso
   };
-  const { error } = await sb.from("app_state").upsert(payload, { onConflict: "user_id" });
+  const { error } = await withTimeout(
+    sb.from("app_state").upsert(payload, { onConflict: "user_id" }),
+    5000
+  );
   if(error) {
     console.error(error);
     setSyncStatus("Cloud: save failed");
@@ -1288,25 +1290,28 @@ function scheduleCloudSave() {
     saveCloudStateNow();
   }, 700);
 }
-async function resolveInitialStateFromCloud() {
-  showBoot("Loading your cloud data…");
+
+let cloudBootstrapInFlight = false;
+async function startCloudBootstrap() {
+  if(!currentUser || cloudBootstrapInFlight) return;
+  cloudBootstrapInFlight = true;
+  setSyncStatus("Cloud: loading…");
   try {
     const loadedFromCloud = await loadCloudState();
     if(!loadedFromCloud) {
-      // if local state exists and no newer cloud state won, push local state to cloud once
       await saveCloudStateNow();
     }
   } catch (e) {
-    console.error(e);
-    setSyncStatus("Cloud: load failed");
+    console.error("CLOUD BOOTSTRAP ERROR", e);
+    setSyncStatus("Cloud: unavailable");
   } finally {
-    initialSyncResolved = true;
-    hideBoot();
+    cloudBootstrapInFlight = false;
   }
 }
 async function initSupabaseApp() {
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
+
   if(signInBtn) signInBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
@@ -1317,10 +1322,13 @@ async function initSupabaseApp() {
     setAuthMessage("Signing in…");
     try {
       await signInSupabase(email, password);
+      setAuthMessage("");
     } catch (e) {
+      console.error("SIGN IN ERROR", e);
       setAuthMessage(e.message || "Sign in failed.", "error");
     }
   };
+
   if(signUpBtn) signUpBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
@@ -1334,35 +1342,51 @@ async function initSupabaseApp() {
       if(result?.user && !result?.session) setAuthMessage("Account created. Check your email and then sign in.", "ok");
       else setAuthMessage("Account created. You can continue.", "ok");
     } catch (e) {
+      console.error("SIGN UP ERROR", e);
       setAuthMessage(e.message || "Sign up failed.", "error");
     }
   };
 
-  sb.auth.onAuthStateChange(async (_event, session) => {
+  sb.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
+    console.log("AUTH USER", currentUser);
+
     if(currentUser) {
       hideAuth();
       cloudReady = true;
+      initialSyncResolved = true;
       setSyncStatus("Cloud: connecting…");
-      await resolveInitialStateFromCloud();
+      startCloudBootstrap();
     } else {
       cloudReady = false;
-      initialSyncResolved = false;
+      initialSyncResolved = true;
       hideBoot();
       showAuth();
+      setSyncStatus("Cloud: local only");
     }
   });
 
-  showBoot("Checking your cloud session…");
-  const { data } = await sb.auth.getSession();
-  currentUser = data?.session?.user || null;
+  try {
+    const { data } = await withTimeout(sb.auth.getSession(), 2500);
+    currentUser = data?.session?.user || null;
+    console.log("SESSION USER", currentUser);
+  } catch (e) {
+    console.error("SESSION ERROR", e);
+    currentUser = null;
+  }
+
   if(currentUser) {
     hideAuth();
     cloudReady = true;
-    await resolveInitialStateFromCloud();
+    initialSyncResolved = true;
+    setSyncStatus("Cloud: connecting…");
+    startCloudBootstrap();
   } else {
     hideBoot();
+    cloudReady = false;
+    initialSyncResolved = true;
     showAuth();
+    setSyncStatus("Cloud: local only");
   }
 }
 const PIN_KEY = "timo_training_pin_v1";
