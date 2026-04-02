@@ -353,6 +353,31 @@ input,textarea,select,button { font:inherit; }
 #cloudStatus[data-tone="error"]{color:var(--red)}
 #cloudStatus[data-tone="muted"]{color:var(--muted)}
 
+
+.boot-overlay{
+  position:fixed; inset:0; z-index:9998;
+  background:linear-gradient(180deg, rgba(15,17,21,.98), rgba(15,17,21,1));
+  display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.boot-card{
+  width:100%; max-width:380px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:24px;
+  box-shadow:var(--shadow);
+  padding:24px;
+  text-align:center;
+}
+.boot-card h2{margin:0; font-size:28px; letter-spacing:-.03em}
+.boot-card p{margin:10px 0 0; color:var(--muted); line-height:1.45}
+.boot-spinner{
+  width:34px; height:34px; margin:0 auto 14px;
+  border-radius:999px; border:3px solid rgba(201,168,106,.2);
+  border-top-color:var(--gold); animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.app.booting{visibility:hidden}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -373,6 +398,15 @@ input,textarea,select,button { font:inherit; }
       <button class="btn" id="signUpBtn">Create account</button>
     </div>
     <div class="auth-message" id="authMessage"></div>
+  </div>
+</div>
+
+
+<div class="boot-overlay" id="bootOverlay" style="display:none">
+  <div class="boot-card">
+    <div class="boot-spinner"></div>
+    <h2>Timo Training</h2>
+    <p id="bootMessage">Loading your data…</p>
   </div>
 </div>
 
@@ -532,6 +566,9 @@ function loadState() {
 let state = loadState();
 
 function saveState() {
+  const iso = new Date().toISOString();
+  if (!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
+  state._cloudMeta.updated_at = iso;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const s = document.getElementById("saveStatus");
   if(s) s.textContent = "Saved locally on this device.";
@@ -539,6 +576,9 @@ function saveState() {
   render();
 }
 function saveStateQuiet(message="Saved locally on this device.") {
+  const iso = new Date().toISOString();
+  if (!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
+  state._cloudMeta.updated_at = iso;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const s = document.getElementById("saveStatus");
   if(s) s.textContent = message;
@@ -1495,7 +1535,7 @@ async function initCloudAndAuth() {
 }
 
 setupLockScreen();
-initCloudAndAuth();
+initCloudAndAuth().finally(() => { hideBoot(); });
 goToday();
 </script>
 </body>
