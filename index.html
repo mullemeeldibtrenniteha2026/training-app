@@ -347,6 +347,12 @@ input,textarea,select,button { font:inherit; }
   font-size: 12px;
 }
 
+
+#cloudStatus[data-tone="ok"]{color:var(--green)}
+#cloudStatus[data-tone="saving"]{color:var(--yellow)}
+#cloudStatus[data-tone="error"]{color:var(--red)}
+#cloudStatus[data-tone="muted"]{color:var(--muted)}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1139,6 +1145,7 @@ document.getElementById("importFile").onchange = async e => {
 
 window.addEventListener("beforeunload", () => {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+  try { navigator.sendBeacon && navigator.sendBeacon(""); } catch {}
 });
 
 
@@ -1465,7 +1472,30 @@ function setupLockScreen() {
 }
 
 initSupabaseApp();
+
+async function initCloudAndAuth() {
+  await getCloudUser();
+  if (cloudUser) {
+    cloudReady = true;
+    await loadCloudState();
+  } else {
+    setCloudStatus("Not signed in", "muted");
+  }
+
+  sb.auth.onAuthStateChange(async (event, session) => {
+    cloudUser = session?.user || null;
+    if (cloudUser) {
+      cloudReady = true;
+      await loadCloudState();
+    } else {
+      cloudReady = false;
+      setCloudStatus("Not signed in", "muted");
+    }
+  });
+}
+
 setupLockScreen();
+initCloudAndAuth();
 goToday();
 </script>
 </body>
