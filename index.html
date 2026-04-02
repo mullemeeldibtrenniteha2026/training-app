@@ -202,10 +202,121 @@ input,textarea,select,button { font:inherit; }
   .setn,.donebtn { height:40px; border-radius:10px; }
   .textarea { min-height:34px; padding:7px 9px; }
 }
+
+.lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: linear-gradient(180deg, rgba(15,17,21,.98), rgba(15,17,21,1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.lock-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+.lock-title {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.lock-title h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -.03em;
+}
+.lock-title .sub {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 18px 0 14px;
+}
+.pin-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid #5e4e2c;
+  background: #101828;
+}
+.pin-dot.filled {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.pin-key {
+  min-height: 58px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 22px;
+  cursor: pointer;
+}
+.pin-key:active {
+  transform: scale(.98);
+}
+.pin-message {
+  min-height: 20px;
+  margin-top: 10px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+.pin-message.error {
+  color: var(--red);
+}
+.lock-footer {
+  margin-top: 14px;
+  text-align: center;
+}
+.lock-link {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.app.locked {
+  visibility: hidden;
+}
+
 </style>
 </head>
 <body>
-<div class="app">
+
+<div class="lock-overlay" id="lockOverlay" style="display:none">
+  <div class="lock-card">
+    <div class="lock-title">
+      <h2>Timo Training</h2>
+      <div class="sub" id="lockSubtitle">Enter your PIN</div>
+    </div>
+    <div class="pin-dots" id="pinDots"></div>
+    <div class="pin-message" id="pinMessage"></div>
+    <div class="pin-pad" id="pinPad"></div>
+    <div class="lock-footer">
+      <button class="lock-link" id="pinResetBtn" style="display:none">Reset PIN on this device</button>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="mainApp">
   <div class="topbar">
     <div class="topbar-inner">
       <div class="row">
@@ -959,8 +1070,183 @@ window.addEventListener("beforeunload", () => {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
 });
 
+
+const PIN_KEY = "timo_training_pin_v1";
+const PIN_SESSION_KEY = "timo_training_pin_session_v1";
+const PIN_STAGE_KEY = "timo_training_pin_stage_v1";
+const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
+let pinBuffer = "";
+let pinTemp = "";
+let pinMode = "unlock";
+let appUnlocked = false;
+let lastActiveAt = Date.now();
+
+function nowTs() { return Date.now(); }
+function getStoredPin() { return localStorage.getItem(PIN_KEY) || ""; }
+function setStoredPin(pin) { localStorage.setItem(PIN_KEY, pin); }
+function clearStoredPin() {
+  localStorage.removeItem(PIN_KEY);
+  localStorage.removeItem(PIN_SESSION_KEY);
+  localStorage.removeItem(PIN_STAGE_KEY);
+}
+function markSessionActive() {
+  sessionStorage.setItem(PIN_SESSION_KEY, String(nowTs()));
+  lastActiveAt = nowTs();
+}
+function isSessionFresh() {
+  const raw = sessionStorage.getItem(PIN_SESSION_KEY);
+  const ts = raw ? Number(raw) : 0;
+  return !!ts && nowTs() - ts < LOCK_TIMEOUT_MS;
+}
+function shouldStartLocked() {
+  return !isSessionFresh();
+}
+function setLockMessage(text, isError=false) {
+  const el = document.getElementById("pinMessage");
+  if(!el) return;
+  el.textContent = text || "";
+  el.className = "pin-message" + (isError ? " error" : "");
+}
+function renderPinDots() {
+  const wrap = document.getElementById("pinDots");
+  if(!wrap) return;
+  wrap.innerHTML = Array.from({length:4}, (_,i) => `<div class="pin-dot ${i < pinBuffer.length ? "filled" : ""}"></div>`).join("");
+}
+function updateLockTexts() {
+  const title = document.getElementById("lockSubtitle");
+  const resetBtn = document.getElementById("pinResetBtn");
+  if(!title) return;
+  const hasPin = !!getStoredPin();
+  if(!hasPin && !pinTemp) {
+    pinMode = "setup";
+    title.textContent = "Set your 4-digit PIN";
+    setLockMessage("Choose a simple PIN for this device.");
+    if(resetBtn) resetBtn.style.display = "none";
+  } else if(!hasPin && pinTemp) {
+    pinMode = "confirm";
+    title.textContent = "Confirm your PIN";
+    setLockMessage("Enter the same 4 digits again.");
+    if(resetBtn) resetBtn.style.display = "none";
+  } else {
+    pinMode = "unlock";
+    title.textContent = "Enter your PIN";
+    setLockMessage("");
+    if(resetBtn) resetBtn.style.display = "inline-block";
+  }
+  renderPinDots();
+}
+function openLockScreen() {
+  const overlay = document.getElementById("lockOverlay");
+  const app = document.getElementById("mainApp");
+  if(overlay) overlay.style.display = "flex";
+  if(app) app.classList.add("locked");
+  appUnlocked = false;
+  pinBuffer = "";
+  updateLockTexts();
+}
+function closeLockScreen() {
+  const overlay = document.getElementById("lockOverlay");
+  const app = document.getElementById("mainApp");
+  if(overlay) overlay.style.display = "none";
+  if(app) app.classList.remove("locked");
+  appUnlocked = true;
+  pinBuffer = "";
+  markSessionActive();
+  renderPinDots();
+}
+function handlePinComplete() {
+  const stored = getStoredPin();
+  if(!stored && pinMode === "setup") {
+    pinTemp = pinBuffer;
+    pinBuffer = "";
+    updateLockTexts();
+    return;
+  }
+  if(!stored && pinMode === "confirm") {
+    if(pinBuffer === pinTemp) {
+      setStoredPin(pinBuffer);
+      pinTemp = "";
+      closeLockScreen();
+      return;
+    }
+    pinTemp = "";
+    pinBuffer = "";
+    updateLockTexts();
+    setLockMessage("PINs did not match. Try again.", true);
+    return;
+  }
+  if(stored && pinBuffer === stored) {
+    closeLockScreen();
+    return;
+  }
+  pinBuffer = "";
+  renderPinDots();
+  setLockMessage("Incorrect PIN. Try again.", true);
+}
+function pressPinKey(key) {
+  if(key === "backspace") {
+    pinBuffer = pinBuffer.slice(0, -1);
+    renderPinDots();
+    setLockMessage("");
+    return;
+  }
+  if(key === "clear") {
+    pinBuffer = "";
+    renderPinDots();
+    setLockMessage("");
+    return;
+  }
+  if(pinBuffer.length >= 4) return;
+  pinBuffer += key;
+  renderPinDots();
+  if(pinBuffer.length === 4) handlePinComplete();
+}
+function renderPinPad() {
+  const pad = document.getElementById("pinPad");
+  if(!pad) return;
+  const keys = ["1","2","3","4","5","6","7","8","9","clear","0","backspace"];
+  pad.innerHTML = keys.map(k => {
+    const label = k === "clear" ? "Clear" : (k === "backspace" ? "⌫" : k);
+    return `<button class="pin-key" data-pin-key="${k}">${label}</button>`;
+  }).join("");
+  pad.querySelectorAll("[data-pin-key]").forEach(btn => {
+    btn.onclick = () => pressPinKey(btn.dataset.pinKey);
+  });
+}
+function setupLockScreen() {
+  renderPinPad();
+  updateLockTexts();
+  const resetBtn = document.getElementById("pinResetBtn");
+  if(resetBtn) {
+    resetBtn.onclick = () => {
+      const ok = confirm("This will remove the saved PIN on this device and let you create a new one.");
+      if(!ok) return;
+      clearStoredPin();
+      pinTemp = "";
+      pinBuffer = "";
+      updateLockTexts();
+    };
+  }
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "hidden") {
+      markSessionActive();
+    } else {
+      const raw = sessionStorage.getItem(PIN_SESSION_KEY);
+      const ts = raw ? Number(raw) : 0;
+      if(ts && nowTs() - ts >= LOCK_TIMEOUT_MS) openLockScreen();
+      else if(!appUnlocked && shouldStartLocked()) openLockScreen();
+      else markSessionActive();
+    }
+  });
+  ["click","input","touchstart","keydown","scroll"].forEach(evt => {
+    document.addEventListener(evt, () => { if(appUnlocked) markSessionActive(); }, {passive:true});
+  });
+  if(shouldStartLocked()) openLockScreen();
+  else closeLockScreen();
+}
+
+setupLockScreen();
 goToday();
 </script>
 </body>
 </html>
-<!-- force redeploy -->
