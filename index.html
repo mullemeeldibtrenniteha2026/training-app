@@ -297,9 +297,78 @@ input,textarea,select,button { font:inherit; }
   visibility: hidden;
 }
 
+
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: linear-gradient(180deg, rgba(15,17,21,.985), rgba(15,17,21,1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+.auth-card h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -.03em;
+}
+.auth-card .sub {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.auth-stack { display:grid; gap:10px; margin-top:18px; }
+.auth-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px; }
+.auth-message {
+  min-height: 20px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.auth-message.error { color: var(--red); }
+.auth-message.ok { color: var(--green); }
+.sync-pill {
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+
+
+<div class="auth-overlay" id="authOverlay" style="display:none">
+  <div class="auth-card">
+    <h2>Timo Training</h2>
+    <div class="sub">Sign in to keep your data synced and up to date across devices.</div>
+    <div class="auth-stack">
+      <input class="field" id="authEmail" type="email" placeholder="Email" autocomplete="email" />
+      <input class="field" id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
+    </div>
+    <div class="auth-actions">
+      <button class="btn primary" id="signInBtn">Sign in</button>
+      <button class="btn" id="signUpBtn">Create account</button>
+    </div>
+    <div class="auth-message" id="authMessage"></div>
+  </div>
+</div>
 
 <div class="lock-overlay" id="lockOverlay" style="display:none">
   <div class="lock-card">
@@ -334,7 +403,7 @@ input,textarea,select,button { font:inherit; }
       <div class="row">
         <input class="field" id="searchInput" placeholder="Search exercise..." />
         <button class="btn" id="todayBtn">Today</button>
-        <div class="help" id="saveStatus">Ready.</div>
+        <div class="help" id="saveStatus">Ready.</div><div class="sync-pill" id="syncStatus">Cloud: not connected</div>
       </div>
     </div>
   </div>
@@ -460,12 +529,14 @@ function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const s = document.getElementById("saveStatus");
   if(s) s.textContent = "Saved locally on this device.";
+  scheduleCloudSave();
   render();
 }
 function saveStateQuiet(message="Saved locally on this device.") {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const s = document.getElementById("saveStatus");
   if(s) s.textContent = message;
+  scheduleCloudSave();
 }
 function getWeeks() {
   const weeks = new Set();
@@ -1071,6 +1142,154 @@ window.addEventListener("beforeunload", () => {
 });
 
 
+
+const SUPABASE_URL = "https://krpbqzhttgelrbhkohct.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Ea08srA5UXkyRBx00sIQFw_hEQ8u_7t";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
+let cloudSaveTimer = null;
+let cloudReady = false;
+let applyingCloudState = false;
+
+function setSyncStatus(text) {
+  const el = document.getElementById("syncStatus");
+  if(el) el.textContent = text;
+}
+function setAuthMessage(text, mode="") {
+  const el = document.getElementById("authMessage");
+  if(!el) return;
+  el.textContent = text || "";
+  el.className = "auth-message" + (mode ? " " + mode : "");
+}
+function showAuth() {
+  const overlay = document.getElementById("authOverlay");
+  if(overlay) overlay.style.display = "flex";
+  setSyncStatus("Cloud: sign in required");
+}
+function hideAuth() {
+  const overlay = document.getElementById("authOverlay");
+  if(overlay) overlay.style.display = "none";
+}
+async function signInSupabase(email, password) {
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if(error) throw error;
+  return data;
+}
+async function signUpSupabase(email, password) {
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if(error) throw error;
+  return data;
+}
+async function loadCloudState() {
+  if(!currentUser) return false;
+  const { data, error } = await sb
+    .from("app_state")
+    .select("state_json, updated_at")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+  if(error) throw error;
+  if(data && data.state_json) {
+    applyingCloudState = true;
+    state = data.state_json;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    applyingCloudState = false;
+    render();
+    setSyncStatus("Cloud: loaded");
+    return true;
+  }
+  setSyncStatus("Cloud: ready");
+  return false;
+}
+async function saveCloudStateNow() {
+  if(!currentUser || applyingCloudState) return;
+  const payload = {
+    user_id: currentUser.id,
+    state_json: state,
+    updated_at: new Date().toISOString()
+  };
+  const { error } = await sb.from("app_state").upsert(payload, { onConflict: "user_id" });
+  if(error) {
+    console.error(error);
+    setSyncStatus("Cloud: save failed");
+    return;
+  }
+  setSyncStatus("Cloud: synced");
+}
+function scheduleCloudSave() {
+  if(!cloudReady || !currentUser || applyingCloudState) return;
+  setSyncStatus("Cloud: syncing…");
+  if(cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = setTimeout(() => {
+    saveCloudStateNow();
+  }, 700);
+}
+async function initSupabaseApp() {
+  const signInBtn = document.getElementById("signInBtn");
+  const signUpBtn = document.getElementById("signUpBtn");
+  if(signInBtn) signInBtn.onclick = async () => {
+    const email = document.getElementById("authEmail").value.trim();
+    const password = document.getElementById("authPassword").value;
+    if(!email || !password) {
+      setAuthMessage("Enter email and password.", "error");
+      return;
+    }
+    setAuthMessage("Signing in…");
+    try {
+      await signInSupabase(email, password);
+    } catch (e) {
+      setAuthMessage(e.message || "Sign in failed.", "error");
+    }
+  };
+  if(signUpBtn) signUpBtn.onclick = async () => {
+    const email = document.getElementById("authEmail").value.trim();
+    const password = document.getElementById("authPassword").value;
+    if(!email || !password) {
+      setAuthMessage("Enter email and password.", "error");
+      return;
+    }
+    setAuthMessage("Creating account…");
+    try {
+      const result = await signUpSupabase(email, password);
+      if(result?.user && !result?.session) setAuthMessage("Account created. Check your email and then sign in.", "ok");
+      else setAuthMessage("Account created. You can continue.", "ok");
+    } catch (e) {
+      setAuthMessage(e.message || "Sign up failed.", "error");
+    }
+  };
+
+  sb.auth.onAuthStateChange(async (_event, session) => {
+    currentUser = session?.user || null;
+    if(currentUser) {
+      hideAuth();
+      cloudReady = true;
+      setSyncStatus("Cloud: connecting…");
+      try {
+        await loadCloudState();
+      } catch (e) {
+        console.error(e);
+        setSyncStatus("Cloud: load failed");
+      }
+    } else {
+      cloudReady = false;
+      showAuth();
+    }
+  });
+
+  const { data } = await sb.auth.getSession();
+  currentUser = data?.session?.user || null;
+  if(currentUser) {
+    hideAuth();
+    cloudReady = true;
+    try {
+      await loadCloudState();
+    } catch (e) {
+      console.error(e);
+      setSyncStatus("Cloud: load failed");
+    }
+  } else {
+    showAuth();
+  }
+}
 const PIN_KEY = "timo_training_pin_v1";
 const PIN_SESSION_KEY = "timo_training_pin_session_v1";
 const PIN_STAGE_KEY = "timo_training_pin_stage_v1";
@@ -1245,6 +1464,7 @@ function setupLockScreen() {
   else closeLockScreen();
 }
 
+initSupabaseApp();
 setupLockScreen();
 goToday();
 </script>
