@@ -348,33 +348,11 @@ input,textarea,select,button { font:inherit; }
 }
 
 
-#cloudStatus[data-tone="ok"]{color:var(--green)}
-#cloudStatus[data-tone="saving"]{color:var(--yellow)}
-#cloudStatus[data-tone="error"]{color:var(--red)}
-#cloudStatus[data-tone="muted"]{color:var(--muted)}
-
-
-.boot-overlay{
-  position:fixed; inset:0; z-index:9998;
-  background:linear-gradient(180deg, rgba(15,17,21,.98), rgba(15,17,21,1));
-  display:flex; align-items:center; justify-content:center; padding:24px;
-}
-.boot-card{
-  width:100%; max-width:380px;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:24px;
-  box-shadow:var(--shadow);
-  padding:24px;
-  text-align:center;
-}
-.boot-card h2{margin:0; font-size:28px; letter-spacing:-.03em}
-.boot-card p{margin:10px 0 0; color:var(--muted); line-height:1.45}
-.boot-spinner{
-  width:34px; height:34px; margin:0 auto 14px;
-  border-radius:999px; border:3px solid rgba(201,168,106,.2);
-  border-top-color:var(--gold); animation:spin 1s linear infinite;
-}
+.boot-overlay{position:fixed;inset:0;z-index:9998;background:linear-gradient(180deg, rgba(15,17,21,.98), rgba(15,17,21,1));display:flex;align-items:center;justify-content:center;padding:24px}
+.boot-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:24px;text-align:center}
+.boot-card h2{margin:0;font-size:28px;letter-spacing:-.03em}
+.boot-card p{margin:10px 0 0;color:var(--muted);line-height:1.45}
+.boot-spinner{width:34px;height:34px;margin:0 auto 14px;border-radius:999px;border:3px solid rgba(201,168,106,.2);border-top-color:var(--gold);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .app.booting{visibility:hidden}
 
@@ -566,9 +544,6 @@ function loadState() {
 let state = loadState();
 
 function saveState() {
-  const iso = new Date().toISOString();
-  if (!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
-  state._cloudMeta.updated_at = iso;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const s = document.getElementById("saveStatus");
   if(s) s.textContent = "Saved locally on this device.";
@@ -576,9 +551,6 @@ function saveState() {
   render();
 }
 function saveStateQuiet(message="Saved locally on this device.") {
-  const iso = new Date().toISOString();
-  if (!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
-  state._cloudMeta.updated_at = iso;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const s = document.getElementById("saveStatus");
   if(s) s.textContent = message;
@@ -1185,7 +1157,6 @@ document.getElementById("importFile").onchange = async e => {
 
 window.addEventListener("beforeunload", () => {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
-  try { navigator.sendBeacon && navigator.sendBeacon(""); } catch {}
 });
 
 
@@ -1197,7 +1168,22 @@ let currentUser = null;
 let cloudSaveTimer = null;
 let cloudReady = false;
 let applyingCloudState = false;
+let initialSyncResolved = false;
 
+function showBoot(message="Loading your data…") {
+  const overlay = document.getElementById("bootOverlay");
+  const app = document.getElementById("mainApp");
+  const msg = document.getElementById("bootMessage");
+  if(msg) msg.textContent = message;
+  if(overlay) overlay.style.display = "flex";
+  if(app) app.classList.add("booting");
+}
+function hideBoot() {
+  const overlay = document.getElementById("bootOverlay");
+  const app = document.getElementById("mainApp");
+  if(overlay) overlay.style.display = "none";
+  if(app) app.classList.remove("booting");
+}
 function setSyncStatus(text) {
   const el = document.getElementById("syncStatus");
   if(el) el.textContent = text;
@@ -1217,6 +1203,13 @@ function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   if(overlay) overlay.style.display = "none";
 }
+function getLocalUpdatedAt() {
+  return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
+}
+function stampLocalUpdatedAt(iso) {
+  if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
+  state._cloudMeta.updated_at = iso;
+}
 async function signInSupabase(email, password) {
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if(error) throw error;
@@ -1227,48 +1220,83 @@ async function signUpSupabase(email, password) {
   if(error) throw error;
   return data;
 }
-async function loadCloudState() {
-  if(!currentUser) return false;
+async function fetchCloudRow() {
+  if(!currentUser) return null;
   const { data, error } = await sb
     .from("app_state")
     .select("state_json, updated_at")
     .eq("user_id", currentUser.id)
     .maybeSingle();
   if(error) throw error;
+  return data || null;
+}
+async function loadCloudState() {
+  if(!currentUser) return false;
+  const data = await fetchCloudRow();
   if(data && data.state_json) {
-    applyingCloudState = true;
-    state = data.state_json;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    applyingCloudState = false;
-    render();
-    setSyncStatus("Cloud: loaded");
-    return true;
+    const cloudIso = data.updated_at || null;
+    const localIso = getLocalUpdatedAt();
+    const shouldUseCloud = !localIso || (cloudIso && cloudIso >= localIso);
+    if(shouldUseCloud) {
+      applyingCloudState = true;
+      state = data.state_json;
+      if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
+      state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      applyingCloudState = false;
+      render();
+      setSyncStatus("Cloud: loaded");
+      return true;
+    } else {
+      setSyncStatus("Cloud: local is newer");
+      return false;
+    }
   }
   setSyncStatus("Cloud: ready");
   return false;
 }
 async function saveCloudStateNow() {
-  if(!currentUser || applyingCloudState) return;
+  if(!currentUser || applyingCloudState || !initialSyncResolved) return false;
+  const iso = new Date().toISOString();
+  stampLocalUpdatedAt(iso);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const payload = {
     user_id: currentUser.id,
     state_json: state,
-    updated_at: new Date().toISOString()
+    updated_at: iso
   };
   const { error } = await sb.from("app_state").upsert(payload, { onConflict: "user_id" });
   if(error) {
     console.error(error);
     setSyncStatus("Cloud: save failed");
-    return;
+    return false;
   }
   setSyncStatus("Cloud: synced");
+  return true;
 }
 function scheduleCloudSave() {
-  if(!cloudReady || !currentUser || applyingCloudState) return;
+  if(!cloudReady || !currentUser || applyingCloudState || !initialSyncResolved) return;
   setSyncStatus("Cloud: syncing…");
   if(cloudSaveTimer) clearTimeout(cloudSaveTimer);
   cloudSaveTimer = setTimeout(() => {
     saveCloudStateNow();
   }, 700);
+}
+async function resolveInitialStateFromCloud() {
+  showBoot("Loading your cloud data…");
+  try {
+    const loadedFromCloud = await loadCloudState();
+    if(!loadedFromCloud) {
+      // if local state exists and no newer cloud state won, push local state to cloud once
+      await saveCloudStateNow();
+    }
+  } catch (e) {
+    console.error(e);
+    setSyncStatus("Cloud: load failed");
+  } finally {
+    initialSyncResolved = true;
+    hideBoot();
+  }
 }
 async function initSupabaseApp() {
   const signInBtn = document.getElementById("signInBtn");
@@ -1310,30 +1338,24 @@ async function initSupabaseApp() {
       hideAuth();
       cloudReady = true;
       setSyncStatus("Cloud: connecting…");
-      try {
-        await loadCloudState();
-      } catch (e) {
-        console.error(e);
-        setSyncStatus("Cloud: load failed");
-      }
+      await resolveInitialStateFromCloud();
     } else {
       cloudReady = false;
+      initialSyncResolved = false;
+      hideBoot();
       showAuth();
     }
   });
 
+  showBoot("Checking your cloud session…");
   const { data } = await sb.auth.getSession();
   currentUser = data?.session?.user || null;
   if(currentUser) {
     hideAuth();
     cloudReady = true;
-    try {
-      await loadCloudState();
-    } catch (e) {
-      console.error(e);
-      setSyncStatus("Cloud: load failed");
-    }
+    await resolveInitialStateFromCloud();
   } else {
+    hideBoot();
     showAuth();
   }
 }
@@ -1512,30 +1534,7 @@ function setupLockScreen() {
 }
 
 initSupabaseApp();
-
-async function initCloudAndAuth() {
-  await getCloudUser();
-  if (cloudUser) {
-    cloudReady = true;
-    await loadCloudState();
-  } else {
-    setCloudStatus("Not signed in", "muted");
-  }
-
-  sb.auth.onAuthStateChange(async (event, session) => {
-    cloudUser = session?.user || null;
-    if (cloudUser) {
-      cloudReady = true;
-      await loadCloudState();
-    } else {
-      cloudReady = false;
-      setCloudStatus("Not signed in", "muted");
-    }
-  });
-}
-
 setupLockScreen();
-initCloudAndAuth().finally(() => { hideBoot(); });
 goToday();
 </script>
 </body>
