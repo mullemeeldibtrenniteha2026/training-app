@@ -1522,7 +1522,7 @@ function renderExercises() {
   const all = filteredDayExercises;
   if(ui.activeExerciseIndex > Math.max(0, all.length - 1)) ui.activeExerciseIndex = Math.max(0, all.length - 1);
   const activeExercise = all[ui.activeExerciseIndex] || null;
-  const list = all;
+  const list = ui.workoutMode ? (activeExercise ? [activeExercise] : []) : all;
   const groups = [];
   let currentKey = null;
   list.forEach(ex => {
@@ -1536,17 +1536,22 @@ function renderExercises() {
   });
   const wrap = document.getElementById("exerciseList");
   const searchHost = document.getElementById("searchResultsHost");
-  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">Exercise ${Math.min(ui.activeExerciseIndex+1, Math.max(1,all.length))} / ${Math.max(1,all.length)}</div></div><div class="row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note">Current focus: <strong>${activeExercise ? esc(exerciseName(ui.week,ui.day,activeExercise)) : '—'}</strong></div></div>` : "";
+  const progressRow = ui.workoutMode ? `<div class="workout-progress-row">${all.map((ex, idx) => {
+    const done = exerciseHasDone(ui.week,ui.day,ex);
+    const cls = idx===ui.activeExerciseIndex ? "active" : (done ? "done" : "");
+    return `<button class="workout-progress-pill ${cls}" type="button" data-workout-jump="${idx}">${idx+1}</button>`;
+  }).join("")}</div>` : "";
+  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">Exercise ${Math.min(ui.activeExerciseIndex+1, Math.max(1,all.length))} / ${Math.max(1,all.length)}</div></div>${progressRow}<div class="row" style="justify-content:center;margin-top:10px;"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note">Current focus: <strong>${activeExercise ? esc(exerciseName(ui.week,ui.day,activeExercise)) : '—'}</strong></div></div>` : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
   const emptyMessage = !groups.length ? `<div class="card"><div class="empty-state">${q ? 'Current day has no match for this search.' : 'This day is empty right now. Add your first exercise below.'}</div></div>` : "";
+  wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
   wrap.innerHTML = focus + (groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
     const isSupersetBlock = blockKinds.some(c => /\d$/.test(c)) && group.items.length > 1;
     return `<div class="block-group">
       <div class="block-header">
         <div class="block-title"><div class="block-chip">${group.block || "•"}</div><div>${isSupersetBlock ? "Superset" : "Block"}</div></div>
-        
       </div>
       ${group.items.map(ex => {
         const code = codeOf(ui.week,ui.day,ex);
@@ -1561,8 +1566,8 @@ function renderExercises() {
           const s = getSet(ui.week,ui.day,ex,i);
           return `<div class="setrow" data-setrow="${ex}_${i}">
             <div class="setn">${i+1}</div>
-            <div class="setcol"><div class="k">kg</div><input class="setinput" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
-            <div class="setcol"><div class="k">reps</div><input class="setinput" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
+            <div class="setcol"><div class="k">kg</div><input class="setinput" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
+            <div class="setcol"><div class="k">reps</div><input class="setinput" inputmode="numeric" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
             <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setVolume(s)}" disabled /></div>
             <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
           </div>`;
@@ -1576,7 +1581,6 @@ function renderExercises() {
                 <div class="exercise-meta">${[ /\d$/.test(code) ? `Superset item ${code}` : code ? `Block item ${code}` : "", recovery ? "Recovery / conditioning" : ""].filter(Boolean).join(" • ")}</div>
               </div>
             </div>
-
           </div>
 
           ${last ? `<div class="compare compact-last"><div class="info-box"><div class="k">Last time</div><div class="v">${fmtShortDate(last.date)} • ${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div></div></div>` : ""}
@@ -1602,11 +1606,16 @@ function renderExercises() {
     </div>`;
   }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + emptyMessage;
   bindExerciseEvents(all);
+  document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
+    ui.activeExerciseIndex = Number(el.dataset.workoutJump);
+    renderExercises();
+  });
   if(ui.workoutMode && activeExercise) {
     const activeCard = document.querySelector(`[data-exercise-card="${activeExercise}"]`);
     if(activeCard) activeCard.scrollIntoView({block:"nearest", behavior:"smooth"});
   }
 }
+
 function bindExerciseEvents(all) {
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
     el.oninput = e => {
@@ -1702,6 +1711,12 @@ function bindExerciseEvents(all) {
   if(prev) prev.onclick=()=>{ ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); renderExercises(); };
   if(next) next.onclick=()=>{ ui.activeExerciseIndex=Math.min(Math.max(0,all.length-1),ui.activeExerciseIndex+1); renderExercises(); };
 }
+function handleWorkoutModeKeydown(e){
+  if(!ui.workoutMode) return;
+  if(e.key==="ArrowRight"){ ui.activeExerciseIndex=Math.min(Math.max(0,getExercisesForWeekDay(ui.week,ui.day).length-1),ui.activeExerciseIndex+1); renderExercises(); }
+  if(e.key==="ArrowLeft"){ ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); renderExercises(); }
+}
+document.addEventListener("keydown", handleWorkoutModeKeydown);
 function renderAddScopeLabels() {
   const scope = document.getElementById("addScope");
   if(!scope) return;
