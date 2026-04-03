@@ -223,7 +223,21 @@ input,textarea,select,button { font:inherit; }
   min-width:min(100%,340px);
 }
 .finish-workout-btn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.22);}
-.workout-mode-shell .finish-workout-row{position:sticky;bottom:86px;z-index:25;padding-bottom:4px;}
+.finish-workout-inline-row{display:flex;justify-content:center;margin:14px 0 4px;}
+.finish-workout-inline-btn{
+  min-height:44px;
+  padding:10px 18px;
+  border-radius:14px;
+  font-size:14px;
+  font-weight:850;
+  letter-spacing:.04em;
+  background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);
+  border:1px solid rgba(255,194,71,.34);
+  color:#1a1204;
+  box-shadow:0 8px 18px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.24);
+  text-transform:uppercase;
+}
+.finish-workout-inline-btn:active{transform:scale(.985);box-shadow:0 5px 12px rgba(255,159,10,.18), inset 0 1px 0 rgba(255,255,255,.20);}
 .workout-mode-shell .block-header{background:#161b23;}
 .workout-mode-shell .block-title{font-size:14px;color:#f3dda4;}
 
@@ -1128,7 +1142,6 @@ input,textarea,select,button { font:inherit; }
   <button class="btn primary" id="bottomAddSetBtn">+ Set</button>
   <button class="btn" id="bottomUpBtn">↑ Up</button>
 </div>
-<button id="finishWorkoutBtn" class="finish-workout-fixed hidden" type="button">Finish workout</button>
 <div class="quick-toast" id="quickToast">Saved</div>
 <div class="timer-overlay" id="timerOverlay">
   <div class="timer-sheet">
@@ -1827,14 +1840,6 @@ function finishWorkoutNow(){
   render();
 }
 
-function updateFinishButton() {
-  const btn = document.getElementById("finishWorkoutBtn");
-  if(!btn) return;
-  const hasExercises = getExercisesForWeekDay(ui.week, ui.day).length > 0;
-  btn.classList.toggle("hidden", !hasExercises);
-  document.body.classList.toggle("has-finish-button", hasExercises);
-}
-
 function renderExercises() {
   const q = ui.search.trim().toLowerCase();
   const dayExercises = getExercisesForWeekDay(ui.week,ui.day);
@@ -1920,12 +1925,14 @@ function renderExercises() {
     const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
     const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
     return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
-  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + emptyMessage;
+  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (groups.length ? `<div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div>` : ``) + emptyMessage;
   bindExerciseEvents(all);
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
     renderExercises();
   });
+  const finishWorkoutBtnInline = document.getElementById("finishWorkoutBtnInline");
+  if(finishWorkoutBtnInline) finishWorkoutBtnInline.onclick = () => finishWorkoutNow();
   if(ui.workoutMode && activeGroup && activeGroup.items.length){
     const activeCard = document.querySelector(`[data-exercise-card="${activeGroup.items[0]}"]`);
     if(activeCard) activeCard.scrollIntoView({block:"nearest", behavior:"smooth"});
@@ -2048,7 +2055,7 @@ function renderAddScopeLabels() {
   if(opts[1]) opts[1].textContent = `Every ${dayName} in plan`;
 }
 function render() {
-  renderMetrics(); renderCalendar(); renderDays(); refreshScopeLabels(); renderRadar(); renderExercises(); renderHistoryPreview(); renderAddScopeLabels(); updateFinishButton();
+  renderMetrics(); renderCalendar(); renderDays(); refreshScopeLabels(); renderRadar(); renderExercises(); renderHistoryPreview(); renderAddScopeLabels();
   const dl=document.getElementById("exerciseSuggestions");
   if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
 }
@@ -2077,8 +2084,6 @@ document.getElementById("addExerciseBtn").onclick = () => {
 };
 const bottomUpBtn = document.getElementById("bottomUpBtn");
 if(bottomUpBtn) bottomUpBtn.onclick = () => window.scrollTo({top:0, behavior:"smooth"});
-const finishWorkoutBtn = document.getElementById("finishWorkoutBtn");
-if(finishWorkoutBtn) finishWorkoutBtn.onclick = () => finishWorkoutNow();
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
 if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
   const target = document.getElementById("addExerciseName");
