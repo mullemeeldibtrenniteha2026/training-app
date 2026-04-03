@@ -207,7 +207,7 @@ input,textarea,select,button { font:inherit; }
 .header-actions #workoutModeBtn{min-height:48px;padding:12px 20px;border-radius:14px;font-size:15px;font-weight:900;letter-spacing:.06em;background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);border:1px solid rgba(255,194,71,.38);color:#1a1204;box-shadow:0 10px 24px rgba(255,159,10,.28), inset 0 1px 0 rgba(255,255,255,.28);text-transform:uppercase;}
 .header-actions #workoutModeBtn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.22);}
 
-.finish-workout-row{display:flex;justify-content:center;margin-top:18px;}
+.finish-workout-row{display:flex;justify-content:center;margin:18px 14px 16px;}
 .finish-workout-btn{
   min-height:48px;
   padding:12px 20px;
@@ -1821,7 +1821,7 @@ function renderExercises() {
     return `<button class="workout-progress-pill ${cls}" type="button" data-workout-jump="${idx}">${idx+1}</button>`;
   }).join("")}</div>` : "";
   const focusMeta = ui.workoutMode ? `${Math.min(ui.activeExerciseIndex+1, Math.max(1,allGroups.length))} / ${Math.max(1,allGroups.length)}` : "";
-  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">${focusMeta}</div></div>${progressRow}<div class="workout-step-label">${activeGroup && activeGroup.items.length > 1 ? `Superset • ${activeGroup.items.length} exercises` : `Single exercise`}</div><div class="row" style="justify-content:center;margin-top:10px;"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note">Current focus: <strong>${activeGroup ? activeGroup.items.map(ex => esc(exerciseName(ui.week,ui.day,ex))).join(" + ") : '—'}</strong></div></div>` : "";
+  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">${focusMeta}</div></div>${progressRow}<div class="row" style="justify-content:center;margin-top:10px;"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note"></div></div>` : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
   const emptyMessage = !groups.length ? `<div class="card"><div class="empty-state">${q ? 'Current day has no match for this search.' : 'This day is empty right now. Add your first exercise below.'}</div></div>` : "";
@@ -1882,8 +1882,10 @@ function renderExercises() {
       }).join("");
     const blockLabel = group.block && group.block !== "•" ? group.block : "Single";
     const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
-    return `<div class="block-group"><div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div><div class="workout-group-stack">${groupInner}</div></div>`;
-  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (ui.workoutMode && groups.length ? `<div class="finish-workout-row"><button class="finish-workout-btn" id="workoutDoneBtn" type="button">Finish workout</button></div>` : ``) + emptyMessage;
+    const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
+    const finishInside = ui.workoutMode ? `<div class="finish-workout-row"><button class="finish-workout-btn" id="workoutDoneBtn" type="button">Finish workout</button></div>` : ``;
+    return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div>${finishInside}</div>`;
+  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + emptyMessage;
   bindExerciseEvents(all);
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
