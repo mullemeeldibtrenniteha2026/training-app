@@ -177,6 +177,13 @@ input,textarea,select,button { font:inherit; }
   background:linear-gradient(180deg, rgba(34,29,23,.6), rgba(23,26,32,1));
 }
 .workout-focus-note { color:var(--muted); font-size:12px; margin-top:8px; }
+.workout-progress-row{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.workout-progress-pill{min-width:34px;min-height:34px;border-radius:999px;border:1px solid var(--line);background:#101828;color:var(--muted);font-weight:700;cursor:pointer;}
+.workout-progress-pill.active{border-color:rgba(242,201,76,.45);color:#f3dda4;background:rgba(242,201,76,.10);}
+.workout-progress-pill.done{border-color:rgba(57,181,106,.45);color:#c8ffd9;background:rgba(57,181,106,.12);}
+.workout-mode-shell{gap:12px;}
+.workout-nav-row{display:flex;justify-content:center;gap:8px;margin-top:10px;}
+.workout-nav-row .btn{min-width:120px;}
 
 .compact-last .info-box{padding:9px 11px}
 .block-header{padding:9px 12px}
@@ -188,9 +195,9 @@ input,textarea,select,button { font:inherit; }
 .sync-pill.syncing{color:#ffe39a;border-color:rgba(242,201,76,.35);background:rgba(242,201,76,.10);}
 .sync-pill.warn{color:#ffd0d0;border-color:rgba(235,87,87,.35);background:rgba(235,87,87,.12);}
 .sync-pill.info{color:#cfe1ff;border-color:rgba(127,178,255,.35);background:rgba(127,178,255,.10);}
-.bottom-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:none;gap:10px;padding:12px max(12px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));background:linear-gradient(180deg, rgba(8,23,45,0), rgba(8,23,45,.98) 28%);backdrop-filter:blur(10px);}
-.bottom-bar .btn{flex:1;min-height:48px;font-weight:700;}
-.bottom-spacer{display:none;height:74px;}
+.bottom-bar{display:none;gap:10px;padding:0;background:transparent;backdrop-filter:none;}
+.bottom-bar .btn{flex:1;min-height:46px;font-weight:700;}
+.bottom-spacer{display:none;height:0;}
 .quick-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;z-index:60;padding:10px 14px;border-radius:999px;background:rgba(8,23,45,.92);border:1px solid var(--line);color:var(--text);font-size:12px;opacity:0;pointer-events:none;transition:opacity .18s ease, transform .18s ease;}
 .quick-toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
 .btn:active{transform:scale(.97);}
@@ -379,7 +386,10 @@ input,textarea,select,button { font:inherit; }
   border:1px solid rgba(255,255,255,.08);
 }
 .calendar-head{
-  display:none;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
 }
 .radar-card .section-title{
   justify-content:center;
@@ -448,8 +458,8 @@ input,textarea,select,button { font:inherit; }
   .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media (max-width:840px) {
-  .bottom-bar{display:flex;}
-  .bottom-spacer{display:block;}
+  .bottom-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px;}
+  .bottom-spacer{display:none;}
 }
 
 @media (max-width:640px) {
@@ -864,15 +874,11 @@ input,textarea,select,button { font:inherit; }
 }
 @media (max-width:840px){
   .bottom-bar{
-    padding-top:10px;
     gap:8px;
   }
   .bottom-bar .btn{
-    min-height:46px;
+    min-height:44px;
     border-radius:14px;
-  }
-  .bottom-spacer{
-    height:78px;
   }
 }
 @media (max-width:640px){
@@ -1057,7 +1063,7 @@ input,textarea,select,button { font:inherit; }
 
       <div class="card compact-search-card search-card">
         <div class="section-title"><h3>Search exercise</h3></div>
-        <input class="field" id="searchInput" placeholder="" />
+        <input class="field" id="searchInput" placeholder="Search exercise or block" />
       </div>
       <div id="searchResultsHost"></div>
 
@@ -1836,8 +1842,8 @@ function renderExercises() {
     const cls = idx===ui.activeExerciseIndex ? "active" : (done ? "done" : "");
     return `<button class="workout-progress-pill ${cls}" type="button" data-workout-jump="${idx}">${idx+1}</button>`;
   }).join("")}</div>` : "";
-  const focusMeta = ui.workoutMode ? `${Math.min(ui.activeExerciseIndex+1, Math.max(1,allGroups.length))} / ${Math.max(1,allGroups.length)}` : "";
-  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">${focusMeta}</div></div>${progressRow}<div class="row" style="justify-content:center;margin-top:10px;"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note"></div></div>` : "";
+  const focusMeta = ui.workoutMode ? `Block ${Math.min(ui.activeExerciseIndex+1, Math.max(1,allGroups.length))} of ${Math.max(1,allGroups.length)}` : "";
+  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>${focusMeta}</h3></div>${progressRow}<div class="workout-nav-row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div></div>` : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
   const emptyMessage = !groups.length ? `<div class="card"><div class="empty-state">${q ? 'Current day has no match for this search.' : 'This day is empty right now. Add your first exercise below.'}</div></div>` : "";
@@ -2125,7 +2131,7 @@ function showBoot(message="Loading your data…") {
   const overlay = document.getElementById("bootOverlay");
   const msg = document.getElementById("bootMessage");
   if(msg) msg.textContent = message;
-  if(overlay) overlay.style.display = "none";
+  if(overlay) overlay.style.display = "flex";
 }
 function hideBoot() {
   const overlay = document.getElementById("bootOverlay");
@@ -2256,6 +2262,7 @@ let cloudBootstrapInFlight = false;
 async function startCloudBootstrap() {
   if(!currentUser || cloudBootstrapInFlight) return;
   cloudBootstrapInFlight = true;
+  showBoot("Loading your cloud data…");
   setSyncStatus("Cloud: loading…");
   try {
     const loadedFromCloud = await loadCloudState();
@@ -2314,6 +2321,7 @@ async function initSupabaseApp() {
 
     if(currentUser) {
       hideAuth();
+      showBoot("Loading your cloud data…");
       cloudReady = true;
       initialSyncResolved = true;
       setSyncStatus("Cloud: connecting…");
@@ -2328,6 +2336,7 @@ async function initSupabaseApp() {
   });
 
   try {
+    showBoot("Checking your session…");
     const { data } = await withTimeout(sb.auth.getSession(), 2500);
     currentUser = data?.session?.user || null;
     console.log("SESSION USER", currentUser);
