@@ -294,6 +294,118 @@ input,textarea,select,button { font:inherit; }
 .compact-search-card,.days-card{text-align:center;}
 .compact-search-card .field{text-align:center;}
 
+
+/* V12.9.1 calendar + radar premium polish */
+.calendar-collapsible .section-title{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px;
+}
+.calendar-title-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+.calendar-title-nav{
+  width:36px;
+  height:36px;
+  min-height:36px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  padding:0;
+}
+#monthTitle{
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.02em;
+  color:#f4d98c;
+  text-align:center;
+  min-width:160px;
+}
+#monthSubtitle{
+  color:rgba(255,255,255,.44);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  text-align:center;
+  margin-top:4px;
+}
+.calendar-hide-btn{
+  min-height:34px;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:12px;
+  color:rgba(255,255,255,.68);
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+}
+.calendar-head{
+  display:none;
+}
+.radar-card .section-title{
+  justify-content:center;
+  text-align:center;
+  margin-bottom:8px;
+}
+#radarTitle{
+  font-size:17px;
+  font-weight:750;
+  letter-spacing:-.02em;
+  text-align:center;
+  color:#f3f5f7;
+}
+.radar-header-actions{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  margin-top:8px;
+}
+.segmented{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  padding:4px;
+  border-radius:999px;
+}
+.segmented button{
+  min-height:34px;
+  padding:7px 14px;
+  border-radius:999px;
+  border:none;
+  background:transparent;
+  color:rgba(255,255,255,.55);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.segmented button.active{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  box-shadow:0 2px 10px rgba(0,0,0,.18);
+}
+.radar-wrap{
+  margin-top:8px;
+}
+.radar-wrap svg text{
+  fill: rgba(255,255,255,.54);
+}
+@media (max-width:640px){
+  .calendar-collapsible .section-title{
+    grid-template-columns:1fr;
+    justify-items:center;
+  }
+  #monthTitle{
+    font-size:20px;
+    min-width:0;
+  }
+}
+
 @media (max-width:980px) {
   .layout { grid-template-columns:1fr; }
   .left { display:grid; gap:14px; margin-bottom:14px; }
@@ -912,7 +1024,7 @@ input,textarea,select,button { font:inherit; }
       </div>
       <div id="searchResultsHost"></div>
 
-      <div class="card">
+      <div class="card radar-card">
         <div class="section-title">
           <h3 id="radarTitle">Balance</h3>
           <div class="radar-header-actions">
@@ -993,31 +1105,147 @@ const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
 const DAY_LABEL = {"mon":"Monday","tue":"Tuesday","wed":"Wednesday","thu":"Thursday","fri":"Friday","sat":"Saturday","sun":"Sunday"};
 const CANONICAL_NAME_MAP = {"squat": "Back Squat", "pause_sq": "Pause Back Squat", "rev_lunge": "DB Reverse Lunge", "strict_press": "Strict Press", "chin_hold": "Chin-Over-Bar Hold", "pull_aparts": "Band Pull-Aparts", "incline_db": "Incline DB Bench Press", "pull_up": "Pull-Up", "lat_raise": "DB Lateral Raise", "ez_curl": "EZ Bar Curl", "pushup": "Push-Up", "deadlift": "Deadlift", "split_sq": "Rear-Foot Elevated Split Squat", "sldl": "Stiff-Leg Deadlift", "ab_wheel": "Ab Wheel Rollout", "db_row": "Single-Arm DB Row", "bench": "Bench Press", "seated_press": "Seated DB Shoulder Press", "chin_ups": "Chin-Up", "dips": "Dips", "hammer": "DB Hammer Curl", "bent_raise": "Bent-Over Rear Delt Raise", "cond": "Conditioning", "rec": "Active Recovery"};
-const EXERCISE_SUGGESTIONS = ["Ab Wheel Rollout", "Active Recovery", "Back Squat", "Band Pull-Aparts", "Barbell Seal Row", "Barbell Shrug", "Bench Press", "Bent-Over Rear Delt Raise", "Bike", "Chin-Over-Bar Hold", "Chin-Up", "Conditioning", "DB Hammer Curl", "DB Lateral Raise", "DB Reverse Lunge", "Deadlift", "Dips", "EZ Bar Curl", "False Grip Ring Pull-Up", "Front Squat", "Incline DB Bench Press", "KB Towel Curl", "Leg Press", "Low Incline DB Bench Press", "Metcon", "Pause Back Squat", "Pike Push-Up", "Pull-Up", "Push-Up", "Rear-Foot Elevated Split Squat", "Row", "Run", "Seated DB Hammer Curls", "Seated DB Shoulder Press", "Shrug", "Single-Arm DB Row", "Ski Erg", "Sprint", "Stiff-Leg Deadlift", "Stretching", "Strict Press", "Trap Bar Deadlift", "Trap Bar Shrug", "Treadmill Walk", "Walk", "Walking Lunges", "Wide Grip Strict Pull-Up"];
-const EXERCISE_ALIASES = {
-  "bench":"Bench Press","bp":"Bench Press","bench press":"Bench Press","squat":"Back Squat","sq":"Back Squat","pause squat":"Pause Back Squat",
-  "front squat":"Front Squat","dead":"Deadlift","deadlift":"Deadlift","dl":"Deadlift","ohp":"Strict Press","press":"Strict Press",
-  "strict press":"Strict Press","row":"Single-Arm DB Row","seal row":"Barbell Seal Row","pullup":"Pull-Up","pull-up":"Pull-Up",
-  "chinup":"Chin-Up","chin-up":"Chin-Up","recovery":"Active Recovery","active recovery":"Active Recovery","conditioning":"Conditioning",
-  "cardio":"Conditioning","metcon":"Metcon"
-};
+
+const EXERCISE_LIBRARY = [
+  { name:"Ab Wheel Rollout", type:"weighted" },
+  { name:"Active Recovery", type:"recovery" },
+  { name:"Back Extension", type:"weighted" },
+  { name:"Back Squat", type:"weighted", aliases:["squat","back squat","sq"] },
+  { name:"Band Pull-Aparts", type:"bodyweight" },
+  { name:"Barbell Row", type:"weighted", aliases:["bb row","barbell row"] },
+  { name:"Barbell Seal Row", type:"weighted", aliases:["seal row"] },
+  { name:"Barbell Shrug", type:"weighted", aliases:["barbell shrug","shrug"] },
+  { name:"Bench Press", type:"weighted", aliases:["bench","bp","bench press"] },
+  { name:"Bent-Over Rear Delt Raise", type:"weighted" },
+  { name:"Bike", type:"conditioning" },
+  { name:"Bulgarian Split Squat", type:"weighted" },
+  { name:"Chest Supported Row", type:"weighted" },
+  { name:"Chin-Over-Bar Hold", type:"bodyweight" },
+  { name:"Chin-Up", type:"weighted", aliases:["chinup","chin-up"] },
+  { name:"Conditioning", type:"conditioning", aliases:["cardio","conditioning"] },
+  { name:"DB Hammer Curl", type:"weighted", aliases:["hammer curl"] },
+  { name:"DB Lateral Raise", type:"weighted", aliases:["lateral raise"] },
+  { name:"DB Reverse Lunge", type:"weighted", aliases:["reverse lunge"] },
+  { name:"Deadlift", type:"weighted", aliases:["dead","deadlift","dl"] },
+  { name:"Dip", type:"weighted", aliases:["dip","dips"] },
+  { name:"EZ Bar Curl", type:"weighted" },
+  { name:"False Grip Ring Pull-Up", type:"weighted" },
+  { name:"Flat DB Bench Press", type:"weighted" },
+  { name:"Front Squat", type:"weighted", aliases:["front squat"] },
+  { name:"Goblet Squat", type:"weighted" },
+  { name:"Hip Thrust", type:"weighted" },
+  { name:"Incline DB Bench Press", type:"weighted" },
+  { name:"KB Towel Curl", type:"weighted" },
+  { name:"Lat Pulldown", type:"weighted" },
+  { name:"Leg Press", type:"weighted" },
+  { name:"Low Incline DB Bench Press", type:"weighted" },
+  { name:"Metcon", type:"conditioning", aliases:["metcon"] },
+  { name:"Pause Back Squat", type:"weighted", aliases:["pause squat"] },
+  { name:"Pike Push-Up", type:"weighted" },
+  { name:"Pull-Up", type:"weighted", aliases:["pullup","pull-up"] },
+  { name:"Push-Up", type:"weighted", aliases:["pushup","push-up"] },
+  { name:"Rear-Foot Elevated Split Squat", type:"weighted" },
+  { name:"Romanian Deadlift", type:"weighted", aliases:["rdl","romanian deadlift"] },
+  { name:"Row", type:"conditioning" },
+  { name:"Run", type:"conditioning" },
+  { name:"Seated Cable Row", type:"weighted" },
+  { name:"Seated DB Hammer Curls", type:"weighted" },
+  { name:"Seated DB Shoulder Press", type:"weighted" },
+  { name:"Single-Arm DB Row", type:"weighted", aliases:["row","db row"] },
+  { name:"Ski Erg", type:"conditioning" },
+  { name:"Sprint", type:"conditioning" },
+  { name:"Stiff-Leg Deadlift", type:"weighted" },
+  { name:"Stretching", type:"recovery" },
+  { name:"Strict Press", type:"weighted", aliases:["ohp","press","strict press"] },
+  { name:"Thruster", type:"weighted" },
+  { name:"Toes to Bar", type:"bodyweight" },
+  { name:"Trap Bar Deadlift", type:"weighted" },
+  { name:"Trap Bar Shrug", type:"weighted" },
+  { name:"Treadmill Walk", type:"conditioning" },
+  { name:"Walk", type:"conditioning" },
+  { name:"Walking Lunges", type:"weighted" },
+  { name:"Wide Grip Strict Pull-Up", type:"weighted" }
+];
+
+const EXERCISE_SUGGESTIONS = EXERCISE_LIBRARY.map(x => x.name).sort((a,b)=>a.localeCompare(b));
+const EXERCISE_ALIASES = Object.fromEntries(
+  EXERCISE_LIBRARY.flatMap(x => (x.aliases || []).map(alias => [alias.toLowerCase(), x.name]))
+);
 const NAME_TO_ID = {
-  "Back Squat":"squat","Pause Back Squat":"pause_sq","DB Reverse Lunge":"rev_lunge","Strict Press":"strict_press",
-  "Chin-Over-Bar Hold":"chin_hold","Band Pull-Aparts":"pull_aparts","Incline DB Bench Press":"incline_db","Pull-Up":"pull_up",
-  "DB Lateral Raise":"lat_raise","EZ Bar Curl":"ez_curl","Push-Up":"pushup","Deadlift":"deadlift","Rear-Foot Elevated Split Squat":"split_sq",
-  "Stiff-Leg Deadlift":"sldl","Ab Wheel Rollout":"ab_wheel","Single-Arm DB Row":"db_row","Bench Press":"bench",
-  "Seated DB Shoulder Press":"seated_press","Chin-Up":"chin_ups","Dips":"dips","DB Hammer Curl":"hammer",
-  "Bent-Over Rear Delt Raise":"bent_raise","Conditioning":"cond","Active Recovery":"rec"
+  "Ab Wheel Rollout":"ab_wheel",
+  "Active Recovery":"rec",
+  "Back Squat":"squat",
+  "Band Pull-Aparts":"pull_aparts",
+  "Barbell Row":"barbell_row",
+  "Barbell Seal Row":"barbell_seal_row",
+  "Barbell Shrug":"barbell_shrug",
+  "Bench Press":"bench",
+  "Bent-Over Rear Delt Raise":"bent_raise",
+  "Chin-Over-Bar Hold":"chin_hold",
+  "Chin-Up":"chin_ups",
+  "Conditioning":"cond",
+  "DB Hammer Curl":"hammer",
+  "DB Lateral Raise":"lat_raise",
+  "DB Reverse Lunge":"rev_lunge",
+  "Deadlift":"deadlift",
+  "Dip":"dips",
+  "EZ Bar Curl":"ez_curl",
+  "False Grip Ring Pull-Up":"false_grip_ring_pull_up",
+  "Front Squat":"front_squat",
+  "Incline DB Bench Press":"incline_db",
+  "KB Towel Curl":"kb_towel_curl",
+  "Leg Press":"leg_press",
+  "Low Incline DB Bench Press":"low_incline_db_bench_press",
+  "Metcon":"metcon",
+  "Pause Back Squat":"pause_sq",
+  "Pike Push-Up":"pike_push_up",
+  "Pull-Up":"pull_up",
+  "Push-Up":"pushup",
+  "Rear-Foot Elevated Split Squat":"split_sq",
+  "Romanian Deadlift":"romanian_deadlift",
+  "Row":"row",
+  "Run":"run",
+  "Seated Cable Row":"seated_cable_row",
+  "Seated DB Hammer Curls":"seated_db_hammer_curls",
+  "Seated DB Shoulder Press":"seated_press",
+  "Single-Arm DB Row":"db_row",
+  "Ski Erg":"ski_erg",
+  "Sprint":"sprint",
+  "Stiff-Leg Deadlift":"sldl",
+  "Stretching":"stretching",
+  "Strict Press":"strict_press",
+  "Thruster":"thruster",
+  "Toes to Bar":"toes_to_bar",
+  "Trap Bar Deadlift":"trap_bar_deadlift",
+  "Trap Bar Shrug":"trap_bar_shrug",
+  "Treadmill Walk":"treadmill_walk",
+  "Walk":"walk",
+  "Walking Lunges":"walking_lunges",
+  "Wide Grip Strict Pull-Up":"wide_grip_strict_pull_up"
 };
+const EXERCISE_TYPE_MAP = Object.fromEntries(EXERCISE_LIBRARY.map(x => [x.name.toLowerCase(), x.type]));
+const WEIGHTED_NAME_HINTS = ["barbell","db ","dumbbell","bench","squat","deadlift","press","row","curl","shrug","lunge","pulldown","leg press","thruster","dip","pull-up","chin-up","push-up"];
+const CONDITIONING_NAME_HINTS = ["conditioning","metcon","run","walk","bike","rower","ski erg","ski-erg","sprint","recovery","stretch"];
+function getExerciseConfig(name){
+  const normalized = normalizeExerciseDisplayName(name).toLowerCase();
+  const directType = EXERCISE_TYPE_MAP[normalized];
+  if(directType==="weighted") return { weight:true, reps:true, category:"weighted" };
+  if(directType==="bodyweight") return { weight:true, reps:true, category:"bodyweight_weightable" };
+  if(directType==="conditioning") return { weight:false, reps:false, category:"conditioning" };
+  if(directType==="recovery") return { weight:false, reps:false, category:"recovery" };
+  if(WEIGHTED_NAME_HINTS.some(h => normalized.includes(h))) return { weight:true, reps:true, category:"weighted" };
+  if(CONDITIONING_NAME_HINTS.some(h => normalized.includes(h))) return { weight:false, reps:false, category:"conditioning" };
+  return { weight:true, reps:true, category:"weighted" };
+}
 const MUSCLE_HINTS = {
-  chest:["bench","incline","push-up","dips","pike"],
-  back:["row","pull-up","chin","seal row","shrug","pull-aparts"],
+  chest:["bench","incline","push-up","dip","pike"],
+  back:["row","pull-up","chin","seal row","shrug","pull-aparts","pulldown"],
   shoulders:["strict press","lateral raise","rear delt","pike","seated db shoulder"],
-  arms:["curl","hammer","dips"],
-  quads:["squat","front squat","leg press","lunge","split squat"],
-  posterior:["deadlift","stiff-leg","trap bar","shrug","back extension"],
+  arms:["curl","hammer","dip"],
+  quads:["squat","front squat","leg press","lunge","split squat","thruster"],
+  posterior:["deadlift","stiff-leg","trap bar","shrug","back extension","hip thrust","romanian"],
   core:["ab wheel","roll out","toes to bar"],
-  conditioning:["conditioning","metcon","row","bike","run","sprint","walk","ski"]
+  conditioning:["conditioning","metcon","run","bike","row","walk","sprint","ski"]
 };
 
 function structured(x) { return JSON.parse(JSON.stringify(x)); }
@@ -1109,7 +1337,7 @@ function normalizeExerciseDisplayName(name) {
 function normalizeExerciseKey(name) { return normalizeExerciseDisplayName(name).toLowerCase(); }
 function getExerciseSuggestions(input) {
   const q = String(input||"").toLowerCase().trim();
-  if(!q) return EXERCISE_SUGGESTIONS;
+  if(!q) return EXERCISE_SUGGESTIONS.slice(0,18);
   if(EXERCISE_ALIASES[q]) {
     const main = EXERCISE_ALIASES[q];
     return [main, ...EXERCISE_SUGGESTIONS.filter(x => x !== main)].slice(0,12);
@@ -1160,10 +1388,8 @@ function setVolume(s) {
   return "";
 }
 function isRecoveryLike(week,day,ex) {
-  const t = `${exerciseName(week,day,ex)} ${noteOf(week,day,ex)}`.toLowerCase();
-  return t.includes("active recovery") || t.includes("recovery") || t.includes("conditioning") || t.includes("metcon") ||
-         t.includes("cool down") || t.includes("cooldown") || t.includes("walk") || t.includes("bike") ||
-         t.includes("row") || t.includes("run") || t.includes("ski") || /^cond$/i.test(ex) || /^rec$/i.test(ex);
+  const cfg = getExerciseConfig(exerciseName(week,day,ex));
+  return cfg.category==="conditioning" || cfg.category==="recovery" || /^cond$/i.test(ex) || /^rec$/i.test(ex);
 }
 function exerciseHasDone(week,day,ex) {
   if(blockDoneOf(week,day,ex)) return true;
@@ -1369,7 +1595,7 @@ function renderMetrics() {
 }
 function renderCalendar() {
   document.getElementById("monthTitle").innerHTML = `<span class="month-pill">${ui.month.toLocaleDateString("en-GB", {month:"long",year:"numeric"})}</span>`;
-  document.getElementById("monthSubtitle").textContent = `${DAY_LABEL[ui.day]} · ${fmtFullDate(dayDate(ui.week,ui.day))}`;
+  document.getElementById("monthSubtitle").textContent = `Month view`;
   const calendarCard = document.getElementById("calendarCard");
   const toggleBtn = document.getElementById("calendarToggleBtn");
   if(calendarCard) calendarCard.classList.toggle("is-collapsed", !!ui.calendarCollapsed);
