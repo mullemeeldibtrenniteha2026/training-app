@@ -35,7 +35,7 @@ input,textarea,select,button { font:inherit; }
 }
 .topbar-inner { max-width:1200px; margin:0 auto; display:grid; gap:10px; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
-.title h1 { margin:0; font-size:22px; font-weight:700; letter-spacing:-.02em; }
+.title h1 { margin:0; font-size:22px; font-weight:800; letter-spacing:-.02em; color:var(--accent-soft); text-shadow:0 0 18px rgba(242,201,76,.08); }
 .title .sub { color:var(--muted); font-size:13px; margin-top:3px; }
 .btn,.field,.select,.textarea {
   border:1px solid var(--line); background:rgba(8,23,45,.78); color:var(--text); border-radius:14px;
@@ -44,7 +44,7 @@ input,textarea,select,button { font:inherit; }
 .btn.primary { background:linear-gradient(145deg, rgba(242,201,76,.18), rgba(242,201,76,.10)); border-color:rgba(242,201,76,.35); color:#ffe6a4; }
 .btn.gold { border-color:rgba(242,201,76,.42); color:#ffe39a; background:linear-gradient(145deg, rgba(242,201,76,.14), rgba(242,201,76,.08)); }
 .field,.select { min-height:42px; padding:10px 12px; }
-.textarea { width:100%; min-height:40px; padding:8px 10px; resize:vertical; line-height:1.35; }
+.textarea { width:100%; min-height:42px; padding:10px 12px; resize:vertical; line-height:1.35; }
 .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
 .metric,.card {
   background:linear-gradient(180deg, rgba(15,33,61,.98), rgba(10,24,45,.98)); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow);
@@ -52,6 +52,7 @@ input,textarea,select,button { font:inherit; }
 .metric { padding:12px; }
 .metric .k { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
 .metric .v { margin-top:5px; font-size:20px; font-weight:700; }
+.metric{text-align:left;}
 .metric .s { margin-top:6px; color:var(--muted); font-size:12px; }
 .layout { display:grid; grid-template-columns:330px 1fr; gap:14px; }
 .card { padding:14px; }
@@ -61,6 +62,8 @@ input,textarea,select,button { font:inherit; }
 .weekdays,.calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; }
 .weekdays div { text-align:center; color:var(--muted); font-size:11px; }
 .calendar-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
+.calendar-collapsible.is-collapsed .calendar-body{display:none;}
+.calendar-toggle{min-width:72px;text-align:center;}
 .daycell {
   min-height:66px; border:1px solid var(--line); background:var(--panel2); border-radius:14px;
   padding:8px; position:relative; cursor:pointer;
@@ -136,7 +139,7 @@ input,textarea,select,button { font:inherit; }
   width:42px; height:42px; border-radius:12px; border:1px solid var(--line); background:#101828; color:var(--muted); cursor:pointer;
 }
 .donebtn.on { background:rgba(79,192,141,.13); border-color:rgba(79,192,141,.45); color:var(--green); font-weight:700; }
-.exercise-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.exercise-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; justify-content:center; }
 .radar-wrap { aspect-ratio:1 / 1; max-width:300px; margin:0 auto; }
 .hidden-desktop { display:none; }
 
@@ -194,7 +197,7 @@ input,textarea,select,button { font:inherit; }
 .title h1{font-size:18px;line-height:1.05;margin-bottom:2px;}
 .title .sub{font-size:13px;}
 .header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.header-actions .btn{min-height:38px;padding:8px 10px;border-radius:12px;}
+.header-actions .btn{min-height:36px;padding:7px 10px;border-radius:12px;}
 .search-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;}
 .search-row .field{min-height:40px;}
 .search-inline-actions{display:flex;align-items:center;gap:8px;}
@@ -209,7 +212,9 @@ input,textarea,select,button { font:inherit; }
 .timer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
 .timer-head h3{margin:0;font-size:18px;}
 .timer-display{font-size:42px;font-weight:800;letter-spacing:-.03em;text-align:center;margin:10px 0 14px;}
-.timer-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px;}
+.timer-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;}
+.timer-custom{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px;}
+.timer-custom .field{text-align:center;}
 .timer-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
 .timer-hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px;}
 .add-card .section-title .meta,.add-card .help{display:none;}
@@ -473,7 +478,6 @@ input,textarea,select,button { font:inherit; }
         </div>
         <div class="header-actions">
           <button class="btn" id="workoutModeBtn">Workout</button>
-          <button class="btn" id="todayBtn">Today</button>
         </div>
       </div>
       <div class="search-row">
@@ -490,8 +494,9 @@ input,textarea,select,button { font:inherit; }
 
   <div class="layout">
     <div class="left">
-      <div class="card">
-        <div class="section-title"><h2>Calendar</h2><div class="meta" id="monthTitle"></div></div>
+      <div class="card calendar-collapsible" id="calendarCard">
+        <div class="section-title"><h2>Calendar</h2><div class="row" style="gap:8px"><div class="meta" id="monthTitle"></div><button class="btn calendar-toggle" id="calendarToggleBtn">Hide</button></div></div>
+        <div class="calendar-body">
         <div class="calendar-head">
           <button class="btn" id="prevMonthBtn">←</button>
           <div class="help" id="monthSubtitle"></div>
@@ -504,9 +509,10 @@ input,textarea,select,button { font:inherit; }
           <div class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Recovery / conditioning</div>
           <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Planned</div>
         </div>
+        </div>
       </div>
 <div class="card">
-        <div class="section-title"><h3>Days in week</h3><div class="meta">Tap a day</div></div>
+        <div class="section-title"><h3>Days in week</h3><div class="meta"></div></div>
         <div class="pills" id="dayPills"></div>
       </div>
 
@@ -526,7 +532,7 @@ input,textarea,select,button { font:inherit; }
 
     <div class="right">
       <div class="card add-card">
-        <div class="section-title"><h2>Add exercise</h2><div class="meta"></div></div>
+        <div class="section-title"><h2>Add exercise</h2></div>
         <div class="add-grid">
           <input class="field" id="addExerciseName" list="exerciseSuggestions" placeholder="Exercise name" />
           <select class="select" id="addHistoryMode">
@@ -538,14 +544,14 @@ input,textarea,select,button { font:inherit; }
         </div>
         <div class="row" style="margin-top:8px">
           <select class="select" id="addScope">
-            <option value="day">This day</option>
-            <option value="weekday_all">All same weekdays</option>
+            <option value="day">Only this day</option>
+            <option value="weekday_all">Every same weekday</option>
           </select>
           <datalist id="exerciseSuggestions"></datalist>
         </div>
         <div class="info-box" style="margin-top:10px" id="historyPreview">
-          <div class="k">History preview</div>
-          <div class="v">Choose an exercise to see the latest matching session.</div>
+          <div class="k">Last match</div>
+          <div class="v">Choose an exercise to preview the latest matching session.</div>
         </div>
       </div>
 
@@ -560,10 +566,10 @@ input,textarea,select,button { font:inherit; }
 </div>
 <div class="bottom-spacer"></div>
 <div class="bottom-bar" id="bottomBar">
-  <button class="btn primary" id="bottomAddSetBtn">+ Set</button>
   <button class="btn" id="bottomTimerBtn">⏱ Timer</button>
   <button class="btn" id="bottomAddExerciseBtn">+ Exercise</button>
-  <button class="btn" id="bottomTodayBtn">Today</button>
+  <button class="btn primary" id="bottomAddSetBtn">+ Set</button>
+  <button class="btn" id="bottomUpBtn">↑ Up</button>
 </div>
 <div class="quick-toast" id="quickToast">Saved</div>
 <div class="timer-overlay" id="timerOverlay">
@@ -573,10 +579,14 @@ input,textarea,select,button { font:inherit; }
       <button class="btn" id="timerCloseBtn">Close</button>
     </div>
     <div class="timer-display" id="timerDisplay">01:30</div>
+    <div class="timer-custom">
+      <input class="field" id="timerMinutesInput" type="number" min="0" max="59" value="1" inputmode="numeric" />
+      <input class="field" id="timerSecondsInput" type="number" min="0" max="59" value="30" inputmode="numeric" />
+      <button class="btn" id="timerApplyBtn">Set</button>
+    </div>
     <div class="timer-presets">
-      <button class="btn" data-timer-preset="60">60s</button>
-      <button class="btn primary" data-timer-preset="90">90s</button>
-      <button class="btn" data-timer-preset="120">120s</button>
+      <button class="btn" data-timer-adjust="-15">−15s</button>
+      <button class="btn" data-timer-adjust="15">+15s</button>
     </div>
     <div class="timer-actions">
       <button class="btn primary" id="timerStartBtn">Start</button>
@@ -932,7 +942,7 @@ function computeRadar(week, day=null) {
   }
   return totals;
 }
-let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day"};
+let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:(window.innerWidth<=640)};
 function goToday() {
   const info = dateToProgramDay(TODAY);
   ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
@@ -964,6 +974,10 @@ function renderMetrics() {
 function renderCalendar() {
   document.getElementById("monthTitle").textContent = ui.month.toLocaleDateString("en-GB", {month:"long",year:"numeric"});
   document.getElementById("monthSubtitle").textContent = `${DAY_LABEL[ui.day]} · ${fmtFullDate(dayDate(ui.week,ui.day))}`;
+  const calendarCard = document.getElementById("calendarCard");
+  const toggleBtn = document.getElementById("calendarToggleBtn");
+  if(calendarCard) calendarCard.classList.toggle("is-collapsed", !!ui.calendarCollapsed);
+  if(toggleBtn) toggleBtn.textContent = ui.calendarCollapsed ? "Show" : "Hide";
   document.getElementById("weekdayRow").innerHTML = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(x=>`<div>${x}</div>`).join("");
   const y=ui.month.getFullYear(), m=ui.month.getMonth(), first=new Date(y,m,1), last=new Date(y,m+1,0);
   const startOffset=(first.getDay()+6)%7, cells=[];
@@ -1042,15 +1056,15 @@ function renderHistoryPreview() {
   const name = document.getElementById("addExerciseName").value.trim();
   const box = document.getElementById("historyPreview");
   if(!name) {
-    box.innerHTML = `<div class="k">History preview</div><div class="v">Choose an exercise to see the latest matching session.</div>`;
+    box.innerHTML = `<div class="k">Last match</div><div class="v">Choose an exercise to preview the latest matching session.</div>`;
     return;
   }
   const preview = historyPreview(name);
   if(!preview) {
-    box.innerHTML = `<div class="k">History preview</div><div class="v">No earlier matching entry found. This will start as a new movement.</div>`;
+    box.innerHTML = `<div class="k">Last match</div><div class="v">No earlier matching entry found. This will start clean.</div>`;
     return;
   }
-  box.innerHTML = `<div class="k">History preview</div><div class="v">${preview.dateLabel}<br>${esc(preview.summary)}</div><div class="help" style="margin-top:6px">${preview.rest ? `Rest: ${esc(preview.rest)}` : ""}</div>`;
+  box.innerHTML = `<div class="k">Last match</div><div class="v">${preview.dateLabel}<br>${esc(preview.summary)}</div><div class="help" style="margin-top:6px">${preview.rest ? `Rest: ${esc(preview.rest)}` : ""}</div>`;
 }
 function renderExercises() {
   const q = ui.search.trim().toLowerCase();
@@ -1121,7 +1135,7 @@ function renderExercises() {
             </div>
           </div>
 
-          ${last ? `<div class="compare compact-last"><div class="info-box"><div class="k">Last time</div><div class="v">${fmtFullDate(last.date)}<br>${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div></div></div>` : ""}
+          ${last ? `<div class="compare compact-last"><div class="info-box"><div class="k">Last time</div><div class="v">${fmtShortDate(last.date)} • ${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div></div></div>` : ""}
 
           <div class="field-grid">
             <div class="label">Rest</div>
@@ -1244,13 +1258,20 @@ function bindExerciseEvents(all) {
   if(prev) prev.onclick=()=>{ ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); renderExercises(); };
   if(next) next.onclick=()=>{ ui.activeExerciseIndex=Math.min(Math.max(0,all.length-1),ui.activeExerciseIndex+1); renderExercises(); };
 }
+function renderAddScopeLabels() {
+  const scope = document.getElementById("addScope");
+  if(!scope) return;
+  const dayName = DAY_LABEL[ui.day] || "day";
+  const opts = scope.querySelectorAll("option");
+  if(opts[0]) opts[0].textContent = `Only ${dayName}`;
+  if(opts[1]) opts[1].textContent = `Every ${dayName} in plan`;
+}
 function render() {
-  renderMetrics(); renderCalendar(); renderDays(); renderRadar(); renderExercises(); renderHistoryPreview();
+  renderMetrics(); renderCalendar(); renderDays(); renderRadar(); renderExercises(); renderHistoryPreview(); renderAddScopeLabels();
   const dl=document.getElementById("exerciseSuggestions");
   if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
 }
 document.getElementById("searchInput").oninput = e => { ui.search=e.target.value; const s=document.getElementById("saveStatus"); if(s) s.textContent = ui.search.trim() ? "Searching across all saved workouts…" : "Saved locally on this device."; renderExercises(); };
-document.getElementById("todayBtn").onclick = goToday;
 document.getElementById("workoutModeBtn").onclick = () => {
   ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
   document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "Exit workout" : "Workout";
@@ -1272,8 +1293,8 @@ document.getElementById("addExerciseBtn").onclick = () => {
   document.getElementById("addHistoryMode").value="empty";
   renderHistoryPreview();
 };
-const bottomTodayBtn = document.getElementById("bottomTodayBtn");
-if(bottomTodayBtn) bottomTodayBtn.onclick = () => goToday();
+const bottomUpBtn = document.getElementById("bottomUpBtn");
+if(bottomUpBtn) bottomUpBtn.onclick = () => window.scrollTo({top:0, behavior:"smooth"});
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
 if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
   const target = document.getElementById("addExerciseName");
@@ -1796,8 +1817,12 @@ const timerPauseBtn = document.getElementById("timerPauseBtn");
 if(timerPauseBtn) timerPauseBtn.onclick = () => pauseTimer();
 const timerResetBtn = document.getElementById("timerResetBtn");
 if(timerResetBtn) timerResetBtn.onclick = () => resetTimer();
-document.querySelectorAll("[data-timer-preset]").forEach(btn => btn.onclick = () => resetTimer(Number(btn.dataset.timerPreset)));
+const timerApplyBtn = document.getElementById("timerApplyBtn");
+if(timerApplyBtn) timerApplyBtn.onclick = () => applyCustomTimer();
+document.querySelectorAll("[data-timer-adjust]").forEach(btn => btn.onclick = () => adjustTimer(Number(btn.dataset.timerAdjust)));
 document.getElementById("timerOverlay")?.addEventListener("click", e => { if(e.target.id === "timerOverlay") closeTimer(); });
+const calendarToggleBtn = document.getElementById("calendarToggleBtn");
+if(calendarToggleBtn) calendarToggleBtn.onclick = () => { ui.calendarCollapsed = !ui.calendarCollapsed; renderCalendar(); };
 resetTimer(90);
 initSupabaseApp();
 setupLockScreen();
