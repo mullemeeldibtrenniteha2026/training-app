@@ -39,6 +39,12 @@ input,textarea,select,button { font:inherit; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
 .title h1 { margin:0; font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--accent-soft); text-shadow:0 0 18px rgba(242,201,76,.08); text-align:center; }
 .title .sub { color:var(--muted); font-size:13px; margin-top:4px; text-align:center; }
+.app-brand{display:flex;align-items:center;justify-content:center;gap:12px;text-align:left;}
+.app-brand-icon{width:30px;height:30px;border-radius:8px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.22);}
+.app-brand-text{display:flex;flex-direction:column;align-items:flex-start;}
+.app-subtitle{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#b8c7d9;opacity:.9;margin-top:2px;}
+#weekHeader{display:none;}
+
 .btn,.field,.select,.textarea {
   border:1px solid var(--line); background:rgba(8,23,45,.78); color:var(--text); border-radius:14px;
 }
@@ -285,6 +291,10 @@ input,textarea,select,button { font:inherit; }
 .search-inline-actions{justify-content:center;}
 .metric,.card{text-align:left;}
 @media (max-width:640px){
+  .app-brand{gap:10px;}
+  .app-brand-icon{width:26px;height:26px;border-radius:7px;}
+  .app-subtitle{font-size:10px;letter-spacing:.10em;}
+  .app-brand-text{align-items:flex-start;}
   .metrics .metric{text-align:center;}
   .section-title{align-items:center;}
   .section-title h2,.section-title h3{text-align:left;}
@@ -1209,9 +1219,13 @@ input,textarea,select,button { font:inherit; }
   <div class="topbar">
     <div class="topbar-inner">
       <div class="topbar-main">
-        <div class="title">
-          <h1>Timo Training ✦</h1>
-          <div class="sub" id="weekHeader">Week</div>
+        <div class="title app-brand">
+          <img src="icon_180.png" alt="Timo Training icon" class="app-brand-icon" />
+          <div class="app-brand-text">
+            <h1>Timo Training</h1>
+            <div class="sub app-subtitle">Logbook</div>
+            <div class="sub" id="weekHeader">Week</div>
+          </div>
         </div>
         <div class="header-actions">
           <button class="btn" id="workoutModeBtn">WORKOUT MODE</button>
