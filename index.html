@@ -195,8 +195,9 @@ input,textarea,select,button { font:inherit; }
 .sync-pill.syncing{color:#ffe39a;border-color:rgba(242,201,76,.35);background:rgba(242,201,76,.10);}
 .sync-pill.warn{color:#ffd0d0;border-color:rgba(235,87,87,.35);background:rgba(235,87,87,.12);}
 .sync-pill.info{color:#cfe1ff;border-color:rgba(127,178,255,.35);background:rgba(127,178,255,.10);}
-.bottom-bar{display:none;gap:10px;padding:0;background:transparent;backdrop-filter:none;}
-.bottom-bar .btn{flex:1;min-height:46px;font-weight:700;}
+.bottom-bar{display:none;gap:10px;padding:12px;border-radius:22px;border:1px solid var(--line);background:linear-gradient(180deg, rgba(15,33,61,.98), rgba(10,24,45,.98));box-shadow:var(--shadow);margin-top:10px;}
+.bottom-bar .btn{flex:1;min-height:46px;font-weight:800;border-radius:16px;}
+.bottom-bar .btn.primary{box-shadow:0 10px 24px rgba(255,159,10,.18), inset 0 1px 0 rgba(255,255,255,.18);}
 .bottom-spacer{display:none;height:0;}
 .quick-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;z-index:60;padding:10px 14px;border-radius:999px;background:rgba(8,23,45,.92);border:1px solid var(--line);color:var(--text);font-size:12px;opacity:0;pointer-events:none;transition:opacity .18s ease, transform .18s ease;}
 .quick-toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
@@ -458,12 +459,12 @@ input,textarea,select,button { font:inherit; }
   .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media (max-width:840px) {
-  .bottom-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:14px;}
+  .bottom-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:10px;}
   .bottom-spacer{display:none;}
 }
 
 @media (max-width:640px) {
-  .app { padding:10px 10px 112px; }
+  .app { padding:10px 10px 20px; }
   .topbar { margin:-10px -10px 10px; padding-left:10px; padding-right:10px; }
   .title h1 { font-size:24px; }
   .title .sub { font-size:12px; }
@@ -875,6 +876,8 @@ input,textarea,select,button { font:inherit; }
 @media (max-width:840px){
   .bottom-bar{
     gap:8px;
+    padding:10px;
+    border-radius:20px;
   }
   .bottom-bar .btn{
     min-height:44px;
@@ -1296,7 +1299,6 @@ input,textarea,select,button { font:inherit; }
     </div>
   </div>
 </div>
-<div class="bottom-spacer"></div>
 <div class="bottom-bar" id="bottomBar">
   <button class="btn" id="bottomTimerBtn">⏱ Timer</button>
   <button class="btn" id="bottomAddExerciseBtn">+ Exercise</button>
