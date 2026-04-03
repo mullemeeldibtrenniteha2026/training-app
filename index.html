@@ -442,6 +442,337 @@ input,textarea,select,button { font:inherit; }
 @keyframes spin{to{transform:rotate(360deg)}}
 .app.booting{}
 
+
+/* V12.4 safe polish overrides */
+.topbar{
+  border-bottom:1px solid rgba(36,51,75,.55);
+  padding-bottom:10px;
+}
+.topbar-inner{
+  gap:10px;
+}
+.topbar-main{
+  gap:8px;
+}
+.title{
+  text-align:center;
+}
+.title h1{
+  font-size:30px;
+  letter-spacing:-.03em;
+  margin-bottom:4px;
+}
+.title .sub{
+  color:#b9c9dd;
+  font-size:12px;
+}
+.header-actions{
+  justify-content:center;
+}
+.header-meta{
+  gap:8px;
+}
+.header-meta .help{
+  font-size:11px;
+  color:#8ea3bd;
+}
+.header-meta .sync-pill{
+  font-size:11px;
+  padding:6px 10px;
+}
+.metrics{
+  gap:12px;
+  margin-bottom:16px;
+}
+.metric,.card{
+  border-radius:20px;
+}
+.metric{
+  padding:13px 14px;
+}
+.metric .k{
+  font-size:10px;
+  letter-spacing:.08em;
+}
+.metric .v{
+  margin-top:6px;
+  font-size:21px;
+}
+.metric .s{
+  margin-top:5px;
+  line-height:1.35;
+}
+.layout{
+  gap:16px;
+}
+.left, .right{
+  gap:16px;
+}
+.card{
+  padding:16px;
+}
+.section-title{
+  margin-bottom:10px;
+}
+.section-title h2,.section-title h3{
+  font-size:14px;
+  letter-spacing:.01em;
+}
+.section-title .meta,.help{
+  font-size:11px;
+  line-height:1.4;
+}
+.calendar-collapsible .section-title{
+  margin-bottom:12px;
+}
+.calendar-head{
+  margin-bottom:12px;
+}
+.legend{
+  margin-top:12px;
+}
+.legend-item{
+  font-size:11px;
+}
+.compact-search-card{
+  padding-top:14px;
+  padding-bottom:14px;
+}
+.compact-search-card .field{
+  max-width:none;
+  text-align:left;
+}
+.compact-search-card .section-title{
+  margin-bottom:10px;
+}
+.compact-search-card .section-title h3{
+  text-transform:none;
+  letter-spacing:.01em;
+  color:var(--text);
+  font-size:14px;
+  font-weight:650;
+}
+.add-card .add-grid{
+  margin-top:4px;
+}
+.add-card .row{
+  margin-top:10px !important;
+}
+.info-box{
+  padding:10px 12px;
+}
+.info-box .k{
+  font-size:10px;
+}
+.info-box .v{
+  font-size:12px;
+  line-height:1.45;
+}
+.exercise-list{
+  gap:14px;
+}
+.block-group{
+  border-radius:22px;
+}
+.block-header{
+  padding:10px 12px;
+}
+.block-title{
+  gap:8px;
+}
+.block-chip{
+  min-width:44px;
+  height:32px;
+  border-radius:11px;
+  font-size:13px;
+}
+.exercise{
+  padding:15px 14px;
+}
+.exercise-main{
+  gap:12px;
+}
+.left-main{
+  gap:12px;
+}
+.codebox{
+  width:58px;
+  min-width:58px;
+}
+.exercise-name{
+  font-size:18px;
+}
+.exercise-meta{
+  margin-top:5px;
+  font-size:11px;
+  color:#96abc4;
+}
+.compare{
+  margin-top:10px;
+}
+.compare .info-box{
+  background:rgba(255,255,255,.02);
+  border-color:rgba(255,255,255,.05);
+}
+.compare .info-box .k{
+  opacity:.85;
+}
+.compare .info-box .v{
+  font-size:11px;
+  color:#c8d7e9;
+}
+.field-grid{
+  grid-template-columns:110px 1fr;
+  gap:12px;
+  margin-top:12px;
+}
+.label{
+  font-size:11px;
+  padding-top:9px;
+}
+.field-grid .field,
+.field-grid .textarea{
+  min-height:50px;
+}
+.textarea{
+  line-height:1.4;
+}
+.sets{
+  gap:9px;
+  margin-top:13px;
+}
+.setrow{
+  padding:8px;
+}
+.setcol .k{
+  font-size:10px;
+}
+.setinput{
+  min-height:40px;
+}
+.exercise-actions{
+  margin-top:12px;
+}
+.search-item{
+  padding:13px 14px;
+}
+.search-item .name{
+  font-size:15px;
+}
+.search-item .meta{
+  font-size:11px;
+}
+.workout-focus-card{
+  text-align:center;
+}
+.workout-date-big{
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.02em;
+  margin-bottom:8px;
+}
+.workout-focus-note{
+  margin-top:10px;
+}
+@media (max-width:840px){
+  .bottom-bar{
+    padding-top:10px;
+    gap:8px;
+  }
+  .bottom-bar .btn{
+    min-height:46px;
+    border-radius:14px;
+  }
+  .bottom-spacer{
+    height:78px;
+  }
+}
+@media (max-width:640px){
+  .topbar{
+    margin:-10px -10px 8px;
+    padding:calc(max(8px, env(safe-area-inset-top))) 10px 10px;
+  }
+  .topbar-inner{
+    gap:8px;
+  }
+  .title h1{
+    font-size:30px;
+  }
+  .metrics{
+    gap:9px;
+    margin-bottom:14px;
+  }
+  .metric{
+    padding:11px 10px;
+  }
+  .metric .v{
+    font-size:19px;
+  }
+  .layout{
+    gap:14px;
+  }
+  .left{
+    gap:14px;
+    margin-bottom:14px;
+  }
+  .card{
+    padding:14px 12px;
+    border-radius:18px;
+  }
+  .section-title{
+    margin-bottom:9px;
+  }
+  .calendar-head{
+    margin-bottom:10px;
+  }
+  .legend{
+    margin-top:10px;
+    row-gap:6px;
+  }
+  .compact-search-card .field{
+    min-height:38px;
+    padding:8px 11px;
+  }
+  .exercise{
+    padding:14px 12px;
+  }
+  .left-main{
+    gap:10px;
+  }
+  .exercise-name{
+    font-size:17px;
+  }
+  .compare .info-box{
+    padding:8px 10px;
+  }
+  .field-grid{
+    grid-template-columns:1fr;
+    gap:7px;
+    margin-top:10px;
+  }
+  .label{
+    padding-top:0;
+    text-align:center;
+  }
+  .field-grid .field,
+  .field-grid .textarea{
+    min-height:48px;
+  }
+  .textarea{
+    min-height:48px;
+  }
+  .sets{
+    margin-top:11px;
+    gap:8px;
+  }
+  .setrow{
+    padding:7px;
+  }
+  .search-item{
+    padding:12px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
