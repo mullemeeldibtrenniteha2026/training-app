@@ -39,10 +39,9 @@ input,textarea,select,button { font:inherit; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
 .title h1 { margin:0; font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--accent-soft); text-shadow:0 0 18px rgba(242,201,76,.08); text-align:center; }
 .title .sub { color:var(--muted); font-size:13px; margin-top:4px; text-align:center; }
-.app-brand{display:flex;align-items:center;justify-content:center;gap:12px;text-align:left;}
-.app-brand-icon{width:30px;height:30px;border-radius:8px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.22);}
-.app-brand-text{display:flex;flex-direction:column;align-items:flex-start;}
-.app-subtitle{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#b8c7d9;opacity:.9;margin-top:2px;}
+.app-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;}
+.app-brand-line{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:nowrap;}
+.app-brand-icon{width:26px;height:26px;border-radius:8px;object-fit:cover;box-shadow:0 8px 20px rgba(0,0,0,.22);opacity:.96;}
 #weekHeader{display:none;}
 
 .btn,.field,.select,.textarea {
@@ -1289,25 +1288,20 @@ input,textarea,select,button { font:inherit; }
   .app{padding-bottom:28px;}
   .topbar{margin:-10px -10px 10px;padding-left:10px;padding-right:10px;}
   .app-brand{
-    gap:12px;
-    padding:6px 12px 2px;
+    gap:7px;
+    padding:6px 10px 2px;
     background:none;
     border:none;
     box-shadow:none;
   }
   .app-brand-icon{
-    width:34px;
-    height:34px;
-    border-radius:12px;
-    padding:3px;
+    width:24px;
+    height:24px;
+    border-radius:8px;
+    padding:0;
   }
   .title h1{
-    font-size:30px;
-  }
-  .app-subtitle{
-    font-size:9px;
-    padding:4px 8px;
-    letter-spacing:.14em;
+    font-size:27px;
   }
   .card.end-panel-shell{
     padding:12px;
@@ -1384,12 +1378,9 @@ input,textarea,select,button { font:inherit; }
     <div class="topbar-inner">
       <div class="topbar-main">
         <div class="title app-brand">
+          <div class="app-brand-line"><h1>Timo Training Logbook</h1></div>
           <img src="icon_180.png" alt="Timo Training icon" class="app-brand-icon" />
-          <div class="app-brand-text">
-            <h1>Timo Training</h1>
-            <div class="sub app-subtitle">Logbook</div>
-            <div class="sub" id="weekHeader">Week</div>
-          </div>
+          <div class="sub" id="weekHeader">Week</div>
         </div>
         <div class="header-actions">
           <button class="btn" id="workoutModeBtn">WORKOUT MODE</button>
@@ -2262,7 +2253,7 @@ function renderExercises() {
     const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
     const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
     return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
-  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (groups.length ? `<div class="card end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn" id="bottomTimerBtn">⏱ Timer</button><button class="btn" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``) + emptyMessage;
+  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (groups.length ? `<div class="card end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn" id="bottomTimerBtn">⏱ Timer</button><button class="btn" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``) + emptyMessage;
   bindExerciseEvents(all);
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
