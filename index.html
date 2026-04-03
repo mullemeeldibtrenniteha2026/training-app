@@ -534,6 +534,11 @@ input,textarea,select,button { font:inherit; }
         <div class="pills" id="dayPills"></div>
       </div>
 
+      <div class="card compact-search-card">
+        <div class="section-title"><h3>Search exercise</h3></div>
+        <input class="field" id="searchInput" placeholder="Search exercise" />
+      </div>
+
       <div class="card">
         <div class="section-title">
           <h3 id="radarTitle">Balance</h3>
@@ -1288,7 +1293,8 @@ function render() {
   const dl=document.getElementById("exerciseSuggestions");
   if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
 }
-document.getElementById("searchInput").oninput = e => { ui.search=e.target.value; const s=document.getElementById("saveStatus"); if(s) s.textContent = ui.search.trim() ? "Searching across all saved workouts…" : "Saved locally on this device."; renderExercises(); };
+const searchInput = document.getElementById("searchInput");
+if(searchInput) searchInput.oninput = e => { ui.search=e.target.value; const s=document.getElementById("saveStatus"); if(s) s.textContent = ui.search.trim() ? "Searching across all saved workouts…" : "Saved locally on this device."; renderExercises(); };
 document.getElementById("workoutModeBtn").onclick = () => {
   ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
   document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "Exit workout" : "Workout";
