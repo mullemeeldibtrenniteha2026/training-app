@@ -33,7 +33,7 @@ input,textarea,select,button { font:inherit; }
   background:rgba(15,17,21,.92); backdrop-filter:blur(12px);
   border-bottom:1px solid rgba(36,51,75,.7);
 }
-.topbar-inner { max-width:1200px; margin:0 auto; display:grid; gap:10px; }
+.topbar-inner { max-width:1200px; margin:0 auto; display:grid; gap:8px; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
 .title h1 { margin:0; font-size:22px; font-weight:800; letter-spacing:-.02em; color:var(--accent-soft); text-shadow:0 0 18px rgba(242,201,76,.08); }
 .title .sub { color:var(--muted); font-size:13px; margin-top:3px; }
@@ -106,7 +106,7 @@ input,textarea,select,button { font:inherit; }
   padding:14px; border-top:1px solid rgba(36,51,75,.55);
 }
 .exercise:first-child { border-top:none; }
-.exercise.superset { border-left:4px solid var(--green); padding-left:10px; }
+.exercise.superset { border-left:4px solid var(--gold); padding-left:10px; }
 .exercise-main { display:flex; gap:10px; align-items:flex-start; justify-content:space-between; }
 .left-main { display:flex; gap:10px; min-width:0; align-items:flex-start; }
 .codebox {
@@ -121,7 +121,11 @@ input,textarea,select,button { font:inherit; }
 .badges { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
 .badge { padding:6px 9px; border-radius:999px; font-size:11px; color:var(--soft); background:#131e30; border:1px solid var(--line); }
 .compare { display:grid; grid-template-columns:1fr; gap:10px; margin-top:12px; }
+.compare .info-box .v{font-size:12px;line-height:1.5;font-weight:600;}
+.compare .info-box .k{font-size:10px;}
+.workout-date-big{text-align:center;font-size:18px;font-weight:700;color:#f2c94c;margin-bottom:8px;}
 .field-grid { display:grid; grid-template-columns:130px 1fr; gap:10px; align-items:start; margin-top:10px; }
+.field-grid .field,.field-grid .textarea{min-height:52px;}
 .label { color:var(--muted); font-size:12px; padding-top:10px; }
 .sets { display:grid; gap:8px; margin-top:12px; }
 .setrow {
@@ -198,11 +202,12 @@ input,textarea,select,button { font:inherit; }
 .title .sub{font-size:13px;}
 .header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .header-actions .btn{min-height:36px;padding:7px 10px;border-radius:12px;}
-.search-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;}
-.search-row .field{min-height:40px;}
-.search-inline-actions{display:flex;align-items:center;gap:8px;}
+.search-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:center;max-width:540px;margin:0 auto;width:100%;}
+.search-row .field{min-height:38px;font-size:14px;padding:9px 12px;}
+.search-inline-actions{display:flex;align-items:center;gap:8px;justify-content:center;}
 .compact-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .compact-status .help{font-size:12px;}
+.search-row .field::placeholder{color:#7f97b6;}
 .radar-header-actions{display:flex;align-items:center;gap:8px;}
 .segmented{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;}
 .segmented button{min-height:auto;padding:6px 10px;border:none;background:transparent;color:var(--muted);border-radius:999px;cursor:pointer;}
@@ -211,10 +216,7 @@ input,textarea,select,button { font:inherit; }
 .timer-sheet{width:min(440px,100%);background:linear-gradient(180deg,#132A4A,#0F243F);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:18px;}
 .timer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
 .timer-head h3{margin:0;font-size:18px;}
-.timer-display{font-size:42px;font-weight:800;letter-spacing:-.03em;text-align:center;margin:10px 0 14px;}
-.timer-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px;}
-.timer-custom{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:10px;}
-.timer-custom .field{text-align:center;}
+.timer-display{font-size:52px;font-weight:800;letter-spacing:-.03em;text-align:center;margin:16px 0 18px;}
 .timer-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
 .timer-hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px;}
 .add-card .section-title .meta,.add-card .help{display:none;}
@@ -227,9 +229,12 @@ input,textarea,select,button { font:inherit; }
   .title h1{font-size:16px;}
   .title .sub{font-size:12px;}
   .header-actions .btn{min-height:36px;padding:8px 9px;font-size:12px;}
-  .search-row{grid-template-columns:minmax(0,1fr) auto;}
+  .search-row{grid-template-columns:minmax(0,1fr);}
   .search-inline-actions .help{display:none;}
   .search-inline-actions .sync-pill{font-size:11px;padding:6px 9px;}
+  .topbar-main{gap:4px;}
+  .title h1{font-size:30px;}
+  .search-row .field{font-size:13px;min-height:36px;}
 }
 
 @media (max-width:980px) {
@@ -481,7 +486,7 @@ input,textarea,select,button { font:inherit; }
         </div>
       </div>
       <div class="search-row">
-        <input class="field" id="searchInput" placeholder="Search exercise..." />
+        <input class="field" id="searchInput" placeholder="Search" />
         <div class="search-inline-actions">
           <div class="help" id="saveStatus">Ready.</div>
           <div class="sync-pill" id="syncStatus">Cloud: not connected</div>
@@ -545,7 +550,7 @@ input,textarea,select,button { font:inherit; }
         <div class="row" style="margin-top:8px">
           <select class="select" id="addScope">
             <option value="day">Only this day</option>
-            <option value="weekday_all">Every same weekday</option>
+            <option value="weekday_all">Every same weekday in plan</option>
           </select>
           <datalist id="exerciseSuggestions"></datalist>
         </div>
@@ -578,22 +583,13 @@ input,textarea,select,button { font:inherit; }
       <h3>Rest timer</h3>
       <button class="btn" id="timerCloseBtn">Close</button>
     </div>
-    <div class="timer-display" id="timerDisplay">01:30</div>
-    <div class="timer-custom">
-      <input class="field" id="timerMinutesInput" type="number" min="0" max="59" value="1" inputmode="numeric" />
-      <input class="field" id="timerSecondsInput" type="number" min="0" max="59" value="30" inputmode="numeric" />
-      <button class="btn" id="timerApplyBtn">Set</button>
-    </div>
-    <div class="timer-presets">
-      <button class="btn" data-timer-adjust="-15">−15s</button>
-      <button class="btn" data-timer-adjust="15">+15s</button>
-    </div>
+    <div class="timer-display" id="timerDisplay">00:00</div>
     <div class="timer-actions">
       <button class="btn primary" id="timerStartBtn">Start</button>
       <button class="btn" id="timerPauseBtn">Pause</button>
       <button class="btn" id="timerResetBtn">Reset</button>
     </div>
-    <div class="timer-hint">Simple rest timer for gym flow.</div>
+    <div class="timer-hint">Simple running rest timer.</div>
   </div>
 </div>
 
@@ -942,7 +938,7 @@ function computeRadar(week, day=null) {
   }
   return totals;
 }
-let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:(window.innerWidth<=640)};
+let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false};
 function goToday() {
   const info = dateToProgramDay(TODAY);
   ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
@@ -969,7 +965,7 @@ function renderMetrics() {
     <div class="metric"><div class="k">Blocks</div><div class="v">${groups||0}</div><div class="s">${exs.length} exercises</div></div>
     <div class="metric"><div class="k">Volume</div><div class="v">${totalVol ? totalVol.toLocaleString("en-GB") : 0}</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
   `;
-  document.getElementById("weekHeader").textContent = `Week ${ui.week} • ${DAY_LABEL[ui.day]} • ${weekRangeLabel(ui.week)}`;
+  document.getElementById("weekHeader").textContent = `W${ui.week} • ${DAY_LABEL[ui.day]} • ${fmtShortDate(dayDate(ui.week,ui.day))}`;
 }
 function renderCalendar() {
   document.getElementById("monthTitle").textContent = ui.month.toLocaleDateString("en-GB", {month:"long",year:"numeric"});
@@ -1052,6 +1048,17 @@ function renderRadar() {
   out += `<polygon points="${dataPts}" fill="rgba(110,168,255,.20)" stroke="#74aaff" stroke-width="2.5"/>`;
   svg.innerHTML = out;
 }
+
+function refreshScopeLabels() {
+  const sel = document.getElementById("addScope");
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = `
+    <option value="day">Only ${DAY_LABEL[ui.day]}</option>
+    <option value="weekday_all">Every ${DAY_LABEL[ui.day]} in plan</option>
+  `;
+  sel.value = current || "day";
+}
 function renderHistoryPreview() {
   const name = document.getElementById("addExerciseName").value.trim();
   const box = document.getElementById("historyPreview");
@@ -1090,7 +1097,7 @@ function renderExercises() {
     groups[groups.length-1].items.push(ex);
   });
   const wrap = document.getElementById("exerciseList");
-  const focus = ui.workoutMode ? `<div class="card"><div class="section-title"><h3>Workout mode</h3><div class="meta">Exercise ${Math.min(ui.activeExerciseIndex+1, Math.max(1,all.length))} / ${Math.max(1,all.length)}</div></div><div class="row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note">All exercises stay visible. Current focus: <strong>${activeExercise ? esc(exerciseName(ui.week,ui.day,activeExercise)) : '—'}</strong></div></div>` : "";
+  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">Exercise ${Math.min(ui.activeExerciseIndex+1, Math.max(1,all.length))} / ${Math.max(1,all.length)}</div></div><div class="row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note">Current focus: <strong>${activeExercise ? esc(exerciseName(ui.week,ui.day,activeExercise)) : '—'}</strong></div></div>` : "";
   const searchBox = q ? `<div class="card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   const emptyMessage = !groups.length ? `<div class="card"><div class="empty-state">${q ? 'Current day has no match for this search.' : 'This day is empty right now. Add your first exercise below.'}</div></div>` : "";
   wrap.innerHTML = searchBox + focus + (groups.length ? groups.map(group => {
@@ -1126,13 +1133,10 @@ function renderExercises() {
               <input class="codebox" data-role="code" data-ex="${ex}" value="${esc(code)}" />
               <div style="min-width:0;width:100%">
                 <input class="exercise-name" data-role="name" data-ex="${ex}" value="${esc(name)}" />
-                <div class="exercise-meta">${[ /\d$/.test(code) ? `Superset item ${code}` : code ? `Block item ${code}` : "", rest ? `Rest: ${esc(rest)}` : "", recovery ? "Recovery / conditioning" : ""].filter(Boolean).join(" • ")}</div>
+                <div class="exercise-meta">${[ /\d$/.test(code) ? `Superset item ${code}` : code ? `Block item ${code}` : "", recovery ? "Recovery / conditioning" : ""].filter(Boolean).join(" • ")}</div>
               </div>
             </div>
-            <div class="badges">
-              <div class="badge">${done ? "Done" : "Planned"}</div>
-              ${last ? `<div class="badge">${fmtShortDate(last.date)}</div>` : ""}
-            </div>
+
           </div>
 
           ${last ? `<div class="compare compact-last"><div class="info-box"><div class="k">Last time</div><div class="v">${fmtShortDate(last.date)} • ${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div></div></div>` : ""}
@@ -1267,7 +1271,7 @@ function renderAddScopeLabels() {
   if(opts[1]) opts[1].textContent = `Every ${dayName} in plan`;
 }
 function render() {
-  renderMetrics(); renderCalendar(); renderDays(); renderRadar(); renderExercises(); renderHistoryPreview(); renderAddScopeLabels();
+  renderMetrics(); renderCalendar(); renderDays(); refreshScopeLabels(); renderRadar(); renderExercises(); renderHistoryPreview(); renderAddScopeLabels();
   const dl=document.getElementById("exerciseSuggestions");
   if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
 }
@@ -1576,20 +1580,19 @@ async function initSupabaseApp() {
   }
 }
 
-const timerState = { duration: 90, remaining: 90, interval: null, running: false };
-function formatTimer(seconds) {
-  const s = Math.max(0, Number(seconds) || 0);
-  const mm = String(Math.floor(s / 60)).padStart(2, "0");
-  const ss = String(s % 60).padStart(2, "0");
-  return `${mm}:${ss}`;
+const timerState = { elapsed: 0, interval: null, running: false };
+function formatTimer(totalSeconds) {
+  const mins = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+  const secs = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
+  return `${mins}:${secs}`;
 }
 function renderTimer() {
   const display = document.getElementById("timerDisplay");
   const btn = document.getElementById("bottomTimerBtn");
-  if(display) display.textContent = formatTimer(timerState.remaining);
+  if(display) display.textContent = formatTimer(timerState.elapsed);
   if(btn) {
-    btn.classList.toggle("timer-live", timerState.running || timerState.remaining !== timerState.duration);
-    btn.textContent = timerState.running ? `⏱ ${formatTimer(timerState.remaining)}` : "⏱ Timer";
+    btn.classList.toggle("timer-live", timerState.running || timerState.elapsed > 0);
+    btn.textContent = timerState.running ? `⏱ ${formatTimer(timerState.elapsed)}` : (timerState.elapsed > 0 ? `⏱ ${formatTimer(timerState.elapsed)}` : "⏱ Timer");
   }
 }
 function stopTimerInterval() {
@@ -1597,17 +1600,12 @@ function stopTimerInterval() {
   timerState.interval = null;
 }
 function startTimer() {
+  if(timerState.running) return;
   stopTimerInterval();
   timerState.running = true;
   renderTimer();
   timerState.interval = setInterval(() => {
-    timerState.remaining -= 1;
-    if(timerState.remaining <= 0) {
-      timerState.remaining = 0;
-      timerState.running = false;
-      stopTimerInterval();
-      showToast("Rest done");
-    }
+    timerState.elapsed += 1;
     renderTimer();
   }, 1000);
 }
@@ -1616,9 +1614,8 @@ function pauseTimer() {
   stopTimerInterval();
   renderTimer();
 }
-function resetTimer(duration = timerState.duration) {
-  timerState.duration = Number(duration) || 90;
-  timerState.remaining = timerState.duration;
+function resetTimer() {
+  timerState.elapsed = 0;
   timerState.running = false;
   stopTimerInterval();
   renderTimer();
@@ -1817,13 +1814,10 @@ const timerPauseBtn = document.getElementById("timerPauseBtn");
 if(timerPauseBtn) timerPauseBtn.onclick = () => pauseTimer();
 const timerResetBtn = document.getElementById("timerResetBtn");
 if(timerResetBtn) timerResetBtn.onclick = () => resetTimer();
-const timerApplyBtn = document.getElementById("timerApplyBtn");
-if(timerApplyBtn) timerApplyBtn.onclick = () => applyCustomTimer();
-document.querySelectorAll("[data-timer-adjust]").forEach(btn => btn.onclick = () => adjustTimer(Number(btn.dataset.timerAdjust)));
 document.getElementById("timerOverlay")?.addEventListener("click", e => { if(e.target.id === "timerOverlay") closeTimer(); });
 const calendarToggleBtn = document.getElementById("calendarToggleBtn");
 if(calendarToggleBtn) calendarToggleBtn.onclick = () => { ui.calendarCollapsed = !ui.calendarCollapsed; renderCalendar(); };
-resetTimer(90);
+resetTimer();
 initSupabaseApp();
 setupLockScreen();
 goToday();
