@@ -1075,6 +1075,22 @@ input,textarea,select,button { font:inherit; }
   }
 }
 
+
+/* Patch 2.2 polish */
+.days-card .pills{margin-top:4px;}
+.compact-search-card .section-title h3{font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--text);}
+.compact-search-card .field{font-size:18px;min-height:48px;padding:10px 14px;text-align:left;}
+.compact-search-card .field::placeholder{color:transparent;}
+#radarTitle{font-size:24px !important;font-weight:850 !important;letter-spacing:-.03em !important;color:var(--text) !important;text-transform:none !important;}
+.radar-card .section-title{margin-bottom:12px;}
+.radar-header-actions{justify-content:center !important;margin-top:10px !important;}
+.radar-header-actions .segmented{margin:0 auto !important;}
+@media (max-width:640px){
+  .compact-search-card .section-title h3{font-size:18px;}
+  .compact-search-card .field{font-size:17px;}
+  #radarTitle{font-size:21px !important;}
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1162,19 +1178,18 @@ input,textarea,select,button { font:inherit; }
         </div>
       </div>
 <div class="card days-card">
-        <div class="section-title"><h3>Days in week</h3><div class="meta"></div></div>
         <div class="pills" id="dayPills"></div>
       </div>
 
       <div class="card compact-search-card search-card">
         <div class="section-title"><h3>Search exercise</h3></div>
-        <input class="field" id="searchInput" placeholder="Search exercise or block" />
+        <input class="field" id="searchInput" placeholder="" />
       </div>
       <div id="searchResultsHost"></div>
 
       <div class="card radar-card">
         <div class="section-title">
-          <h3 id="radarTitle">Balance</h3>
+          <h3 id="radarTitle">Muscular Radar</h3>
           <div class="radar-header-actions">
             <div class="segmented" id="radarToggle">
               <button type="button" data-radar-mode="day" class="active">Day</button>
@@ -1789,7 +1804,7 @@ function renderRadar() {
   const svg = document.getElementById("radarSvg");
   const totals = ui.radarMode==="day" ? computeRadar(ui.week, ui.day) : (ui.radarMode==="week" ? computeRadar(ui.week) : computeRadarLifetime());
   const title = document.getElementById("radarTitle");
-  if(title) title.textContent = ui.radarMode==="day" ? "Day balance" : (ui.radarMode==="week" ? "Week balance" : "Lifetime balance");
+  if(title) title.textContent = "Muscular Radar";
   document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.classList.toggle("active", btn.dataset.radarMode===ui.radarMode));
 
   const axes = [
