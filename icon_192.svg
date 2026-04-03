@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0.1" y2="1">
+    <stop offset="0%" stop-color="#0e1016"/>
+    <stop offset="100%" stop-color="#060709"/>
+  </linearGradient>
+  <linearGradient id="rod" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%" stop-color="#6b5412"/>
+    <stop offset="50%" stop-color="#9a7a1e"/>
+    <stop offset="100%" stop-color="#6b5412"/>
+  </linearGradient>
+  <linearGradient id="plate" x1="0" y1="0" x2="0.2" y2="1">
+    <stop offset="0%" stop-color="#c9a535"/>
+    <stop offset="30%" stop-color="#e8c050"/>
+    <stop offset="70%" stop-color="#d4aa3a"/>
+    <stop offset="100%" stop-color="#8a6c18"/>
+  </linearGradient>
+  <linearGradient id="collar" x1="0" y1="0" x2="0.2" y2="1">
+    <stop offset="0%" stop-color="#a08028"/>
+    <stop offset="100%" stop-color="#6a5010"/>
+  </linearGradient>
+</defs>
+<rect width="192" height="192" rx="43" fill="url(#bg)"/>
+<rect width="192" height="192" rx="43" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+<rect x="54" y="93" width="84" height="7" rx="3" fill="url(#rod)"/>
+<rect x="50" y="84" width="12" height="25" rx="3.5" fill="url(#collar)"/>
+<rect x="130" y="84" width="12" height="25" rx="3.5" fill="url(#collar)"/>
+<rect x="24" y="68" width="28" height="56" rx="6" fill="url(#plate)"/>
+<rect x="25" y="69" width="26" height="10" rx="2.5" fill="rgba(255,255,255,0.1)"/>
+<rect x="140" y="68" width="28" height="56" rx="6" fill="url(#plate)"/>
+<rect x="141" y="69" width="26" height="10" rx="2.5" fill="rgba(255,255,255,0.1)"/>
+</svg>
