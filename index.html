@@ -206,6 +206,24 @@ input,textarea,select,button { font:inherit; }
 .header-actions .btn{min-height:36px;padding:7px 10px;border-radius:12px;}
 .header-actions #workoutModeBtn{min-height:48px;padding:12px 20px;border-radius:14px;font-size:15px;font-weight:900;letter-spacing:.06em;background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);border:1px solid rgba(255,194,71,.38);color:#1a1204;box-shadow:0 10px 24px rgba(255,159,10,.28), inset 0 1px 0 rgba(255,255,255,.28);text-transform:uppercase;}
 .header-actions #workoutModeBtn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.22);}
+
+.finish-workout-row{display:flex;justify-content:center;margin-top:18px;}
+.finish-workout-btn{
+  min-height:48px;
+  padding:12px 20px;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:.06em;
+  background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);
+  border:1px solid rgba(255,194,71,.38);
+  color:#1a1204;
+  box-shadow:0 10px 24px rgba(255,159,10,.28), inset 0 1px 0 rgba(255,255,255,.28);
+  text-transform:uppercase;
+  min-width:min(100%,340px);
+}
+.finish-workout-btn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.22);}
+
 .search-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:center;max-width:520px;margin:0 auto;width:100%;}
 .search-row .field{min-height:36px;font-size:13px;padding:8px 12px;}
 .search-inline-actions{display:flex;align-items:center;gap:8px;justify-content:center;}
@@ -1774,6 +1792,8 @@ function markEntireWorkoutDone(){
   });
   saveState();
 }
+
+
 function markEntireWorkoutDone(){
   const all = getExercisesForWeekDay(ui.week, ui.day);
   all.forEach(ex => {
@@ -1880,7 +1900,7 @@ function renderExercises() {
         </div>`;
       }).join("");
     return `<div class="block-group"><div class="workout-group-stack">${groupInner}</div></div>`;
-  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (ui.workoutMode && ui.activeExerciseIndex === allGroups.length - 1 && groups.length ? `<div class="workout-finish-row"><button class="btn" id="workoutDoneBtn">FINISH WORKOUT</button></div>` : ``) + emptyMessage;
+  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (ui.workoutMode && ui.activeExerciseIndex === allGroups.length - 1 && groups.length ? `<div class="finish-workout-row"><button class="finish-workout-btn" id="workoutDoneBtn" type="button">Finish workout</button></div>` : ``) + emptyMessage;
   bindExerciseEvents(all);
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
