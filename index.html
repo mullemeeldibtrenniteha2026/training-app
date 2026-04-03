@@ -202,8 +202,8 @@ input,textarea,select,button { font:inherit; }
 .title .sub{font-size:13px;}
 .header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .header-actions .btn{min-height:36px;padding:7px 10px;border-radius:12px;}
-.header-actions #workoutModeBtn{min-height:46px;padding:10px 18px;border-radius:14px;font-size:16px;font-weight:800;letter-spacing:.01em;background:linear-gradient(145deg, rgba(242,201,76,.24), rgba(242,201,76,.12));border-color:rgba(242,201,76,.42);color:#ffe6a4;box-shadow:0 8px 20px rgba(242,201,76,.10);}
-.header-actions #workoutModeBtn:active{transform:scale(.98);}
+.header-actions #workoutModeBtn{min-height:48px;padding:12px 20px;border-radius:14px;font-size:15px;font-weight:900;letter-spacing:.06em;background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);border:1px solid rgba(255,194,71,.38);color:#1a1204;box-shadow:0 10px 24px rgba(255,159,10,.28), inset 0 1px 0 rgba(255,255,255,.28);text-transform:uppercase;}
+.header-actions #workoutModeBtn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.22);}
 .search-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:center;max-width:520px;margin:0 auto;width:100%;}
 .search-row .field{min-height:36px;font-size:13px;padding:8px 12px;}
 .search-inline-actions{display:flex;align-items:center;gap:8px;justify-content:center;}
@@ -227,9 +227,12 @@ input,textarea,select,button { font:inherit; }
   .header-actions{justify-content:center;width:100%;display:flex;}
 }
 .radar-header-actions{display:flex;align-items:center;gap:8px;}
-.segmented{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;}
-.segmented button{min-height:auto;padding:6px 10px;border:none;background:transparent;color:var(--muted);border-radius:999px;cursor:pointer;}
-.segmented button.active{background:rgba(242,201,76,.16);color:#f4d98c;}
+.segmented{display:inline-flex;gap:4px;padding:4px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));border-radius:999px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
+.segmented button{min-height:auto;padding:8px 14px;border:none;background:transparent;color:rgba(255,255,255,.62);border-radius:999px;cursor:pointer;font-weight:700;letter-spacing:.02em;}
+.segmented button.active{background:linear-gradient(180deg, rgba(116,170,255,.22), rgba(116,170,255,.10));color:#ffffff;box-shadow:0 6px 16px rgba(80,140,255,.16), inset 0 1px 0 rgba(255,255,255,.08);}
+
+.radar-wrap{position:relative;background:radial-gradient(circle at 50% 38%, rgba(255,255,255,.04), rgba(255,255,255,0) 58%), linear-gradient(180deg, rgba(255,255,255,.015), rgba(255,255,255,0));border-radius:22px;padding:6px;}
+#radarTitle{font-weight:800;letter-spacing:-.02em;}
 .timer-overlay{position:fixed;inset:0;z-index:10010;display:none;align-items:flex-end;justify-content:center;background:rgba(3,8,18,.58);padding:18px;}
 .timer-sheet{width:min(440px,100%);background:linear-gradient(180deg,#132A4A,#0F243F);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:18px;}
 .timer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
@@ -247,7 +250,7 @@ input,textarea,select,button { font:inherit; }
   .title h1{font-size:26px;}
   .title .sub{font-size:12px;}
   .header-actions .btn{min-height:36px;padding:8px 9px;font-size:12px;}
-  .header-actions #workoutModeBtn{min-height:44px;padding:10px 16px;font-size:15px;}
+  .header-actions #workoutModeBtn{min-height:44px;padding:10px 16px;font-size:14px;}
   .search-row{grid-template-columns:minmax(0,1fr);}
   .search-inline-actions .help{display:none;}
   .search-inline-actions .sync-pill{font-size:11px;padding:6px 9px;}
@@ -850,7 +853,7 @@ input,textarea,select,button { font:inherit; }
           <div class="sub" id="weekHeader">Week</div>
         </div>
         <div class="header-actions">
-          <button class="btn" id="workoutModeBtn">Workout</button>
+          <button class="btn" id="workoutModeBtn">WORKOUT MODE</button>
         </div>
       </div>
       <div class="header-meta">
@@ -1397,34 +1400,72 @@ function renderRadar() {
   const title = document.getElementById("radarTitle");
   if(title) title.textContent = ui.radarMode==="day" ? "Day balance" : (ui.radarMode==="week" ? "Week balance" : "Lifetime balance");
   document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.classList.toggle("active", btn.dataset.radarMode===ui.radarMode));
+
   const axes = [
-    ["chest","Chest"],["back","Back"],["shoulders","Shoulders"],["arms","Arms"],
-    ["quads","Quads"],["posterior","Posterior"],["core","Core"],["conditioning","Conditioning"]
+    ["chest","Chest","#ffb84d"],
+    ["back","Back","#ff7a45"],
+    ["shoulders","Shoulders","#58a6ff"],
+    ["arms","Arms","#48c6ff"],
+    ["quads","Quads","#4dd4ac"],
+    ["posterior","Posterior","#6be675"],
+    ["core","Core","#9de05e"],
+    ["conditioning","Conditioning","#ffd24d"]
   ];
   const max = Math.max(1, ...axes.map(([k]) => totals[k] || 0));
-  const cx=160, cy=160, r=96, rings=4;
-  let out = `<rect x="0" y="0" width="320" height="320" rx="20" fill="#0a1830"/>`;
+  const cx=160, cy=160, r=96, rings=5;
+
+  const pointFor = (radius, i) => {
+    const a = -Math.PI/2 + i * (Math.PI*2/axes.length);
+    return {x: cx + Math.cos(a)*radius, y: cy + Math.sin(a)*radius, a};
+  };
+
+  let out = `<defs>
+      <radialGradient id="radarBg" cx="50%" cy="42%" r="72%">
+        <stop offset="0%" stop-color="rgba(255,255,255,.06)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </radialGradient>
+    </defs>
+    <rect x="0" y="0" width="320" height="320" rx="22" fill="#0a1830"/>
+    <rect x="0" y="0" width="320" height="320" rx="22" fill="url(#radarBg)"/>`;
+
   for(let ring=1; ring<=rings; ring++) {
     const rr = r * ring / rings;
     const pts = axes.map((_,i) => {
-      const a = -Math.PI/2 + i * (Math.PI*2/axes.length);
-      return `${cx + Math.cos(a)*rr},${cy + Math.sin(a)*rr}`;
+      const p = pointFor(rr, i);
+      return `${p.x},${p.y}`;
     }).join(" ");
-    out += `<polygon points="${pts}" fill="none" stroke="#243a63"/>`;
+    out += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="${ring===rings ? 1.4 : 1}"/>`;
   }
-  axes.forEach(([k,label],i) => {
-    const a = -Math.PI/2 + i * (Math.PI*2/axes.length);
-    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
-    const lx = cx + Math.cos(a)*(r+20), ly = cy + Math.sin(a)*(r+20);
-    out += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#243a63"/>`;
+
+  axes.forEach(([k,label,color],i) => {
+    const p = pointFor(r, i);
+    const lx = cx + Math.cos(p.a)*(r+22), ly = cy + Math.sin(p.a)*(r+22);
+    out += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,.10)" stroke-width="1"/>`;
     out += `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="11" fill="#9fb0c6">${label}</text>`;
   });
-  const dataPts = axes.map(([k],i) => {
+
+  const pts = axes.map(([k,label,color], i) => {
     const rr = r * ((totals[k] || 0) / max);
-    const a = -Math.PI/2 + i * (Math.PI*2/axes.length);
-    return `${cx + Math.cos(a)*rr},${cy + Math.sin(a)*rr}`;
-  }).join(" ");
-  out += `<polygon points="${dataPts}" fill="rgba(110,168,255,.20)" stroke="#74aaff" stroke-width="2.5"/>`;
+    const p = pointFor(rr, i);
+    return {...p, color, key:k};
+  });
+
+  for(let i=0;i<pts.length;i++) {
+    const p1 = pts[i];
+    const p2 = pts[(i+1)%pts.length];
+    out += `<polygon points="${cx},${cy} ${p1.x},${p1.y} ${p2.x},${p2.y}" fill="${p1.color}" fill-opacity=".16" stroke="none"/>`;
+  }
+
+  const outlinePts = pts.map(p => `${p.x},${p.y}`).join(" ");
+  out += `<polygon points="${outlinePts}" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.22)" stroke-width="1.2"/>`;
+
+  pts.forEach((p,i) => {
+    const next = pts[(i+1)%pts.length];
+    out += `<line x1="${p.x}" y1="${p.y}" x2="${next.x}" y2="${next.y}" stroke="${p.color}" stroke-width="2.5" stroke-linecap="round"/>`;
+    out += `<circle cx="${p.x}" cy="${p.y}" r="4.2" fill="${p.color}" stroke="#0a1830" stroke-width="1.6"/>`;
+  });
+
+  out += `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#f4d98c" fill-opacity=".9"/>`;
   svg.innerHTML = out;
 }
 
