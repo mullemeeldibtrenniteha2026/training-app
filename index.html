@@ -1365,7 +1365,7 @@ function renderMetrics() {
     <div class="metric"><div class="k">Blocks</div><div class="v">${groups||0}</div><div class="s">${exs.length} exercises</div></div>
     <div class="metric"><div class="k">Volume</div><div class="v">${totalVol ? totalVol.toLocaleString("en-GB") : 0}</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
   `;
-  document.getElementById("weekHeader").innerHTML = `<span class="week-chip">W${ui.week}</span>`;
+  document.getElementById("weekHeader").textContent = ``;
 }
 function renderCalendar() {
   document.getElementById("monthTitle").innerHTML = `<span class="month-pill">${ui.month.toLocaleDateString("en-GB", {month:"long",year:"numeric"})}</span>`;
