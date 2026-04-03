@@ -2274,6 +2274,7 @@ async function startCloudBootstrap() {
     setSyncStatus("Cloud: unavailable");
   } finally {
     cloudBootstrapInFlight = false;
+    hideBoot();
   }
 }
 async function initSupabaseApp() {
