@@ -1007,7 +1007,7 @@ input,textarea,select,button { font:inherit; }
         <div class="weekdays" id="weekdayRow"></div>
         <div class="calendar-grid" id="calendarGrid"></div>
         <div class="legend">
-          <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Finish workout</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>FINISH WORKOUT</div>
           <div class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Recovery / conditioning</div>
           <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Planned</div>
         </div>
@@ -1099,35 +1099,18 @@ input,textarea,select,button { font:inherit; }
 </div>
 
 
-<div class="completion-view" id="completionView" style="display:none">
-  <div class="completion-inner">
+<div class="completion-screen" id="completionScreen">
+  <div class="completion-screen-inner">
     <div class="completion-kicker">Workout complete</div>
     <div class="completion-title" id="completionTitle">Strong finish.</div>
-    <div class="completion-subtitle" id="completionSubtitle">You completed today's session.</div>
-
-    <div class="completion-emblem">
-      <div class="completion-ring"></div>
-      <div class="completion-center">✓</div>
+    <div class="completion-subtitle" id="completionSubtitle">You completed today’s session with focus and control.</div>
+    <div class="completion-emblem-wrap">
+      <div class="completion-emblem" aria-hidden="true"></div>
     </div>
-
-    <div class="completion-stats">
-      <div class="completion-stat">
-        <div class="k">Exercises</div>
-        <div class="v" id="completionExercises">0</div>
-      </div>
-      <div class="completion-stat">
-        <div class="k">Blocks</div>
-        <div class="v" id="completionBlocks">0</div>
-      </div>
-      <div class="completion-stat">
-        <div class="k">Volume</div>
-        <div class="v" id="completionVolume">0</div>
-      </div>
-    </div>
-
-    <div class="completion-message" id="completionMessage">Saved to your training log.</div>
-
-    <button class="btn primary completion-cta" id="completionBackBtn">Back to main view</button>
+    <div class="completion-summary-title">Your workout summary</div>
+    <div class="completion-summary-bar" aria-hidden="true"></div>
+    <div class="completion-summary-text" id="completionSummary">0 of 0 exercises completed</div>
+    <button class="btn completion-cta" id="completionBackBtn">Back to main view</button>
   </div>
 </div>
 
@@ -1811,31 +1794,28 @@ function openWorkoutDoneOverlay(){
   const titles = [
     "Strong finish.",
     "Session complete.",
-    "Premium work.",
-    "That was solid."
+    "Excellent work.",
+    "Crushed it."
   ];
-  const bodies = [
-    "You finished the full workout. Calm, clean, and disciplined.",
-    "Everything is logged and done. Strong work today.",
-    "You closed the session properly. That consistency matters.",
-    "Workout complete. Good effort and good control."
+  const subtitles = [
+    "You completed today’s session with focus and control.",
+    "Everything is logged. Strong work today.",
+    "You closed the workout properly. That consistency matters.",
+    "Workout done. Calm, clean, premium work."
   ];
-  const titleEl = document.getElementById("workoutDoneTitle");
-  const bodyEl = document.getElementById("workoutDoneBody");
-  const exercisesEl = document.getElementById("workoutDoneExercises");
-  const blocksEl = document.getElementById("workoutDoneBlocks");
-  const overlay = document.getElementById("completionView__old_unused");
+  const titleEl = document.getElementById("completionTitle");
+  const subtitleEl = document.getElementById("completionSubtitle");
+  const summaryEl = document.getElementById("completionSummary");
+  const screen = document.getElementById("completionScreen");
   const exercises = getExercisesForWeekDay(ui.week, ui.day).length;
-  const blocks = getWorkoutGroups(getExercisesForWeekDay(ui.week, ui.day)).length;
   if(titleEl) titleEl.textContent = titles[Math.floor(Math.random()*titles.length)];
-  if(bodyEl) bodyEl.textContent = bodies[Math.floor(Math.random()*bodies.length)];
-  if(exercisesEl) exercisesEl.textContent = String(exercises);
-  if(blocksEl) blocksEl.textContent = String(blocks);
-  if(overlay) overlay.style.display = "flex";
+  if(subtitleEl) subtitleEl.textContent = subtitles[Math.floor(Math.random()*subtitles.length)];
+  if(summaryEl) summaryEl.textContent = `${exercises} of ${exercises} exercises completed`;
+  if(screen) screen.classList.add("show");
 }
 function closeWorkoutDoneOverlay(){
-  const overlay = document.getElementById("completionView__old_unused");
-  if(overlay) overlay.style.display = "none";
+  const screen = document.getElementById("completionScreen");
+  if(screen) screen.classList.remove("show");
   ui.workoutMode = false;
   const btn = document.getElementById("workoutModeBtn");
   if(btn) btn.textContent = "WORKOUT MODE";
@@ -1925,7 +1905,7 @@ function renderExercises() {
         </div>`;
       }).join("");
     return `<div class="block-group"><div class="workout-group-stack">${groupInner}</div></div>`;
-  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (ui.workoutMode && ui.activeExerciseIndex === allGroups.length - 1 && groups.length ? `<div class="workout-complete-row"><button class="btn primary" id="workoutDoneBtn">Finish workout</button></div>` : ``) + emptyMessage;
+  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (ui.workoutMode && ui.activeExerciseIndex === allGroups.length - 1 && groups.length ? `<div class="workout-complete-row"><button class="btn primary" id="workoutDoneBtn">FINISH WORKOUT</button></div>` : ``) + emptyMessage;
   bindExerciseEvents(all);
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
@@ -1934,7 +1914,7 @@ function renderExercises() {
   const doneBtn = document.getElementById("workoutDoneBtn");
   if(doneBtn) doneBtn.onclick = () => {
     markEntireWorkoutDone();
-    openCompletionView();
+    openWorkoutDoneOverlay();
   };
   if(ui.workoutMode && activeGroup && activeGroup.items.length){
     const activeCard = document.querySelector(`[data-exercise-card="${activeGroup.items[0]}"]`);
