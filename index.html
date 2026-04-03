@@ -33,10 +33,10 @@ input,textarea,select,button { font:inherit; }
   background:rgba(15,17,21,.92); backdrop-filter:blur(12px);
   border-bottom:1px solid rgba(36,51,75,.7);
 }
-.topbar-inner { max-width:1200px; margin:0 auto; display:grid; gap:8px; }
+.topbar-inner { max-width:1200px; margin:0 auto; display:grid; gap:6px; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
-.title h1 { margin:0; font-size:22px; font-weight:800; letter-spacing:-.02em; color:var(--accent-soft); text-shadow:0 0 18px rgba(242,201,76,.08); }
-.title .sub { color:var(--muted); font-size:13px; margin-top:3px; }
+.title h1 { margin:0; font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--accent-soft); text-shadow:0 0 18px rgba(242,201,76,.08); text-align:center; }
+.title .sub { color:var(--muted); font-size:13px; margin-top:4px; text-align:center; }
 .btn,.field,.select,.textarea {
   border:1px solid var(--line); background:rgba(8,23,45,.78); color:var(--text); border-radius:14px;
 }
@@ -101,7 +101,7 @@ input,textarea,select,button { font:inherit; }
   min-width:48px; height:34px; border-radius:12px; display:grid; place-items:center;
   background:#211a10; border:1px solid #5e4e2c; color:#f3dda4; font-size:14px; font-weight:700;
 }
-.block-kind { color:var(--muted); font-size:12px; }
+.block-kind { display:none; }
 .exercise {
   padding:14px; border-top:1px solid rgba(36,51,75,.55);
 }
@@ -124,7 +124,7 @@ input,textarea,select,button { font:inherit; }
 .compare .info-box .v{font-size:12px;line-height:1.5;font-weight:600;}
 .compare .info-box .k{font-size:10px;}
 .workout-date-big{text-align:center;font-size:18px;font-weight:700;color:#f2c94c;margin-bottom:8px;}
-.field-grid { display:grid; grid-template-columns:130px 1fr; gap:10px; align-items:start; margin-top:10px; }
+.field-grid { display:grid; grid-template-columns:120px 1fr; gap:10px; align-items:start; margin-top:10px; }
 .field-grid .field,.field-grid .textarea{min-height:52px;}
 .label { color:var(--muted); font-size:12px; padding-top:10px; }
 .sets { display:grid; gap:8px; margin-top:12px; }
@@ -197,17 +197,33 @@ input,textarea,select,button { font:inherit; }
 
 .topbar{padding-top:max(10px, env(safe-area-inset-top));}
 .topbar-inner{gap:8px;}
-.topbar-main{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.topbar-main{display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column;}
 .title h1{font-size:18px;line-height:1.05;margin-bottom:2px;}
 .title .sub{font-size:13px;}
 .header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .header-actions .btn{min-height:36px;padding:7px 10px;border-radius:12px;}
-.search-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:center;max-width:540px;margin:0 auto;width:100%;}
-.search-row .field{min-height:38px;font-size:14px;padding:9px 12px;}
+.search-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:center;max-width:520px;margin:0 auto;width:100%;}
+.search-row .field{min-height:36px;font-size:13px;padding:8px 12px;}
 .search-inline-actions{display:flex;align-items:center;gap:8px;justify-content:center;}
 .compact-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .compact-status .help{font-size:12px;}
 .search-row .field::placeholder{color:#7f97b6;}
+.header-meta{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
+.header-meta .help,.header-meta .sync-pill{margin:0;}
+.compact-search-card{padding-top:12px;padding-bottom:12px;}
+.compact-search-card .section-title{margin-bottom:8px;justify-content:center;}
+.compact-search-card .section-title h3{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+.compact-search-card .field{max-width:540px;margin:0 auto;display:block;text-align:center;}
+.search-inline-actions{justify-content:center;}
+.metric,.card{text-align:left;}
+@media (max-width:640px){
+  .metrics .metric{text-align:center;}
+  .section-title{align-items:center;}
+  .section-title h2,.section-title h3{text-align:left;}
+  .calendar-head .help{text-align:center;flex:1;}
+  .search-inline-actions{justify-content:center;}
+  .header-actions{justify-content:center;width:100%;display:flex;}
+}
 .radar-header-actions{display:flex;align-items:center;gap:8px;}
 .segmented{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--line);background:var(--panel2);border-radius:999px;}
 .segmented button{min-height:auto;padding:6px 10px;border:none;background:transparent;color:var(--muted);border-radius:999px;cursor:pointer;}
@@ -225,15 +241,15 @@ input,textarea,select,button { font:inherit; }
 .btn.timer-live{border-color:rgba(242,201,76,.45);color:#f6de95;background:rgba(242,201,76,.10);}
 @media (max-width:640px) {
   .topbar{margin:-10px -10px 8px;padding:calc(max(8px, env(safe-area-inset-top))) 10px 8px;}
-  .topbar-main{align-items:center;}
-  .title h1{font-size:16px;}
+  .topbar-main{align-items:center;justify-content:center;}
+  .title h1{font-size:26px;}
   .title .sub{font-size:12px;}
   .header-actions .btn{min-height:36px;padding:8px 9px;font-size:12px;}
   .search-row{grid-template-columns:minmax(0,1fr);}
   .search-inline-actions .help{display:none;}
   .search-inline-actions .sync-pill{font-size:11px;padding:6px 9px;}
-  .topbar-main{gap:4px;}
-  .title h1{font-size:30px;}
+  .topbar-main{gap:6px;}
+  .title h1{font-size:28px;}
   .search-row .field{font-size:13px;min-height:36px;}
 }
 
@@ -251,7 +267,7 @@ input,textarea,select,button { font:inherit; }
 @media (max-width:640px) {
   .app { padding:10px 10px 112px; }
   .topbar { margin:-10px -10px 10px; padding-left:10px; padding-right:10px; }
-  .title h1 { font-size:19px; }
+  .title h1 { font-size:24px; }
   .title .sub { font-size:12px; }
   .card { padding:12px; border-radius:16px; }
   .metric { padding:10px; }
@@ -485,12 +501,9 @@ input,textarea,select,button { font:inherit; }
           <button class="btn" id="workoutModeBtn">Workout</button>
         </div>
       </div>
-      <div class="search-row">
-        <input class="field" id="searchInput" placeholder="Search" />
-        <div class="search-inline-actions">
-          <div class="help" id="saveStatus">Ready.</div>
-          <div class="sync-pill" id="syncStatus">Cloud: not connected</div>
-        </div>
+      <div class="header-meta">
+        <div class="help" id="saveStatus">Ready.</div>
+        <div class="sync-pill" id="syncStatus">Cloud: not connected</div>
       </div>
     </div>
   </div>
@@ -580,7 +593,7 @@ input,textarea,select,button { font:inherit; }
 <div class="timer-overlay" id="timerOverlay">
   <div class="timer-sheet">
     <div class="timer-head">
-      <h3>Rest timer</h3>
+      <h3>Timer</h3>
       <button class="btn" id="timerCloseBtn">Close</button>
     </div>
     <div class="timer-display" id="timerDisplay">00:00</div>
@@ -589,7 +602,7 @@ input,textarea,select,button { font:inherit; }
       <button class="btn" id="timerPauseBtn">Pause</button>
       <button class="btn" id="timerResetBtn">Reset</button>
     </div>
-    <div class="timer-hint">Simple running rest timer.</div>
+    <div class="timer-hint">Starts from 00:00 and runs until you stop it.</div>
   </div>
 </div>
 
@@ -1106,7 +1119,7 @@ function renderExercises() {
     return `<div class="block-group">
       <div class="block-header">
         <div class="block-title"><div class="block-chip">${group.block || "•"}</div><div>${isSupersetBlock ? "Superset" : "Block"}</div></div>
-        <div class="block-kind">${isSupersetBlock ? blockKinds.join(" • ") : blockKinds[0] || "Uncoded"}</div>
+        
       </div>
       ${group.items.map(ex => {
         const code = codeOf(ui.week,ui.day,ex);
@@ -1310,13 +1323,24 @@ if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
 const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
 if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
   const exs = getExercisesForWeekDay(ui.week, ui.day);
-  const active = exs[ui.activeExerciseIndex] || exs[0];
-  if(!active || isRecoveryLike(ui.week, ui.day, active)) return;
+  let active = null;
+  if(ui.workoutMode){
+    active = exs[ui.activeExerciseIndex] || null;
+  }
+  if(!active || isRecoveryLike(ui.week, ui.day, active)) {
+    active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
+  }
+  if(!active) {
+    showToast("No strength exercise selected");
+    return;
+  }
   const c = setCountOf(ui.week,ui.day,active);
   state[`w${ui.week}_${ui.day}_${active}_s${c}`] = {kg:"",reps:"",done:""};
   state[`sc_w${ui.week}_${ui.day}_${active}`] = c+1;
   saveState();
   showToast("Set added");
+  const card = document.querySelector(`[data-exercise-card="${active}"]`);
+  if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
 };
 const exportBtn = document.getElementById("exportBtn");
 if(exportBtn) exportBtn.onclick = () => {
