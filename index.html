@@ -297,7 +297,7 @@ input,textarea,select,button { font:inherit; }
 .timer-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
 .timer-hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px;}
 .add-card .section-title .meta,.add-card .help{display:none;}
-.bottom-bar{grid-template-columns:repeat(4,minmax(0,1fr));}
+.bottom-bar{grid-template-columns:repeat(3,minmax(0,1fr));}
 .bottom-bar .btn{flex:unset;}
 .btn.timer-live{border-color:rgba(242,201,76,.45);color:#f6de95;background:rgba(242,201,76,.10);}
 @media (max-width:640px) {
@@ -458,7 +458,7 @@ input,textarea,select,button { font:inherit; }
   .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media (max-width:840px) {
-  .bottom-bar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px;}
+  .bottom-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:14px;}
   .bottom-spacer{display:none;}
 }
 
@@ -1301,8 +1301,7 @@ input,textarea,select,button { font:inherit; }
   <button class="btn" id="bottomTimerBtn">⏱ Timer</button>
   <button class="btn" id="bottomAddExerciseBtn">+ Exercise</button>
   <button class="btn primary" id="bottomAddSetBtn">+ Set</button>
-  <button class="btn" id="bottomUpBtn">↑ Up</button>
-</div>
+  </div>
 <div class="quick-toast" id="quickToast">Saved</div>
 <div class="timer-overlay" id="timerOverlay">
   <div class="timer-sheet">
@@ -2244,8 +2243,6 @@ document.getElementById("addExerciseBtn").onclick = () => {
   document.getElementById("addHistoryMode").value="empty";
   renderHistoryPreview();
 };
-const bottomUpBtn = document.getElementById("bottomUpBtn");
-if(bottomUpBtn) bottomUpBtn.onclick = () => window.scrollTo({top:0, behavior:"smooth"});
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
 if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
   const target = document.getElementById("addExerciseName");
