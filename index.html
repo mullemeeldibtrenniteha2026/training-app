@@ -2322,7 +2322,6 @@ async function initSupabaseApp() {
 
     if(currentUser) {
       hideAuth();
-      showBoot("Loading your cloud data…");
       cloudReady = true;
       initialSyncResolved = true;
       setSyncStatus("Cloud: connecting…");
