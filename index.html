@@ -1091,6 +1091,69 @@ input,textarea,select,button { font:inherit; }
   #radarTitle{font-size:21px !important;}
 }
 
+
+
+/* Patch 2.2.1 — unify Search header with Muscular Radar and center radar toggle */
+.compact-search-card .section-title{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+.compact-search-card .section-title h3{
+  font-size:24px !important;
+  font-weight:850 !important;
+  letter-spacing:-.03em !important;
+  color:var(--text) !important;
+  text-transform:none !important;
+  line-height:1.08;
+}
+.compact-search-card .field{
+  max-width:440px;
+  min-height:44px;
+  padding:9px 13px;
+  font-size:16px;
+  text-align:left;
+}
+.radar-card .section-title{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+.radar-header-actions{
+  width:100%;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center;
+  margin-top:8px !important;
+}
+#radarToggle{
+  width:auto !important;
+  margin:0 auto !important;
+}
+#radarToggle button{
+  min-width:88px;
+  text-align:center;
+}
+@media (max-width:640px){
+  .compact-search-card .section-title h3{
+    font-size:21px !important;
+  }
+  .compact-search-card .field{
+    font-size:15px;
+    min-height:42px;
+  }
+  #radarTitle{
+    font-size:21px !important;
+  }
+  #radarToggle button{
+    min-width:78px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
