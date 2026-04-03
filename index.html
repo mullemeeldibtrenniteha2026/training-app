@@ -212,6 +212,18 @@ input,textarea,select,button { font:inherit; }
 .compact-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .compact-status .help{font-size:12px;}
 .search-row .field::placeholder{color:#7f97b6;}
+#searchResultsHost{display:grid;gap:12px;margin-top:12px;}
+.search-results-card .section-title{margin-bottom:10px;}
+.search-results-card .section-title h3{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+.search-results-card .meta{font-size:12px;color:#8fa6c3;}
+.add-scope-row{justify-content:center;margin-bottom:10px;}
+.add-scope-row .select{min-width:min(100%,320px);}
+#radarTitle{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#f4d98c;font-weight:800;}
+.radar-header-actions{margin-top:4px;}
+#radarToggle{box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.18);}
+#radarToggle button{min-width:82px;}
+.compact-search-card .field{max-width:460px;}
+.month-pill{display:inline-flex;align-items:center;justify-content:center;padding:8px 16px;border-radius:999px;background:linear-gradient(180deg, rgba(242,201,76,.18), rgba(242,201,76,.08));border:1px solid rgba(242,201,76,.24);box-shadow:0 8px 20px rgba(242,201,76,.08);}
 .header-meta{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
 .header-meta .help,.header-meta .sync-pill{margin:0;}
 .compact-search-card{padding-top:12px;padding-bottom:12px;}
@@ -258,6 +270,8 @@ input,textarea,select,button { font:inherit; }
   .search-inline-actions .sync-pill{font-size:11px;padding:6px 9px;}
   .topbar-main{gap:6px;}
   .title h1{font-size:28px;}
+  .title .sub{font-size:15px;gap:6px;}
+  .week-date{width:100%;text-align:center;}
   .search-row .field{font-size:13px;min-height:36px;}
 }
 
@@ -265,7 +279,8 @@ input,textarea,select,button { font:inherit; }
 .days-card .section-title,.search-card .section-title,.add-card .section-title{justify-content:center;text-align:center;}
 .days-card .pills{justify-content:center;}
 .pill{text-align:center;min-width:86px;justify-content:center;}
-#monthTitle{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f4d98c;text-align:center;min-width:0;flex:1;}
+#monthTitle{font-size:24px;font-weight:900;letter-spacing:-.02em;color:#f4d98c;text-align:center;min-width:0;flex:1;display:flex;justify-content:center;}
+#monthTitle .month-pill{min-width:220px;}
 .calendar-collapsible .section-title{align-items:center;}
 .calendar-collapsible .section-title > .row{width:100%;justify-content:center;}
 .calendar-collapsible .section-title h2{display:none;}
@@ -895,6 +910,7 @@ input,textarea,select,button { font:inherit; }
         <div class="section-title"><h3>Search exercise</h3></div>
         <input class="field" id="searchInput" placeholder="" />
       </div>
+      <div id="searchResultsHost"></div>
 
       <div class="card">
         <div class="section-title">
@@ -914,6 +930,13 @@ input,textarea,select,button { font:inherit; }
     <div class="right">
       <div class="card add-card">
         <div class="section-title"><h2>Add exercise</h2></div>
+        <div class="row add-scope-row" style="margin-top:4px">
+          <select class="select" id="addScope">
+            <option value="day">Only this day</option>
+            <option value="weekday_all">Every same weekday in plan</option>
+          </select>
+          <datalist id="exerciseSuggestions"></datalist>
+        </div>
         <div class="add-grid">
           <input class="field" id="addExerciseName" list="exerciseSuggestions" placeholder="Exercise name" />
           <select class="select" id="addHistoryMode">
@@ -922,13 +945,6 @@ input,textarea,select,button { font:inherit; }
             <option value="copy_increase">Copy + increase</option>
           </select>
           <button class="btn primary" id="addExerciseBtn">Add</button>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <select class="select" id="addScope">
-            <option value="day">Only this day</option>
-            <option value="weekday_all">Every same weekday in plan</option>
-          </select>
-          <datalist id="exerciseSuggestions"></datalist>
         </div>
         <div class="info-box" style="margin-top:10px" id="historyPreview">
           <div class="k">Last match</div>
@@ -1349,10 +1365,10 @@ function renderMetrics() {
     <div class="metric"><div class="k">Blocks</div><div class="v">${groups||0}</div><div class="s">${exs.length} exercises</div></div>
     <div class="metric"><div class="k">Volume</div><div class="v">${totalVol ? totalVol.toLocaleString("en-GB") : 0}</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
   `;
-  document.getElementById("weekHeader").textContent = `W${ui.week} • ${DAY_LABEL[ui.day]} • ${fmtShortDate(dayDate(ui.week,ui.day))}`;
+  document.getElementById("weekHeader").innerHTML = `<span class="week-chip">W${ui.week}</span><span class="week-sep">•</span><span class="week-day">${DAY_LABEL[ui.day]}</span><span class="week-sep">•</span><span class="week-date">${fmtFullDate(dayDate(ui.week,ui.day))}</span>`;
 }
 function renderCalendar() {
-  document.getElementById("monthTitle").textContent = ui.month.toLocaleDateString("en-GB", {month:"long",year:"numeric"});
+  document.getElementById("monthTitle").innerHTML = `<span class="month-pill">${ui.month.toLocaleDateString("en-GB", {month:"long",year:"numeric"})}</span>`;
   document.getElementById("monthSubtitle").textContent = `${DAY_LABEL[ui.day]} · ${fmtFullDate(dayDate(ui.week,ui.day))}`;
   const calendarCard = document.getElementById("calendarCard");
   const toggleBtn = document.getElementById("calendarToggleBtn");
@@ -1443,7 +1459,7 @@ function renderRadar() {
     const p = pointFor(r, i);
     const lx = cx + Math.cos(p.a)*(r+22), ly = cy + Math.sin(p.a)*(r+22);
     out += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,.10)" stroke-width="1"/>`;
-    out += `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="11" fill="#9fb0c6">${label}</text>`;
+    out += `<text x="${lx}" y="${ly}" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="0.5" fill="rgba(231,238,247,.88)">${label}</text>`;
   });
 
   const pts = axes.map(([k,label,color], i) => {
@@ -1519,10 +1535,12 @@ function renderExercises() {
     groups[groups.length-1].items.push(ex);
   });
   const wrap = document.getElementById("exerciseList");
+  const searchHost = document.getElementById("searchResultsHost");
   const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">Exercise ${Math.min(ui.activeExerciseIndex+1, Math.max(1,all.length))} / ${Math.max(1,all.length)}</div></div><div class="row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note">Current focus: <strong>${activeExercise ? esc(exerciseName(ui.week,ui.day,activeExercise)) : '—'}</strong></div></div>` : "";
-  const searchBox = q ? `<div class="card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
+  const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
+  if(searchHost) searchHost.innerHTML = searchBox;
   const emptyMessage = !groups.length ? `<div class="card"><div class="empty-state">${q ? 'Current day has no match for this search.' : 'This day is empty right now. Add your first exercise below.'}</div></div>` : "";
-  wrap.innerHTML = searchBox + focus + (groups.length ? groups.map(group => {
+  wrap.innerHTML = focus + (groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
     const isSupersetBlock = blockKinds.some(c => /\d$/.test(c)) && group.items.length > 1;
     return `<div class="block-group">
@@ -1698,7 +1716,7 @@ function render() {
   if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
 }
 const searchInput = document.getElementById("searchInput");
-if(searchInput) searchInput.oninput = e => { ui.search=e.target.value; const s=document.getElementById("saveStatus"); if(s) s.textContent = ui.search.trim() ? "Searching across all saved workouts…" : "Saved locally on this device."; renderExercises(); };
+if(searchInput) searchInput.oninput = e => { ui.search=e.target.value; renderExercises(); };
 document.getElementById("workoutModeBtn").onclick = () => {
   ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
   document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "EXIT WORKOUT" : "WORKOUT MODE";
