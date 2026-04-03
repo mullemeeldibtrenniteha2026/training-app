@@ -1103,6 +1103,10 @@ input,textarea,select,button { font:inherit; }
     <div class="workout-done-kicker">Workout complete</div>
     <div class="workout-done-title" id="workoutDoneTitle">Strong work.</div>
     <div class="workout-done-body" id="workoutDoneBody">You finished the full session. Clean work and good discipline.</div>
+    <div class="workout-done-stats">
+      <div class="workout-done-stat"><div class="k">Exercises</div><div class="v" id="workoutDoneExercises">0</div></div>
+      <div class="workout-done-stat"><div class="k">Blocks</div><div class="v" id="workoutDoneBlocks">0</div></div>
+    </div>
     <button class="btn primary workout-done-btn" id="workoutDoneBackBtn">Back to main view</button>
   </div>
 </div>
@@ -1792,9 +1796,15 @@ function openWorkoutDoneOverlay(){
   ];
   const titleEl = document.getElementById("workoutDoneTitle");
   const bodyEl = document.getElementById("workoutDoneBody");
+  const exercisesEl = document.getElementById("workoutDoneExercises");
+  const blocksEl = document.getElementById("workoutDoneBlocks");
   const overlay = document.getElementById("workoutDoneOverlay");
+  const exercises = getExercisesForWeekDay(ui.week, ui.day).length;
+  const blocks = getWorkoutGroups(getExercisesForWeekDay(ui.week, ui.day)).length;
   if(titleEl) titleEl.textContent = titles[Math.floor(Math.random()*titles.length)];
   if(bodyEl) bodyEl.textContent = bodies[Math.floor(Math.random()*bodies.length)];
+  if(exercisesEl) exercisesEl.textContent = String(exercises);
+  if(blocksEl) blocksEl.textContent = String(blocks);
   if(overlay) overlay.style.display = "flex";
 }
 function closeWorkoutDoneOverlay(){
@@ -1804,6 +1814,7 @@ function closeWorkoutDoneOverlay(){
   const btn = document.getElementById("workoutModeBtn");
   if(btn) btn.textContent = "WORKOUT MODE";
   render();
+  renderTimer();
 }
 
 function renderExercises() {
@@ -1828,7 +1839,7 @@ function renderExercises() {
     return `<button class="workout-progress-pill ${cls}" type="button" data-workout-jump="${idx}">${idx+1}</button>`;
   }).join("")}</div>` : "";
   const focusMeta = ui.workoutMode ? `${Math.min(ui.activeExerciseIndex+1, Math.max(1,allGroups.length))} / ${Math.max(1,allGroups.length)}` : "";
-  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">${focusMeta}</div></div>${progressRow}<div class="workout-step-label">${activeGroup && activeGroup.items.length > 1 ? `Superset • ${activeGroup.items.length} exercises` : `Single exercise`}</div><div class="row" style="justify-content:center;margin-top:10px;"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note">Current focus: <strong>${activeGroup ? activeGroup.items.map(ex => esc(exerciseName(ui.week,ui.day,ex))).join(" + ") : '—'}</strong></div>${ui.workoutMode && ui.activeExerciseIndex === allGroups.length - 1 ? `<div class="workout-complete-row"><button class="btn primary" id="workoutDoneBtn">Workout done</button></div>` : ""}</div>` : "";
+  const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>Workout mode</h3><div class="meta">${focusMeta}</div></div>${progressRow}<div class="workout-step-label">${activeGroup && activeGroup.items.length > 1 ? `Superset • ${activeGroup.items.length} exercises` : `Single exercise`}</div><div class="row" style="justify-content:center;margin-top:10px;"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div><div class="workout-focus-note">Current focus: <strong>${activeGroup ? activeGroup.items.map(ex => esc(exerciseName(ui.week,ui.day,ex))).join(" + ") : '—'}</strong></div></div>` : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
   const emptyMessage = !groups.length ? `<div class="card"><div class="empty-state">${q ? 'Current day has no match for this search.' : 'This day is empty right now. Add your first exercise below.'}</div></div>` : "";
@@ -1888,7 +1899,7 @@ function renderExercises() {
         </div>`;
       }).join("");
     return `<div class="block-group"><div class="workout-group-stack">${groupInner}</div></div>`;
-  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + emptyMessage;
+  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (ui.workoutMode && ui.activeExerciseIndex === allGroups.length - 1 && groups.length ? `<div class="workout-complete-row"><button class="btn primary" id="workoutDoneBtn">Workout done</button></div>` : ``) + emptyMessage;
   bindExerciseEvents(all);
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
@@ -2031,6 +2042,7 @@ document.getElementById("workoutModeBtn").onclick = () => {
   ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
   document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "EXIT WORKOUT" : "WORKOUT MODE";
   renderExercises();
+  renderTimer();
 };
 document.getElementById("prevMonthBtn").onclick = () => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()-1, 1); renderCalendar(); };
 document.getElementById("nextMonthBtn").onclick = () => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()+1, 1); renderCalendar(); };
@@ -2351,9 +2363,11 @@ function formatTimer(totalSeconds) {
 function renderTimer() {
   const display = document.getElementById("timerDisplay");
   const btn = document.getElementById("bottomTimerBtn");
+  const hero = !!ui.workoutMode || timerState.running || timerState.elapsed > 0;
   if(display) display.textContent = formatTimer(timerState.elapsed);
   if(btn) {
     btn.classList.toggle("timer-live", timerState.running || timerState.elapsed > 0);
+    btn.classList.toggle("timer-hero", hero);
     btn.textContent = timerState.running ? `⏱ ${formatTimer(timerState.elapsed)}` : (timerState.elapsed > 0 ? `⏱ ${formatTimer(timerState.elapsed)}` : "⏱ Timer");
   }
 }
