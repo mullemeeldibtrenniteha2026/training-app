@@ -7,7 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Training" />
-<link rel="manifest" href="manifest.json" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="apple-touch-icon" sizes="180x180" href="./icon_180.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="./icon_192.png" />
+<link rel="icon" type="image/png" sizes="512x512" href="./icon_512.png" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0b1220" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -799,14 +802,6 @@ input,textarea,select,button { font:inherit; }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="manifest" href="./manifest.json">
-
-<link rel="apple-touch-icon" sizes="180x180" href="./icon_180.png">
-
-<link rel="icon" type="image/png" sizes="192x192" href="./icon_192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="./icon_512.png">
-
-<meta name="theme-color" content="#0b0f1a">
 </head>
 <body>
 
@@ -1706,7 +1701,7 @@ const searchInput = document.getElementById("searchInput");
 if(searchInput) searchInput.oninput = e => { ui.search=e.target.value; const s=document.getElementById("saveStatus"); if(s) s.textContent = ui.search.trim() ? "Searching across all saved workouts…" : "Saved locally on this device."; renderExercises(); };
 document.getElementById("workoutModeBtn").onclick = () => {
   ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
-  document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "Exit workout" : "Workout";
+  document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "EXIT WORKOUT" : "WORKOUT MODE";
   renderExercises();
 };
 document.getElementById("prevMonthBtn").onclick = () => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()-1, 1); renderCalendar(); };
