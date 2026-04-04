@@ -1765,6 +1765,111 @@ input,textarea,select,button { font:inherit; }
   }
 }
 
+
+
+/* 2.7.1 header + top area polish */
+:root{--section-gap:20px;}
+.app{background:transparent !important; padding-bottom:28px !important;}
+.topbar{
+  background:rgba(10,16,26,.72) !important;
+  border-bottom:1px solid rgba(255,255,255,.06) !important;
+  margin:-14px -14px var(--section-gap) !important;
+  padding:max(12px, env(safe-area-inset-top)) 14px 10px !important;
+}
+.topbar-inner{position:relative; gap:10px !important;}
+.topbar-main{gap:10px !important; padding:0 0 22px !important;}
+.title{width:100%;}
+.brand-lockup{display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:7px !important;}
+.brand-copy{
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:baseline !important;
+  justify-content:center !important;
+  gap:9px !important;
+  flex-wrap:nowrap !important;
+}
+.brand-title{
+  font-size:34px !important;
+  line-height:1 !important;
+  letter-spacing:-.04em !important;
+}
+.brand-subtitle{
+  font-size:17px !important;
+  line-height:1 !important;
+  letter-spacing:.03em !important;
+  opacity:.8 !important;
+  margin:0 !important;
+  transform:translateY(1px);
+}
+.brand-icon{
+  width:28px !important;
+  height:28px !important;
+  border-radius:8px !important;
+  margin:0 auto !important;
+}
+.header-actions{justify-content:center !important; width:100%;}
+.header-actions #workoutModeBtn{
+  min-height:38px !important;
+  padding:8px 14px !important;
+  font-size:12px !important;
+  letter-spacing:.05em !important;
+  box-shadow:0 8px 18px rgba(255,159,10,.18), inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+.header-meta{
+  position:absolute !important;
+  right:0 !important;
+  bottom:2px !important;
+  left:auto !important;
+  justify-content:flex-end !important;
+  align-items:flex-end !important;
+  pointer-events:none !important;
+  margin:0 !important;
+}
+.header-meta .sync-pill{
+  pointer-events:auto !important;
+  font-size:10px !important;
+  padding:5px 9px !important;
+  min-height:auto !important;
+  border-radius:999px !important;
+}
+#metrics{
+  background:transparent !important;
+  margin:0 0 var(--section-gap) 0 !important;
+  padding:0 !important;
+}
+.metrics .metric{box-shadow:var(--shadow);}
+.layout,.left,.right,.exercise-list,#searchResultsHost{gap:var(--section-gap) !important; background:transparent !important;}
+.card,.metric{background-clip:padding-box;}
+.radar-card .section-title{display:grid !important; gap:10px !important; justify-items:center !important; text-align:center !important;}
+#radarTitle{
+  font-size:20px !important;
+  line-height:1.1 !important;
+  width:100% !important;
+  text-align:center !important;
+}
+.radar-header-actions{width:100% !important; justify-content:center !important;}
+.radar-wrap{padding:10px 6px 2px !important;}
+.radar-wrap svg text{font-size:11px !important; font-weight:700 !important;}
+.finish-summary-stat .v{white-space:nowrap;}
+@media (max-width: 640px){
+  .topbar{padding:max(10px, env(safe-area-inset-top)) 10px 8px !important; margin:-10px -10px var(--section-gap) !important;}
+  .topbar-main{padding-bottom:20px !important;}
+  .brand-copy{gap:7px !important;}
+  .brand-title{font-size:30px !important;}
+  .brand-subtitle{font-size:18px !important;}
+  .brand-icon{width:26px !important; height:26px !important;}
+  .header-meta{right:0 !important; bottom:0 !important;}
+  .header-meta .sync-pill{font-size:10px !important; padding:4px 8px !important;}
+  .header-actions #workoutModeBtn{min-height:36px !important; padding:7px 12px !important; font-size:11px !important;}
+}
+@media (min-width: 981px){
+  .topbar-main{padding-bottom:24px !important;}
+  .brand-title{font-size:38px !important;}
+  .brand-subtitle{font-size:18px !important;}
+  .brand-icon{width:30px !important; height:30px !important;}
+  .header-actions #workoutModeBtn{min-height:40px !important; padding:8px 15px !important; font-size:12px !important;}
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2441,7 +2546,7 @@ function renderMetrics() {
     <div class="metric"><div class="k">Week</div><div class="v">W${ui.week}</div><div class="s">${weekRangeLabel(ui.week)}</div></div>
     <div class="metric"><div class="k">Day</div><div class="v">${DAY_LABEL[ui.day]}</div><div class="s">${fmtFullDate(dayDate(ui.week,ui.day))}</div></div>
     <div class="metric"><div class="k">Blocks</div><div class="v">${groups||0}</div><div class="s">${exs.length} exercises</div></div>
-    <div class="metric"><div class="k">Volume</div><div class="v">${totalVol ? totalVol.toLocaleString("en-GB") : 0}</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
+    <div class="metric"><div class="k">Volume</div><div class="v">${totalVol ? totalVol.toLocaleString("en-GB") : 0} kg</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
   `;
   document.getElementById("weekHeader").textContent = "";
 }
@@ -2629,7 +2734,7 @@ function openFinishSummary(stats){
   const vol = document.getElementById("finishVolumeValue");
   if(ex) ex.textContent = String(stats.exercises || 0);
   if(sets) sets.textContent = String(stats.sets || 0);
-  if(vol) vol.textContent = (stats.volume || 0).toLocaleString("en-GB");
+  if(vol) vol.textContent = `${(stats.volume || 0).toLocaleString("en-GB")} kg`;
   overlay.style.display = "flex";
 }
 function closeFinishSummary(){
