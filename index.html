@@ -2903,20 +2903,23 @@ function renderRadar() {
   const strongestIdx = values.indexOf(Math.max(...values));
   const strongestLabel = axes[strongestIdx]?.[1] || "Balanced";
   const strongestValue = values[strongestIdx] || 0;
-  const cx=160, cy=160, r=100, rings=5;
+  const cx=160, cy=160, r=116, rings=5;
+  const minVisibleRadius = 26;
 
   const pointFor = (radius, i) => {
     const a = -Math.PI/2 + i * (Math.PI*2/axes.length);
     return {x: cx + Math.cos(a)*radius, y: cy + Math.sin(a)*radius};
   };
 
+  const scaledRadiusFor = value => {
+    if(value <= 0) return 0;
+    const normalized = value / max;
+    return minVisibleRadius + normalized * (r - minVisibleRadius);
+  };
+
   let out = `<defs>
       <radialGradient id="radarGlow" cx="50%" cy="45%" r="72%">
         <stop offset="0%" stop-color="rgba(255,255,255,.09)"/>
-        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-      </radialGradient>
-      <radialGradient id="radarCore" cx="50%" cy="50%" r="60%">
-        <stop offset="0%" stop-color="rgba(255,255,255,.10)"/>
         <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
       </radialGradient>
       <filter id="radarSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
@@ -2942,31 +2945,27 @@ function renderRadar() {
   });
 
   const pts = axes.map(([k,label,color], i) => {
-    const rr = r * ((totals[k] || 0) / max);
+    const rr = scaledRadiusFor(totals[k] || 0);
     const p = pointFor(rr, i);
-    return {...p, color, key:k};
+    return {...p, color, key:k, value:totals[k] || 0};
   });
 
   const outlinePts = pts.map(p => `${p.x},${p.y}`).join(" ");
-  out += `<polygon points="${outlinePts}" fill="rgba(242,201,76,.10)" stroke="rgba(242,201,76,.72)" stroke-width="2" filter="url(#radarSoftGlow)"/>`;
+  out += `<polygon points="${outlinePts}" fill="rgba(242,201,76,.10)" stroke="rgba(242,201,76,.78)" stroke-width="2.2" filter="url(#radarSoftGlow)"/>`;
   out += `<polygon points="${outlinePts}" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.16)" stroke-width="1"/>`;
 
-  pts.forEach((p,i) => {
-    out += `<circle cx="${p.x}" cy="${p.y}" r="4.4" fill="${p.color}" stroke="#09182d" stroke-width="1.8"/>`;
+  pts.forEach((p) => {
+    if(p.value <= 0) return;
+    out += `<circle cx="${p.x}" cy="${p.y}" r="4.8" fill="${p.color}" stroke="#09182d" stroke-width="1.8"/>`;
   });
 
-  out += `<circle cx="${cx}" cy="${cy}" r="44" fill="rgba(8,23,45,.88)" stroke="rgba(255,255,255,.08)" stroke-width="1.2"/>`;
-  out += `<circle cx="${cx}" cy="${cy}" r="36" fill="url(#radarCore)"/>`;
-  out += `<text x="${cx}" y="${cy - 8}" text-anchor="middle" fill="#f7f9fc" font-size="12" font-weight="700" letter-spacing="0.06em">${ui.radarMode.toUpperCase()}</text>`;
-  out += `<text x="${cx}" y="${cy + 14}" text-anchor="middle" fill="#f2c94c" font-size="20" font-weight="800">${total}</text>`;
-  out += `<text x="${cx}" y="${cy + 30}" text-anchor="middle" fill="rgba(232,239,248,.65)" font-size="10" font-weight="600">total sets</text>`;
   svg.innerHTML = out;
 
   if(legend){
     legend.innerHTML = axes.map(([k,label,color]) => `<div class="radar-legend-item"><span class="radar-legend-dot" style="background:${color}"></span><span>${label}</span></div>`).join("");
   }
   if(footnote){
-    footnote.textContent = strongestValue ? `Strongest area: ${strongestLabel} · ${strongestValue} set${strongestValue===1?'':'s'}` : `No volume yet for this ${ui.radarMode} view.`;
+    footnote.textContent = strongestValue ? `Strongest area: ${strongestLabel} · ${strongestValue} set${strongestValue===1?'':'s'} · scale optimized for low-volume visibility` : `No volume yet for this ${ui.radarMode} view.`;
   }
 }
 
