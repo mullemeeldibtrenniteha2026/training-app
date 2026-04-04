@@ -23,6 +23,23 @@
   --gold:#f2c94c; --green:#39b56a; --yellow:#f2c94c; --blue:#7fb2ff; --red:#eb5757;
   --radius:18px; --shadow:0 16px 36px rgba(0,0,0,.28);
   --accent-soft:#ffd76a;
+
+  /* Typography system */
+  --font-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Inter,Roboto,sans-serif;
+  --fs-display:30px;
+  --fs-title:20px;
+  --fs-subtitle:14px;
+  --fs-section:20px;
+  --fs-card-title:16px;
+  --fs-body:14px;
+  --fs-body-sm:13px;
+  --fs-caption:12px;
+  --fs-micro:11px;
+  --lh-tight:1.1;
+  --lh-base:1.4;
+  --ls-tight:-0.03em;
+  --ls-section:-0.02em;
+  --ls-micro:0.06em;
 }
 * { box-sizing:border-box; }
 html,body { margin:0; padding:0; background:radial-gradient(circle at top, #10284a 0%, var(--bg) 48%, #06111f 100%); color:var(--text);
@@ -1926,6 +1943,38 @@ input,textarea,select,button { font:inherit; }
   .brand-title{font-size:34px !important;}
   .brand-subtitle{font-size:16px !important;}
   .brand-icon{width:30px !important; height:30px !important;}
+}
+
+
+
+/* 2.7.4 Typography system lock */
+html,body,input,textarea,select,button{font-family:var(--font-ui);}
+.title h1,.brand-title{font-size:var(--fs-display)!important;line-height:var(--lh-tight);letter-spacing:var(--ls-tight);font-weight:800;}
+.title .sub,.brand-subtitle{font-size:var(--fs-subtitle)!important;line-height:1.15;letter-spacing:-0.01em;font-weight:700;}
+.section-title h2,.section-title h3,#radarTitle,.compact-search-card .section-title h3,.add-card .section-title h2{font-size:var(--fs-section)!important;line-height:1.15;letter-spacing:var(--ls-section);font-weight:750;text-transform:none;}
+.metric .k,.info-box .k,.setcol .k,.label,.weekdays div,.legend-item,.exercise-meta,.search-item .meta,.section-title .meta,.help,.sync-pill{font-size:var(--fs-caption)!important;line-height:1.35;}
+.metric .k,.info-box .k{letter-spacing:var(--ls-micro);text-transform:uppercase;font-weight:700;}
+.metric .v{font-size:22px!important;line-height:1.1;letter-spacing:-0.02em;font-weight:800;}
+.metric .s{font-size:var(--fs-caption)!important;line-height:1.4;}
+.exercise-name{font-size:24px!important;line-height:1.15;font-weight:780;letter-spacing:-0.025em;}
+.field,.select,.textarea,.setinput,.search-item .name,.info-box .v,.search-open,.pill,.btn,.badge{font-size:var(--fs-body)!important;line-height:1.35;}
+.codebox,.setn,.donebtn{font-size:var(--fs-body-sm)!important;font-weight:700;}
+.empty-state,.timer-hint,.workout-focus-note{font-size:var(--fs-body-sm)!important;line-height:1.45;}
+.search-item .name{font-weight:700;letter-spacing:-0.015em;}
+#monthTitle{font-size:24px!important;line-height:1.1;letter-spacing:-0.02em;font-weight:800;}
+#monthSubtitle{font-size:var(--fs-micro)!important;letter-spacing:0.08em;}
+.workout-date-big{font-size:22px!important;line-height:1.15;font-weight:800;}
+@media (max-width:640px){
+  :root{
+    --fs-display:28px;
+    --fs-section:18px;
+    --fs-subtitle:13px;
+    --fs-body:14px;
+    --fs-body-sm:13px;
+    --fs-caption:12px;
+  }
+  .exercise-name{font-size:21px!important;}
+  .metric .v{font-size:20px!important;}
 }
 
 </style>
