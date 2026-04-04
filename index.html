@@ -1,12 +1,13 @@
 <!--
-Timo Training Logbook — 3.2 Stability Layer
-This patch keeps the working UX intact and adds safer runtime behavior.
+Timo Training Logbook — 3.3 Finish Experience Polish
+This patch keeps the working UX intact and improves the finish flow.
 It introduces:
-- defensive rendering fallbacks
-- safer event handling for empty/edge states
-- more explicit save/sync status defaults
-- basic stability helpers for empty day / empty workout / partial UI states
+- smoother finish summary overlay behavior
+- cleaner success-state presentation
+- a small contextual subline for workout completion
+- more polished overlay open/close transitions
 -->
+
 
 
 <!DOCTYPE html>
@@ -2336,6 +2337,7 @@ body{
   <div class="finish-summary-card">
     <div class="finish-summary-kicker">Session complete</div>
     <h2 class="finish-summary-title">Workout complete</h2>
+    <div class="finish-summary-subline" id="finishSummarySubline">Saved for this day.</div>
     <div class="finish-summary-grid">
       <div class="finish-summary-stat"><div class="k">Exercises</div><div class="v" id="finishExercisesValue">0</div></div>
       <div class="finish-summary-stat"><div class="k">Sets</div><div class="v" id="finishSetsValue">0</div></div>
@@ -3096,14 +3098,24 @@ function openFinishSummary(stats){
   const ex = document.getElementById("finishExercisesValue");
   const sets = document.getElementById("finishSetsValue");
   const vol = document.getElementById("finishVolumeValue");
+  const subline = document.getElementById("finishSummarySubline");
   if(ex) ex.textContent = String(stats.exercises || 0);
   if(sets) sets.textContent = String(stats.sets || 0);
   if(vol) vol.textContent = `${(stats.volume || 0).toLocaleString("en-GB")} kg`;
+  if(subline) {
+    const finished = (stats.exercises || 0) === 1 ? "1 exercise logged." : `${stats.exercises || 0} exercises logged.`;
+    subline.textContent = finished;
+  }
   overlay.style.display = "flex";
+  requestAnimationFrame(() => overlay.classList.add("is-visible"));
 }
 function closeFinishSummary(){
   const overlay = document.getElementById("finishSummaryOverlay");
-  if(overlay) overlay.style.display = "none";
+  if(!overlay) return;
+  overlay.classList.remove("is-visible");
+  setTimeout(() => {
+    overlay.style.display = "none";
+  }, 220);
 }
 
 function markEntireWorkoutDone(){
