@@ -1547,6 +1547,55 @@ input,textarea,select,button { font:inherit; }
   }
 }
 
+
+/* PATCH 2.6.1 — unified layout system */
+:root{--section-gap:20px;--stack-gap:20px;}
+.app{padding-top:14px;}
+.topbar{margin:-14px -14px var(--section-gap);}
+.topbar-inner{position:relative;gap:12px;max-width:1200px;}
+.topbar-main{gap:8px;padding-bottom:22px;}
+.title{width:100%;}
+.brand-lockup{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.brand-copy{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap;}
+.brand-title{font-size:32px !important;line-height:1;letter-spacing:-.03em;}
+.brand-subtitle{font-size:16px !important;line-height:1;opacity:.78;letter-spacing:.04em;}
+.brand-icon{width:30px;height:30px;}
+.header-actions #workoutModeBtn{min-height:40px !important;padding:9px 16px !important;font-size:13px !important;letter-spacing:.05em;}
+.header-meta{position:absolute;right:0;bottom:0;justify-content:flex-end !important;align-items:flex-end;gap:0;pointer-events:none;}
+.header-meta .sync-pill{pointer-events:auto;font-size:11px !important;padding:6px 10px !important;min-height:auto;border-radius:999px;}
+#saveStatus{display:none !important;}
+.metrics{margin:0 0 var(--section-gap) 0 !important;gap:12px !important;}
+.layout{margin-top:0 !important;gap:var(--section-gap) !important;align-items:start;}
+.left,.right{gap:var(--stack-gap) !important;align-content:start;}
+.card,.metric{margin:0 !important;}
+.section-title{margin:0 0 12px 0 !important;}
+.days-card,.compact-search-card,.radar-card,.add-card,#searchResultsHost,.exercise-list{margin:0 !important;}
+.add-card .section-title h2,.compact-search-card .section-title h3,.radar-card .section-title h3{font-size:17px !important;font-weight:750;letter-spacing:-.02em;text-transform:none;color:var(--text);}
+.add-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:12px !important;align-items:stretch !important;}
+.add-grid > .field,.add-grid > .select,.add-grid > .btn{height:48px !important;min-height:48px !important;width:100% !important;}
+.add-grid > .field,.add-grid > .select{font-size:14px;}
+#searchResultsHost:empty{display:none !important;}
+@media (max-width:980px){
+  :root{--section-gap:18px;--stack-gap:18px;}
+  .topbar{margin:-10px -10px var(--section-gap);}
+  .topbar-main{padding-bottom:20px;}
+}
+@media (max-width:640px){
+  :root{--section-gap:16px;--stack-gap:16px;}
+  .app{padding-top:10px;}
+  .topbar{margin:-10px -10px var(--section-gap);}
+  .topbar-inner{gap:10px;}
+  .topbar-main{padding-bottom:18px;}
+  .brand-copy{gap:6px;}
+  .brand-title{font-size:28px !important;}
+  .brand-subtitle{font-size:15px !important;}
+  .brand-icon{width:28px;height:28px;}
+  .header-meta{right:0;bottom:0;}
+  .metrics{gap:10px !important;}
+  .left,.right{gap:var(--stack-gap) !important;}
+  .add-grid{grid-template-columns:1fr !important;gap:10px !important;}
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
