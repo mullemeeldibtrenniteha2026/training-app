@@ -85,7 +85,9 @@ input,textarea,select,button { font:inherit; }
 .legend-item { display:inline-flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); }
 .legend-dot { width:9px; height:9px; border-radius:50%; }
 
-.add-grid { display:grid; grid-template-columns:minmax(0,1.2fr) 150px 130px; gap:8px; margin-top:10px; }
+.add-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:10px; }
+.add-grid > .field,.add-grid > .select,.add-grid > .btn{width:100%;min-height:44px;border-radius:14px;}
+.add-grid > .btn{font-weight:800;}
 .info-box { background:var(--panel2); border:1px solid var(--line); border-radius:16px; padding:11px 12px; }
 .info-box .k { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
 .info-box .v { margin-top:5px; font-size:13px; font-weight:650; line-height:1.45; }
@@ -177,13 +179,16 @@ input,textarea,select,button { font:inherit; }
   background:linear-gradient(180deg, rgba(34,29,23,.6), rgba(23,26,32,1));
 }
 .workout-focus-note { color:var(--muted); font-size:12px; margin-top:8px; }
-.workout-progress-row{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:8px;}
-.workout-progress-pill{min-width:34px;min-height:34px;border-radius:999px;border:1px solid var(--line);background:#101828;color:var(--muted);font-weight:700;cursor:pointer;}
-.workout-progress-pill.active{border-color:rgba(242,201,76,.45);color:#f3dda4;background:rgba(242,201,76,.10);}
-.workout-progress-pill.done{border-color:rgba(57,181,106,.45);color:#c8ffd9;background:rgba(57,181,106,.12);}
+.workout-progress-row{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.workout-progress-pill{width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:12px;border:1px solid rgba(36,58,97,.95);background:linear-gradient(180deg,#132645,#0f213d);color:#b7c7db;font-weight:800;font-size:14px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.03);}
+.workout-progress-pill.active{border-color:rgba(242,201,76,.55);color:#f6df9f;background:linear-gradient(180deg,rgba(242,201,76,.18),rgba(242,201,76,.08));box-shadow:0 8px 18px rgba(242,201,76,.12), inset 0 1px 0 rgba(255,255,255,.06);}
+.workout-progress-pill.done{border-color:rgba(57,181,106,.45);color:#c8ffd9;background:linear-gradient(180deg,rgba(57,181,106,.16),rgba(57,181,106,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
 .workout-mode-shell{gap:12px;}
 .workout-nav-row{display:flex;justify-content:center;gap:8px;margin-top:10px;}
 .workout-nav-row .btn{min-width:120px;}
+.workout-focus-card{display:grid;gap:12px;}
+.workout-focus-card .section-title{margin-bottom:0;justify-content:center;}
+
 
 .compact-last .info-box{padding:9px 11px}
 .block-header{padding:9px 12px}
