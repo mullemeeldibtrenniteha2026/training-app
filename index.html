@@ -1,12 +1,13 @@
 <!--
-Timo Training Logbook — 3.1 Structure Split
-This patch does not change the working UX.
+Timo Training Logbook — 3.2 Stability Layer
+This patch keeps the working UX intact and adds safer runtime behavior.
 It introduces:
-- clearer section boundaries
-- a central render entry
-- a central boot entry
-- safer refactor baseline for later modular cleanup
+- defensive rendering fallbacks
+- safer event handling for empty/edge states
+- more explicit save/sync status defaults
+- basic stability helpers for empty day / empty workout / partial UI states
 -->
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -2519,19 +2520,17 @@ let state = loadState();
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  const s = document.getElementById("saveStatus");
-  if(s) s.textContent = "Saved locally on this device.";
+  safeSetText("saveStatus", "Saved locally on this device.");
   scheduleCloudSave();
   renderApp();
 }
 function saveStateQuiet(message="Saved locally on this device.") {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  const s = document.getElementById("saveStatus");
-  if(s) s.textContent = message;
+  safeSetText("saveStatus", message);
   scheduleCloudSave();
 }
 function showToast(message="Saved") {
-  const el = document.getElementById("quickToast");
+  const el = ensureElement("quickToast");
   if(!el) return;
   el.textContent = message;
   el.classList.add("show");
@@ -2829,6 +2828,44 @@ function goToday() {
   if(info) { ui.week=info.week; ui.day=info.day; }
   else { ui.week=getInitialWeek(); ui.day=getFirstDay(ui.week); }
   renderApp();
+}
+
+// ===== STABILITY HELPERS =====
+function ensureElement(id) {
+  return document.getElementById(id);
+}
+function safeSetText(id, value) {
+  const el = ensureElement(id);
+  if (el) el.textContent = value;
+}
+function safeSetHTML(id, value) {
+  const el = ensureElement(id);
+  if (el) el.innerHTML = value;
+}
+function getCurrentDayExercises() {
+  try { return getExercisesForWeekDay(ui.week, ui.day) || []; }
+  catch { return []; }
+}
+function hasRenderableWorkout() {
+  return getCurrentDayExercises().length > 0;
+}
+function getWorkoutStatsSafe() {
+  const exs = getCurrentDayExercises();
+  let totalSets = 0, doneSets = 0, totalVol = 0;
+  exs.forEach(ex => {
+    const count = Math.max(0, Number(setCountOf(ui.week, ui.day, ex) || 0));
+    totalSets += count;
+    for (let i = 0; i < count; i++) {
+      const s = getSet(ui.week, ui.day, ex, i);
+      if (String(s.done || "") === "1") doneSets += 1;
+      const v = setVolume(s);
+      if (v) totalVol += Number(v);
+    }
+    if (blockDoneOf(ui.week, ui.day, ex) && isRecoveryLike(ui.week, ui.day, ex)) {
+      doneSets = Math.max(doneSets, 1);
+    }
+  });
+  return { exs, totalSets, doneSets, totalVol };
 }
 
 // ===== RENDER: METRICS =====
@@ -3430,7 +3467,7 @@ function withTimeout(promise, ms=4000) {
   ]);
 }
 function setSyncStatus(text) {
-  const el = document.getElementById("syncStatus");
+  const el = ensureElement("syncStatus");
   if(!el) return;
   const value = String(text || "");
   let label = value;
@@ -3444,7 +3481,7 @@ function setSyncStatus(text) {
   el.textContent = label;
 }
 function setAuthMessage(text, mode="") {
-  const el = document.getElementById("authMessage");
+  const el = ensureElement("authMessage");
   if(!el) return;
   el.textContent = text || "";
   el.className = "auth-message" + (mode ? " " + mode : "");
@@ -3896,7 +3933,18 @@ const calendarToggleBtn = document.getElementById("calendarToggleBtn");
 if(calendarToggleBtn) calendarToggleBtn.onclick = () => { ui.calendarCollapsed = !ui.calendarCollapsed; renderCalendar(); };
 
 // ===== APP BOOT =====
+function runBasicStabilityChecks() {
+  try {
+    if (!Array.isArray(DAY_ORDER) || DAY_ORDER.length !== 7) console.warn("DAY_ORDER is invalid");
+    if (!ensureElement("mainApp")) console.warn("mainApp root not found");
+    if (!ensureElement("metrics")) console.warn("metrics root not found");
+    if (!ensureElement("exerciseList")) console.warn("exerciseList root not found");
+  } catch(e) {
+    console.error("Basic stability checks failed", e);
+  }
+}
 function bootApp() {
+  runBasicStabilityChecks();
   resetTimer();
   initSupabaseApp();
   setupLockScreen();
