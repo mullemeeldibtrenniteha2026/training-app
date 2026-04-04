@@ -39,11 +39,11 @@ input,textarea,select,button { font:inherit; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
 .title h1 { margin:0; font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--accent-soft); text-shadow:0 0 18px rgba(242,201,76,.08); text-align:center; }
 .title .sub { color:var(--muted); font-size:13px; margin-top:4px; text-align:center; }
-.brand-lockup{display:flex;align-items:center;justify-content:center;gap:10px;}
-.brand-icon{width:28px;height:28px;border-radius:8px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:.96;flex:0 0 28px;}
-.brand-copy{display:flex;flex-direction:column;align-items:flex-start;line-height:1.02;}
+.brand-lockup{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.brand-copy{display:flex;flex-direction:column;align-items:center;line-height:1.02;}
 .brand-title{font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--accent-soft);text-shadow:0 0 18px rgba(242,201,76,.08);}
 .brand-subtitle{margin-top:4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fb2ca;}
+.brand-icon{width:28px;height:28px;border-radius:8px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:.96;flex:0 0 28px;order:2;}
 .btn,.field,.select,.textarea {
   border:1px solid var(--line); background:rgba(8,23,45,.78); color:var(--text); border-radius:14px;
 }
@@ -135,6 +135,21 @@ input,textarea,select,button { font:inherit; }
 .compare .info-box .v{font-size:12px;line-height:1.5;font-weight:600;}
 .compare .info-box .k{font-size:10px;}
 .workout-date-big{text-align:center;font-size:18px;font-weight:700;color:#f2c94c;margin-bottom:8px;}
+:root{--stack-gap:18px;--section-gap:18px;}
+.metrics{gap:var(--section-gap);margin-bottom:20px;}
+.layout{gap:var(--section-gap);margin-top:4px;}
+.left,.right,.exercise-list,#searchResultsHost{gap:var(--stack-gap);}
+.card{padding:16px;}
+.calendar-collapsible{margin-top:2px;}
+.days-card,.compact-search-card,.radar-card,.add-card,.calendar-collapsible,.search-results-card,.block-group,.workout-focus-card,.end-panel-shell{box-shadow:0 16px 36px rgba(0,0,0,.24);}
+.add-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;}
+.add-grid > .field,.add-grid > .select,.add-grid > .btn{width:100%;min-width:0;height:48px;min-height:48px;border-radius:14px;padding:0 14px;}
+.add-grid > .field{justify-content:flex-start;text-align:left;}
+.add-grid > .select{-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%, #8ea3bd 50%),linear-gradient(135deg,#8ea3bd 50%, transparent 50%);background-position:calc(100% - 18px) calc(50% - 3px),calc(100% - 12px) calc(50% - 3px);background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:34px;text-align:left;justify-content:flex-start;}
+.add-grid > .btn{justify-content:center;}
+@media (max-width:980px){.metrics{margin-bottom:18px;}.left,.right,.exercise-list,#searchResultsHost{gap:16px;}}
+@media (max-width:640px){.left,.right,.exercise-list,#searchResultsHost{gap:14px;}.card{padding:14px 12px;} .add-grid > .field,.add-grid > .select,.add-grid > .btn{height:46px;min-height:46px;}}
+
 .field-grid { display:grid; grid-template-columns:120px 1fr; gap:10px; align-items:start; margin-top:10px; }
 .field-grid .field,.field-grid .textarea{min-height:52px;}
 .label { color:var(--muted); font-size:12px; padding-top:10px; }
@@ -1248,11 +1263,11 @@ input,textarea,select,button { font:inherit; }
       <div class="topbar-main">
         <div class="title">
           <div class="brand-lockup">
-            <img src="./icon_180.png" alt="Timo Training" class="brand-icon" />
             <div class="brand-copy">
               <div class="brand-title">Timo Training</div>
               <div class="brand-subtitle">Logbook</div>
             </div>
+            <img src="./icon_180.png" alt="Timo Training" class="brand-icon" />
           </div>
           <div class="sub" id="weekHeader"></div>
         </div>
