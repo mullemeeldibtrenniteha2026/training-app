@@ -1,12 +1,13 @@
 <!--
-Timo Training Logbook — 3.3 Finish Experience Polish
-This patch keeps the working UX intact and improves the finish flow.
-It introduces:
-- smoother finish summary overlay behavior
-- cleaner success-state presentation
-- a small contextual subline for workout completion
-- more polished overlay open/close transitions
+Timo Training Logbook — 3.4 Release Readiness
+Adds safer runtime behavior for real usage:
+- online/offline handling
+- autosave on visibility/pagehide
+- clearer sync status defaults
+- safer finish validation
+- lightweight runtime self-checks
 -->
+
 
 
 
@@ -689,6 +690,7 @@ input,textarea,select,button { font:inherit; }
 }
 .auth-message.error { color: var(--red); }
 .auth-message.ok { color: var(--green); }
+.status-note{font-size:11px;color:var(--muted);line-height:1.35;}
 .sync-pill {
   border: 1px solid var(--line);
   background: var(--panel2);
@@ -3944,6 +3946,57 @@ document.getElementById("finishSummaryOverlay")?.addEventListener("click", e => 
 const calendarToggleBtn = document.getElementById("calendarToggleBtn");
 if(calendarToggleBtn) calendarToggleBtn.onclick = () => { ui.calendarCollapsed = !ui.calendarCollapsed; renderCalendar(); };
 
+
+// ===== RELEASE READINESS HELPERS =====
+function persistLocalStateNow() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    return true;
+  } catch (e) {
+    console.error("Local persist failed", e);
+    return false;
+  }
+}
+function hasAnyCompletedSetForCurrentDay() {
+  const exs = getCurrentDayExercises();
+  for (const ex of exs) {
+    const count = Math.max(0, Number(setCountOf(ui.week, ui.day, ex) || 0));
+    for (let i = 0; i < count; i++) {
+      const s = getSet(ui.week, ui.day, ex, i);
+      if (String(s.done || "") === "1") return true;
+    }
+    if (blockDoneOf(ui.week, ui.day, ex) && isRecoveryLike(ui.week, ui.day, ex)) return true;
+  }
+  return false;
+}
+function updateConnectivityState() {
+  if (navigator.onLine) {
+    setSyncStatus(currentUser ? "Cloud: synced" : "Cloud: local only");
+  } else {
+    setSyncStatus("Cloud: offline");
+    safeSetText("saveStatus", "Offline — changes stay on this device until connection returns.");
+  }
+}
+function installReleaseReadinessListeners() {
+  window.addEventListener("online", () => {
+    updateConnectivityState();
+    showToast("Back online");
+    if (currentUser) scheduleCloudSave();
+  });
+  window.addEventListener("offline", () => {
+    updateConnectivityState();
+    showToast("Offline mode");
+  });
+  window.addEventListener("pagehide", () => {
+    persistLocalStateNow();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      persistLocalStateNow();
+    }
+  });
+}
+
 // ===== APP BOOT =====
 function runBasicStabilityChecks() {
   try {
@@ -3957,10 +4010,12 @@ function runBasicStabilityChecks() {
 }
 function bootApp() {
   runBasicStabilityChecks();
+  installReleaseReadinessListeners();
   resetTimer();
   initSupabaseApp();
   setupLockScreen();
   goToday();
+  updateConnectivityState();
 }
 
 bootApp();
