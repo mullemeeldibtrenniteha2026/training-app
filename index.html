@@ -1409,6 +1409,59 @@ input,textarea,select,button { font:inherit; }
   }
 }
 
+
+
+/* Patch 2.5.6 — final layout rhythm, header balance, radar labels */
+:root{--section-gap-final:20px;}
+.metrics{display:none !important;}
+.layout,.left,.right,.exercise-list,#searchResultsHost{gap:var(--section-gap-final) !important;}
+.left > .card,.right > .card,#searchResultsHost > .card,.exercise-list > .card,.exercise-list > .block-group,.exercise-list > .end-panel-shell{margin:0 !important;}
+.card,.block-group,.end-panel-shell{border-radius:20px !important;}
+.topbar{padding-bottom:18px !important;}
+.topbar-inner{position:relative;gap:12px !important;}
+.topbar-main{gap:8px !important;padding-top:4px !important;}
+.brand-lockup{gap:6px !important;}
+.brand-title{font-size:38px !important;line-height:1 !important;letter-spacing:-.04em !important;}
+.brand-subtitle{font-size:17px !important;letter-spacing:.22em !important;margin-top:6px !important;color:#a9bbd3 !important;}
+.brand-icon{width:34px !important;height:34px !important;border-radius:10px !important;margin-top:-4px !important;}
+.header-actions #workoutModeBtn{min-height:40px !important;padding:10px 18px !important;font-size:14px !important;letter-spacing:.04em !important;border-radius:14px !important;box-shadow:0 8px 20px rgba(255,159,10,.22), inset 0 1px 0 rgba(255,255,255,.24) !important;}
+.header-meta{position:absolute !important;right:0 !important;bottom:8px !important;top:auto !important;justify-content:flex-end !important;z-index:3 !important;}
+.header-meta .sync-pill{font-size:10px !important;line-height:1 !important;padding:5px 8px !important;min-height:auto !important;border-radius:999px !important;border:1px solid rgba(57,181,106,.25) !important;background:rgba(57,181,106,.08) !important;color:#bfeccf !important;box-shadow:none !important;backdrop-filter:none !important;}
+.sync-pill.ok,.sync-pill.syncing,.sync-pill.warn,.sync-pill.info{box-shadow:none !important;}
+.days-card,.compact-search-card,.radar-card,.add-card,.calendar-collapsible{padding:18px !important;}
+.compact-search-card .section-title,.radar-card .section-title,.add-card .section-title,.days-card .section-title{margin-bottom:14px !important;}
+.compact-search-card .section-title h3,.add-card .section-title h2,.radar-card #radarTitle{font-size:24px !important;line-height:1.08 !important;font-weight:800 !important;letter-spacing:-.02em !important;}
+.days-card .pills{margin-top:2px !important;}
+.compact-search-card .field{max-width:420px !important;min-height:50px !important;height:50px !important;font-size:16px !important;padding:0 16px !important;border-radius:16px !important;}
+.radar-card .section-title{margin-bottom:14px !important;}
+.radar-header-actions{margin-top:0 !important;}
+.segmented{padding:4px !important;gap:4px !important;}
+.segmented button{min-width:88px !important;height:42px !important;font-size:13px !important;border-radius:999px !important;}
+.radar-wrap{padding:8px !important;margin-top:0 !important;max-width:360px !important;}
+.radar-wrap svg text{fill:rgba(231,238,247,.64) !important;font-size:8.5px !important;font-weight:700 !important;letter-spacing:.01em !important;}
+.add-card{background:linear-gradient(180deg, rgba(15,33,61,.98), rgba(10,24,45,.98)) !important;box-shadow:var(--shadow) !important;}
+.add-grid{grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:12px !important;align-items:stretch !important;margin-top:10px !important;}
+.add-grid > .field,.add-grid > .select,.add-grid > .btn{width:100% !important;min-width:0 !important;height:52px !important;min-height:52px !important;border-radius:16px !important;padding:0 16px !important;font-size:16px !important;line-height:1 !important;display:flex !important;align-items:center !important;}
+.add-grid > .field,.add-grid > .select{justify-content:flex-start !important;text-align:left !important;}
+.add-grid > .btn{justify-content:center !important;font-weight:800 !important;}
+@media (max-width:640px){
+  :root{--section-gap-final:18px;}
+  .topbar{padding-bottom:16px !important;}
+  .brand-title{font-size:34px !important;}
+  .brand-subtitle{font-size:15px !important;letter-spacing:.20em !important;}
+  .brand-icon{width:30px !important;height:30px !important;margin-top:-2px !important;}
+  .header-meta{right:6px !important;bottom:6px !important;}
+  .header-meta .sync-pill{font-size:9px !important;padding:4px 7px !important;}
+  .header-actions #workoutModeBtn{min-height:38px !important;padding:9px 16px !important;font-size:13px !important;}
+  .days-card,.compact-search-card,.radar-card,.add-card,.calendar-collapsible{padding:16px 14px !important;}
+  .compact-search-card .section-title h3,.add-card .section-title h2,.radar-card #radarTitle{font-size:22px !important;}
+  .compact-search-card .field{max-width:none !important;height:48px !important;min-height:48px !important;font-size:16px !important;}
+  .segmented button{min-width:82px !important;height:40px !important;}
+  .radar-wrap{max-width:330px !important;}
+  .add-grid{grid-template-columns:1fr !important;gap:12px !important;}
+  .add-grid > .field,.add-grid > .select,.add-grid > .btn{height:50px !important;min-height:50px !important;font-size:15px !important;}
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2152,7 +2205,7 @@ function renderRadar() {
     ["conditioning","Conditioning","#ffd24d"]
   ];
   const max = Math.max(1, ...axes.map(([k]) => totals[k] || 0));
-  const cx=160, cy=160, r=96, rings=5;
+  const cx=160, cy=160, r=88, rings=5;
 
   const pointFor = (radius, i) => {
     const a = -Math.PI/2 + i * (Math.PI*2/axes.length);
@@ -2179,9 +2232,9 @@ function renderRadar() {
 
   axes.forEach(([k,label,color],i) => {
     const p = pointFor(r, i);
-    const lx = cx + Math.cos(p.a)*(r+18), ly = cy + Math.sin(p.a)*(r+18);
+    const lx = cx + Math.cos(p.a)*(r+24), ly = cy + Math.sin(p.a)*(r+24);
     out += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,.10)" stroke-width="1"/>`;
-    out += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" letter-spacing="0.2" fill="rgba(231,238,247,.74)">${label}</text>`;
+    out += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="8.5" font-weight="700" letter-spacing="0.1" fill="rgba(231,238,247,.66)">${label}</text>`;
   });
 
   const pts = axes.map(([k,label,color], i) => {
