@@ -1977,6 +1977,167 @@ html,body,input,textarea,select,button{font-family:var(--font-ui);}
   .metric .v{font-size:20px!important;}
 }
 
+
+/* Patch 2.8 — typography polish system */
+:root{
+  --type-display:32px;
+  --type-display-mobile:28px;
+  --type-subdisplay:16px;
+  --type-section:20px;
+  --type-section-mobile:18px;
+  --type-body:14px;
+  --type-body-mobile:13px;
+  --type-meta:12px;
+  --type-micro:11px;
+  --lh-display:1.02;
+  --lh-tight:1.18;
+  --lh-body:1.46;
+}
+body{
+  font-feature-settings:"cv11" 1, "ss01" 1;
+  line-height:var(--lh-body);
+}
+.brand-copy{line-height:1.02;}
+.brand-title{
+  font-size:var(--type-display) !important;
+  line-height:var(--lh-display) !important;
+  font-weight:700 !important;
+  letter-spacing:-.035em !important;
+}
+.brand-subtitle{
+  font-size:var(--type-subdisplay) !important;
+  line-height:1.12 !important;
+  font-weight:500 !important;
+  letter-spacing:.02em !important;
+  opacity:.76 !important;
+  text-transform:none !important;
+}
+.section-title h2,
+.section-title h3,
+#radarTitle,
+.compact-search-card .section-title h3,
+.add-card .section-title h2,
+.radar-card #radarTitle{
+  font-size:var(--type-section) !important;
+  line-height:var(--lh-tight) !important;
+  font-weight:700 !important;
+  letter-spacing:-.022em !important;
+  text-transform:none !important;
+}
+.metric .k,
+.info-box .k,
+.setcol .k,
+.label,
+.search-item .meta,
+.exercise-meta,
+.section-title .meta,
+.help,
+.legend-item,
+#syncStatus,
+.sync-pill,
+.workout-focus-note,
+.timer-hint,
+.workout-step-label,
+.empty-state,
+.daycell .w{
+  font-size:var(--type-meta) !important;
+  line-height:1.35 !important;
+  font-weight:400 !important;
+  letter-spacing:0 !important;
+}
+.metric .k,
+.info-box .k,
+.setcol .k,.label{
+  text-transform:uppercase;
+  letter-spacing:.04em !important;
+  opacity:.82;
+}
+.metric .v,
+.info-box .v,
+.search-item .name,
+.block-title,
+.workout-date-big{
+  font-weight:600 !important;
+  line-height:1.24 !important;
+}
+.metric .v{font-size:22px !important;}
+.info-box .v,
+.exercise-meta,
+.search-item .meta,
+.help,
+.empty-state,
+.textarea,
+.field,
+.select,
+.setinput,
+.sync-pill{
+  font-size:var(--type-body) !important;
+  line-height:var(--lh-body) !important;
+}
+.exercise-name{
+  font-size:21px !important;
+  line-height:1.12 !important;
+  font-weight:650 !important;
+  letter-spacing:-.024em !important;
+}
+.search-item .name{font-size:15px !important;line-height:1.25 !important;}
+.badge,.pill,.search-open,.month-pill,.workout-progress-pill,.btn{
+  font-weight:600 !important;
+}
+.sync-pill,#syncStatus{
+  font-size:var(--type-micro) !important;
+  line-height:1.2 !important;
+  font-weight:500 !important;
+}
+.brand-subtitle,
+.section-title .meta,
+.help,
+.search-item .meta,
+.exercise-meta,
+.legend-item,
+.daycell .w,
+.sync-pill,#syncStatus{
+  color:#9eb1c8 !important;
+}
+@media (max-width:640px){
+  .brand-title{font-size:var(--type-display-mobile) !important;}
+  .brand-subtitle{font-size:14px !important;}
+  .section-title h2,
+  .section-title h3,
+  #radarTitle,
+  .compact-search-card .section-title h3,
+  .add-card .section-title h2,
+  .radar-card #radarTitle{font-size:var(--type-section-mobile) !important;}
+  .metric .v{font-size:20px !important;}
+  .exercise-name{font-size:18px !important;}
+  .info-box .v,
+  .exercise-meta,
+  .search-item .meta,
+  .help,
+  .empty-state,
+  .textarea,
+  .field,
+  .select,
+  .setinput,
+  .sync-pill{font-size:var(--type-body-mobile) !important;}
+  .metric .k,
+  .info-box .k,
+  .setcol .k,
+  .label,
+  .search-item .meta,
+  .exercise-meta,
+  .section-title .meta,
+  .help,
+  .legend-item,
+  #syncStatus,
+  .sync-pill,
+  .workout-focus-note,
+  .timer-hint,
+  .workout-step-label,
+  .empty-state,
+  .daycell .w{font-size:11px !important;}
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
