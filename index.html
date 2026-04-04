@@ -1924,9 +1924,20 @@ input,textarea,select,button { font:inherit; }
 .radar-header-actions{width:100% !important; display:flex !important; justify-content:center !important; align-items:center !important; margin-top:0 !important;}
 .radar-wrap{padding:8px 6px 0 !important; margin-bottom:12px !important;}
 .radar-wrap svg text{display:none !important;}
-.radar-legend{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; width:100%; max-width:520px; margin:0 auto;}
-.radar-legend-item{display:flex; align-items:center; justify-content:center; gap:7px; min-height:34px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.03); border-radius:12px; color:var(--soft); font-size:12px; font-weight:650; padding:6px 8px; white-space:nowrap;}
-.radar-legend-dot{width:8px; height:8px; border-radius:999px; flex:0 0 auto;}
+.radar-legend{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; width:100%; max-width:560px; margin:16px auto 0;}
+.radar-legend-item{display:flex; align-items:center; justify-content:center; gap:8px; min-height:38px; border:1px solid rgba(255,255,255,.07); background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border-radius:14px; color:rgba(239,244,251,.88); font-size:12px; font-weight:600; padding:8px 10px; white-space:nowrap; box-shadow:inset 0 1px 0 rgba(255,255,255,.03);}
+.radar-legend-dot{width:9px; height:9px; border-radius:999px; flex:0 0 auto; box-shadow:0 0 0 3px rgba(255,255,255,.03);}
+
+.radar-shell{display:flex; flex-direction:column; align-items:center; gap:0;}
+.radar-wrap{position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.06) !important; background:radial-gradient(circle at 50% 34%, rgba(255,255,255,.06), rgba(255,255,255,0) 58%), linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) !important; box-shadow:inset 0 1px 0 rgba(255,255,255,.03), 0 18px 36px rgba(0,0,0,.20);}
+.radar-wrap::after{content:""; position:absolute; inset:14px; border-radius:22px; border:1px solid rgba(255,255,255,.03); pointer-events:none;}
+.radar-card .section-title{margin-bottom:12px !important;}
+.radar-header-actions{margin-top:12px !important;}
+#radarToggle{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)) !important; border:1px solid rgba(255,255,255,.08) !important; border-radius:999px !important;}
+#radarToggle button{min-width:88px !important; font-weight:700 !important;}
+#radarToggle button.active{background:linear-gradient(180deg, rgba(242,201,76,.22), rgba(242,201,76,.10)) !important; color:#fff2c7 !important; box-shadow:0 6px 18px rgba(242,201,76,.12), inset 0 1px 0 rgba(255,255,255,.08) !important;}
+.radar-footnote{margin-top:12px; text-align:center; color:rgba(226,233,243,.72); font-size:12px; line-height:1.35;}
+
 @media (max-width:640px){
   .topbar-main{padding-bottom:16px !important;}
   .brand-title{font-size:27px !important;}
@@ -2251,8 +2262,11 @@ body{
             </div>
           </div>
         </div>
-        <div class="radar-wrap"><svg id="radarSvg" viewBox="0 0 320 320" width="100%" height="100%"></svg></div>
-        <div class="radar-legend" id="radarLegend"></div>
+        <div class="radar-shell">
+          <div class="radar-wrap"><svg id="radarSvg" viewBox="0 0 320 320" width="100%" height="100%"></svg></div>
+          <div class="radar-legend" id="radarLegend"></div>
+          <div class="radar-footnote" id="radarFootnote"></div>
+        </div>
       </div>
     </div>
 
@@ -2867,6 +2881,7 @@ function renderDays() {
 function renderRadar() {
   const svg = document.getElementById("radarSvg");
   const legend = document.getElementById("radarLegend");
+  const footnote = document.getElementById("radarFootnote");
   const totals = ui.radarMode==="day" ? computeRadar(ui.week, ui.day) : (ui.radarMode==="week" ? computeRadar(ui.week) : computeRadarLifetime());
   const title = document.getElementById("radarTitle");
   if(title) title.textContent = "Muscular Radar";
@@ -2882,22 +2897,35 @@ function renderRadar() {
     ["core","Core","#9de05e"],
     ["conditioning","Conditioning","#ffd24d"]
   ];
-  const max = Math.max(1, ...axes.map(([k]) => totals[k] || 0));
-  const cx=160, cy=160, r=96, rings=5;
+  const values = axes.map(([k]) => totals[k] || 0);
+  const max = Math.max(1, ...values);
+  const total = values.reduce((a,b)=>a+b,0);
+  const strongestIdx = values.indexOf(Math.max(...values));
+  const strongestLabel = axes[strongestIdx]?.[1] || "Balanced";
+  const strongestValue = values[strongestIdx] || 0;
+  const cx=160, cy=160, r=100, rings=5;
 
   const pointFor = (radius, i) => {
     const a = -Math.PI/2 + i * (Math.PI*2/axes.length);
-    return {x: cx + Math.cos(a)*radius, y: cy + Math.sin(a)*radius, a};
+    return {x: cx + Math.cos(a)*radius, y: cy + Math.sin(a)*radius};
   };
 
   let out = `<defs>
-      <radialGradient id="radarBg" cx="50%" cy="42%" r="72%">
-        <stop offset="0%" stop-color="rgba(255,255,255,.06)"/>
+      <radialGradient id="radarGlow" cx="50%" cy="45%" r="72%">
+        <stop offset="0%" stop-color="rgba(255,255,255,.09)"/>
         <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
       </radialGradient>
+      <radialGradient id="radarCore" cx="50%" cy="50%" r="60%">
+        <stop offset="0%" stop-color="rgba(255,255,255,.10)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </radialGradient>
+      <filter id="radarSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
     </defs>
-    <rect x="0" y="0" width="320" height="320" rx="22" fill="#0a1830"/>
-    <rect x="0" y="0" width="320" height="320" rx="22" fill="url(#radarBg)"/>`;
+    <rect x="0" y="0" width="320" height="320" rx="28" fill="#09182d"/>
+    <rect x="0" y="0" width="320" height="320" rx="28" fill="url(#radarGlow)"/>`;
 
   for(let ring=1; ring<=rings; ring++) {
     const rr = r * ring / rings;
@@ -2905,12 +2933,12 @@ function renderRadar() {
       const p = pointFor(rr, i);
       return `${p.x},${p.y}`;
     }).join(" ");
-    out += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="${ring===rings ? 1.4 : 1}"/>`;
+    out += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,${ring===rings ? '.10' : '.07'})" stroke-width="${ring===rings ? 1.3 : 1}"/>`;
   }
 
-  axes.forEach(([k,label,color],i) => {
+  axes.forEach(([, , ],i) => {
     const p = pointFor(r, i);
-    out += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,.10)" stroke-width="1"/>`;
+    out += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;
   });
 
   const pts = axes.map(([k,label,color], i) => {
@@ -2919,26 +2947,26 @@ function renderRadar() {
     return {...p, color, key:k};
   });
 
-  for(let i=0;i<pts.length;i++) {
-    const p1 = pts[i];
-    const p2 = pts[(i+1)%pts.length];
-    out += `<polygon points="${cx},${cy} ${p1.x},${p1.y} ${p2.x},${p2.y}" fill="${p1.color}" fill-opacity=".16" stroke="none"/>`;
-  }
-
   const outlinePts = pts.map(p => `${p.x},${p.y}`).join(" ");
-  out += `<polygon points="${outlinePts}" fill="rgba(255,255,255,.03)" stroke="rgba(255,255,255,.22)" stroke-width="1.2"/>`;
+  out += `<polygon points="${outlinePts}" fill="rgba(242,201,76,.10)" stroke="rgba(242,201,76,.72)" stroke-width="2" filter="url(#radarSoftGlow)"/>`;
+  out += `<polygon points="${outlinePts}" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.16)" stroke-width="1"/>`;
 
   pts.forEach((p,i) => {
-    const next = pts[(i+1)%pts.length];
-    out += `<line x1="${p.x}" y1="${p.y}" x2="${next.x}" y2="${next.y}" stroke="${p.color}" stroke-width="2.5" stroke-linecap="round"/>`;
-    out += `<circle cx="${p.x}" cy="${p.y}" r="4.2" fill="${p.color}" stroke="#0a1830" stroke-width="1.6"/>`;
+    out += `<circle cx="${p.x}" cy="${p.y}" r="4.4" fill="${p.color}" stroke="#09182d" stroke-width="1.8"/>`;
   });
 
-  out += `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#f4d98c" fill-opacity=".9"/>`;
+  out += `<circle cx="${cx}" cy="${cy}" r="44" fill="rgba(8,23,45,.88)" stroke="rgba(255,255,255,.08)" stroke-width="1.2"/>`;
+  out += `<circle cx="${cx}" cy="${cy}" r="36" fill="url(#radarCore)"/>`;
+  out += `<text x="${cx}" y="${cy - 8}" text-anchor="middle" fill="#f7f9fc" font-size="12" font-weight="700" letter-spacing="0.06em">${ui.radarMode.toUpperCase()}</text>`;
+  out += `<text x="${cx}" y="${cy + 14}" text-anchor="middle" fill="#f2c94c" font-size="20" font-weight="800">${total}</text>`;
+  out += `<text x="${cx}" y="${cy + 30}" text-anchor="middle" fill="rgba(232,239,248,.65)" font-size="10" font-weight="600">total sets</text>`;
   svg.innerHTML = out;
 
   if(legend){
     legend.innerHTML = axes.map(([k,label,color]) => `<div class="radar-legend-item"><span class="radar-legend-dot" style="background:${color}"></span><span>${label}</span></div>`).join("");
+  }
+  if(footnote){
+    footnote.textContent = strongestValue ? `Strongest area: ${strongestLabel} · ${strongestValue} set${strongestValue===1?'':'s'}` : `No volume yet for this ${ui.radarMode} view.`;
   }
 }
 
