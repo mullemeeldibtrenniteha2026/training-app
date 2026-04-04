@@ -39,6 +39,11 @@ input,textarea,select,button { font:inherit; }
 .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
 .title h1 { margin:0; font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--accent-soft); text-shadow:0 0 18px rgba(242,201,76,.08); text-align:center; }
 .title .sub { color:var(--muted); font-size:13px; margin-top:4px; text-align:center; }
+.brand-lockup{display:flex;align-items:center;justify-content:center;gap:10px;}
+.brand-icon{width:28px;height:28px;border-radius:8px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.18);opacity:.96;flex:0 0 28px;}
+.brand-copy{display:flex;flex-direction:column;align-items:flex-start;line-height:1.02;}
+.brand-title{font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--accent-soft);text-shadow:0 0 18px rgba(242,201,76,.08);}
+.brand-subtitle{margin-top:4px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9fb2ca;}
 .btn,.field,.select,.textarea {
   border:1px solid var(--line); background:rgba(8,23,45,.78); color:var(--text); border-radius:14px;
 }
@@ -56,7 +61,8 @@ input,textarea,select,button { font:inherit; }
 .metric .v { margin-top:5px; font-size:20px; font-weight:700; }
 .metric{text-align:left;}
 .metric .s { margin-top:6px; color:var(--muted); font-size:12px; }
-.layout { display:grid; grid-template-columns:330px 1fr; gap:14px; }
+.layout { display:grid; grid-template-columns:330px 1fr; gap:16px; align-items:start; }
+.left,.right{display:grid;gap:16px;align-content:start;}
 .card { padding:16px; }
 .section-title { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:12px; }
 .section-title h2,.section-title h3 { margin:0; font-size:15px; font-weight:650; }
@@ -85,8 +91,9 @@ input,textarea,select,button { font:inherit; }
 .legend-item { display:inline-flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); }
 .legend-dot { width:9px; height:9px; border-radius:50%; }
 
-.add-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:10px; }
-.add-grid > .field,.add-grid > .select,.add-grid > .btn{width:100%;min-height:44px;border-radius:14px;}
+.add-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:10px; }
+.add-grid > .field,.add-grid > .select,.add-grid > .btn{width:100%;min-height:46px;height:46px;border-radius:14px;padding:0 14px;display:flex;align-items:center;justify-content:center;}
+.add-grid > .field,.add-grid > .select{background:rgba(8,23,45,.78);}
 .add-grid > .btn{font-weight:800;}
 .info-box { background:var(--panel2); border:1px solid var(--line); border-radius:16px; padding:11px 12px; }
 .info-box .k { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
@@ -216,6 +223,8 @@ input,textarea,select,button { font:inherit; }
 .topbar-main{display:flex;align-items:center;justify-content:center;gap:10px;flex-direction:column;}
 .title h1{font-size:18px;line-height:1.05;margin-bottom:2px;}
 .title .sub{font-size:13px;}
+.brand-title{font-size:18px;}
+.brand-subtitle{font-size:10px;letter-spacing:.12em;}
 .header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .header-actions .btn{min-height:36px;padding:7px 10px;border-radius:12px;}
 .header-actions #workoutModeBtn{min-height:48px;padding:12px 20px;border-radius:14px;font-size:15px;font-weight:900;letter-spacing:.06em;background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);border:1px solid rgba(255,194,71,.38);color:#1a1204;box-shadow:0 10px 24px rgba(255,159,10,.28), inset 0 1px 0 rgba(255,255,255,.28);text-transform:uppercase;}
@@ -326,6 +335,10 @@ input,textarea,select,button { font:inherit; }
   .topbar-main{gap:6px;}
   .title h1{font-size:28px;}
   .title .sub{font-size:15px;gap:6px;}
+  .brand-lockup{gap:8px;}
+  .brand-icon{width:24px;height:24px;border-radius:7px;}
+  .brand-title{font-size:28px;}
+  .brand-subtitle{font-size:10px;letter-spacing:.11em;}
   .week-date{width:100%;text-align:center;}
   .search-row .field{font-size:13px;min-height:36px;}
 }
@@ -1234,8 +1247,14 @@ input,textarea,select,button { font:inherit; }
     <div class="topbar-inner">
       <div class="topbar-main">
         <div class="title">
-          <h1>Timo Training ✦</h1>
-          <div class="sub" id="weekHeader">Week</div>
+          <div class="brand-lockup">
+            <img src="./icon_180.png" alt="Timo Training" class="brand-icon" />
+            <div class="brand-copy">
+              <div class="brand-title">Timo Training</div>
+              <div class="brand-subtitle">Logbook</div>
+            </div>
+          </div>
+          <div class="sub" id="weekHeader"></div>
         </div>
         <div class="header-actions">
           <button class="btn" id="workoutModeBtn">WORKOUT MODE</button>
@@ -1854,7 +1873,7 @@ function renderMetrics() {
     <div class="metric"><div class="k">Blocks</div><div class="v">${groups||0}</div><div class="s">${exs.length} exercises</div></div>
     <div class="metric"><div class="k">Volume</div><div class="v">${totalVol ? totalVol.toLocaleString("en-GB") : 0}</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
   `;
-  document.getElementById("weekHeader").textContent = ``;
+  document.getElementById("weekHeader").textContent = "";
 }
 function renderCalendar() {
   document.getElementById("monthTitle").innerHTML = `<span class="month-pill">${ui.month.toLocaleDateString("en-GB", {month:"long",year:"numeric"})}</span>`;
@@ -2098,7 +2117,7 @@ function renderExercises() {
   const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>${focusMeta}</h3></div>${progressRow}<div class="workout-nav-row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div></div>` : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
-  const emptyMessage = !groups.length ? `<div class="empty-state">${q ? 'No matching exercises for this day.' : 'Add your first exercise below.'}</div>` : "";
+  const emptyMessage = "";
   wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
   wrap.innerHTML = focus + (groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
