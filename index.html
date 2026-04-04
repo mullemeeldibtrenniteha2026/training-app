@@ -25,7 +25,7 @@ Purpose:
 <link rel="apple-touch-icon" sizes="180x180" href="./icon_180.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="./icon_192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="./icon_512.png" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <meta name="theme-color" content="#0b1220" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -2169,6 +2169,21 @@ body{
   .workout-step-label,
   .empty-state,
   .daycell .w{font-size:11px !important;}
+}
+
+
+/* Mobile input zoom fix */
+input, select, textarea {
+  font-size: 16px !important;
+}
+.field, .select, .textarea, .setinput, .exercise-name {
+  font-size: 16px !important;
+}
+@media (max-width:640px){
+  input, select, textarea,
+  .field, .select, .textarea, .setinput, .exercise-name {
+    font-size: 16px !important;
+  }
 }
 
 </style>
