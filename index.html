@@ -1889,6 +1889,45 @@ input,textarea,select,button { font:inherit; }
   #workoutModeBtn{min-height:38px !important;padding:8px 13px !important;font-size:12px !important;}
 }
 
+
+
+/* patch 2.7.3 header + radar polish */
+.topbar-main{gap:10px !important; padding-bottom:18px !important;}
+.brand-lockup{display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:8px !important;}
+.brand-copy{display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:4px !important;}
+.brand-title{font-size:29px !important; line-height:1 !important; letter-spacing:-.04em !important; text-align:center !important;}
+.brand-subtitle{font-size:15px !important; line-height:1 !important; letter-spacing:.12em !important; text-transform:uppercase !important; opacity:.76 !important; text-align:center !important; margin:0 !important; transform:none !important;}
+.brand-icon{width:28px !important; height:28px !important; border-radius:8px !important; margin:0 auto !important; opacity:.96 !important;}
+.header-actions{justify-content:center !important; width:100% !important;}
+#workoutModeBtn{min-height:38px !important; padding:8px 14px !important; font-size:12px !important; letter-spacing:.05em !important;}
+.header-meta{position:absolute !important; right:14px !important; bottom:8px !important; left:auto !important; display:flex !important; justify-content:flex-end !important; align-items:flex-end !important; gap:0 !important; pointer-events:none !important;}
+.header-meta .sync-pill{pointer-events:auto !important; font-size:9px !important; padding:4px 7px !important; min-height:0 !important; border-radius:999px !important; opacity:.82 !important;}
+.radar-card .section-title{display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:10px !important; text-align:center !important;}
+#radarTitle{font-size:22px !important; line-height:1.05 !important; letter-spacing:-.03em !important; color:var(--text) !important; text-transform:none !important; margin:0 !important;}
+.radar-header-actions{width:100% !important; display:flex !important; justify-content:center !important; align-items:center !important; margin-top:0 !important;}
+.radar-wrap{padding:8px 6px 0 !important; margin-bottom:12px !important;}
+.radar-wrap svg text{display:none !important;}
+.radar-legend{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; width:100%; max-width:520px; margin:0 auto;}
+.radar-legend-item{display:flex; align-items:center; justify-content:center; gap:7px; min-height:34px; border:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.03); border-radius:12px; color:var(--soft); font-size:12px; font-weight:650; padding:6px 8px; white-space:nowrap;}
+.radar-legend-dot{width:8px; height:8px; border-radius:999px; flex:0 0 auto;}
+@media (max-width:640px){
+  .topbar-main{padding-bottom:16px !important;}
+  .brand-title{font-size:27px !important;}
+  .brand-subtitle{font-size:14px !important; letter-spacing:.11em !important;}
+  .brand-icon{width:26px !important; height:26px !important;}
+  .header-meta{right:10px !important; bottom:6px !important;}
+  .header-meta .sync-pill{font-size:8px !important; padding:4px 6px !important;}
+  #workoutModeBtn{min-height:36px !important; padding:7px 12px !important; font-size:11px !important;}
+  #radarTitle{font-size:20px !important;}
+  .radar-legend{grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;}
+  .radar-legend-item{font-size:11px; min-height:32px;}
+}
+@media (min-width:981px){
+  .brand-title{font-size:34px !important;}
+  .brand-subtitle{font-size:16px !important;}
+  .brand-icon{width:30px !important; height:30px !important;}
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2003,6 +2042,7 @@ input,textarea,select,button { font:inherit; }
           </div>
         </div>
         <div class="radar-wrap"><svg id="radarSvg" viewBox="0 0 320 320" width="100%" height="100%"></svg></div>
+        <div class="radar-legend" id="radarLegend"></div>
       </div>
     </div>
 
@@ -2616,6 +2656,7 @@ function renderDays() {
 }
 function renderRadar() {
   const svg = document.getElementById("radarSvg");
+  const legend = document.getElementById("radarLegend");
   const totals = ui.radarMode==="day" ? computeRadar(ui.week, ui.day) : (ui.radarMode==="week" ? computeRadar(ui.week) : computeRadarLifetime());
   const title = document.getElementById("radarTitle");
   if(title) title.textContent = "Muscular Radar";
@@ -2659,9 +2700,7 @@ function renderRadar() {
 
   axes.forEach(([k,label,color],i) => {
     const p = pointFor(r, i);
-    const lx = cx + Math.cos(p.a)*(r+18), ly = cy + Math.sin(p.a)*(r+18);
     out += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,.10)" stroke-width="1"/>`;
-    out += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" font-size="10" font-weight="700" letter-spacing="0.2" fill="rgba(231,238,247,.74)">${label}</text>`;
   });
 
   const pts = axes.map(([k,label,color], i) => {
@@ -2687,6 +2726,10 @@ function renderRadar() {
 
   out += `<circle cx="${cx}" cy="${cy}" r="3.5" fill="#f4d98c" fill-opacity=".9"/>`;
   svg.innerHTML = out;
+
+  if(legend){
+    legend.innerHTML = axes.map(([k,label,color]) => `<div class="radar-legend-item"><span class="radar-legend-dot" style="background:${color}"></span><span>${label}</span></div>`).join("");
+  }
 }
 
 function refreshScopeLabels() {
