@@ -57,7 +57,7 @@ input,textarea,select,button { font:inherit; }
 .metric{text-align:left;}
 .metric .s { margin-top:6px; color:var(--muted); font-size:12px; }
 .layout { display:grid; grid-template-columns:330px 1fr; gap:14px; }
-.card { padding:14px; }
+.card { padding:16px; }
 .section-title { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:12px; }
 .section-title h2,.section-title h3 { margin:0; font-size:15px; font-weight:650; }
 .section-title .meta,.help { color:var(--muted); font-size:12px; line-height:1.45; }
@@ -90,7 +90,7 @@ input,textarea,select,button { font:inherit; }
 .info-box .k { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
 .info-box .v { margin-top:5px; font-size:13px; font-weight:650; line-height:1.45; }
 
-.exercise-list { display:grid; gap:12px; }
+.exercise-list { display:grid; gap:16px; }
 .block-group {
   border:1px solid var(--line); border-radius:20px; overflow:hidden; background:var(--panel); box-shadow:var(--shadow);
 }
@@ -169,7 +169,7 @@ input,textarea,select,button { font:inherit; }
   background:#211a10; color:#f3dda4; font-size:12px; font-weight:700;
 }
 .empty-state {
-  padding:18px; border-radius:16px; background:var(--panel2); border:1px dashed var(--line); color:var(--muted);
+  padding:18px; border-radius:16px; background:var(--panel2); border:1px dashed var(--line); color:var(--muted); margin:0;
 }
 .exercise.active-workout {
   border:1px solid rgba(201,168,106,.5);
@@ -195,8 +195,8 @@ input,textarea,select,button { font:inherit; }
 .sync-pill.syncing{color:#ffe39a;border-color:rgba(242,201,76,.35);background:rgba(242,201,76,.10);}
 .sync-pill.warn{color:#ffd0d0;border-color:rgba(235,87,87,.35);background:rgba(235,87,87,.12);}
 .sync-pill.info{color:#cfe1ff;border-color:rgba(127,178,255,.35);background:rgba(127,178,255,.10);}
-.workout-end-panel{display:grid;gap:0;margin:12px 0 0;}
-.workout-end-actions{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:0;padding:0;}
+.workout-end-panel{display:grid;gap:12px;margin:0;padding:0;}
+.workout-end-actions{display:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0;padding:0;}
 .workout-end-actions .btn{min-height:44px;font-weight:800;border-radius:16px;}
 .workout-end-actions .btn.primary{box-shadow:0 10px 24px rgba(255,159,10,.18), inset 0 1px 0 rgba(255,255,255,.18);}
 .bottom-spacer{display:none;height:0;}
@@ -232,7 +232,7 @@ input,textarea,select,button { font:inherit; }
   min-width:min(100%,340px);
 }
 .finish-workout-btn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.22);}
-.finish-workout-inline-row{display:flex;justify-content:center;margin:0;padding:0;}
+.finish-workout-inline-row{display:flex;justify-content:center;margin:0;padding:0 0 2px;}
 .finish-workout-inline-btn{
   min-height:40px;
   padding:9px 16px;
@@ -256,7 +256,7 @@ input,textarea,select,button { font:inherit; }
   .workout-end-panel{max-width:420px;margin:14px auto 0;}
   .workout-end-actions{display:grid;}
 }
-.end-panel-shell{padding-top:12px;padding-bottom:12px;}
+.end-panel-shell{padding:0;background:transparent;border:none;box-shadow:none;}
 
 .search-row{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-items:center;max-width:520px;margin:0 auto;width:100%;}
 .search-row .field{min-height:36px;font-size:13px;padding:8px 12px;}
@@ -1258,7 +1258,7 @@ input,textarea,select,button { font:inherit; }
         <div class="calendar-grid" id="calendarGrid"></div>
         <div class="legend">
           <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Workout done</div>
-          <div class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Recovery / conditioning</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Recovery / rest</div>
           <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Planned</div>
         </div>
         </div>
@@ -1680,7 +1680,10 @@ function allDaysInWeek(week) { return DAY_ORDER.filter(day => getExercisesForWee
 function getFirstDay(week) { return allDaysInWeek(week)[0] || "mon"; }
 function dayStatus(week,day) {
   const exs = getExercisesForWeekDay(week,day);
-  if(!exs.length) return "none";
+  if(!exs.length) {
+    if(day === "sat" || day === "sun") return "rest";
+    return "none";
+  }
   let regularDone=false, recoveryDone=false, hasRegular=false;
   exs.forEach(ex => {
     if(isRecoveryLike(week,day,ex)) { if(exerciseHasDone(week,day,ex)) recoveryDone=true; }
@@ -1865,7 +1868,7 @@ function renderCalendar() {
     if(!d) return `<div class="daycell inactive"></div>`;
     const info = dateToProgramDay(d);
     const status = info ? info.status : "";
-    const dot = status==="done" ? "var(--green)" : status==="recovery" ? "var(--yellow)" : info ? "var(--blue)" : "transparent";
+    const dot = status==="done" ? "var(--green)" : (status==="recovery" || status==="rest") ? "var(--yellow)" : info ? "var(--blue)" : "transparent";
     const check = status==="done" || status==="recovery";
     const active = info && info.week===ui.week && info.day===ui.day;
     const isToday = d.getFullYear()===TODAY.getFullYear() && d.getMonth()===TODAY.getMonth() && d.getDate()===TODAY.getDate();
@@ -2090,7 +2093,7 @@ function renderExercises() {
   const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>${focusMeta}</h3></div>${progressRow}<div class="workout-nav-row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div></div>` : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
-  const emptyMessage = !groups.length ? `<div class="card"><div class="empty-state">${q ? 'Current day has no match for this search.' : 'This day is empty right now. Add your first exercise below.'}</div></div>` : "";
+  const emptyMessage = !groups.length ? `<div class="empty-state">${q ? 'No matching exercises for this day.' : 'Add your first exercise below.'}</div>` : "";
   wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
   wrap.innerHTML = focus + (groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
@@ -2150,7 +2153,7 @@ function renderExercises() {
     const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
     const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
     return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
-  }).join("") : `<div class="card"><div class="help">No exercises found for this day.</div></div>`) + (groups.length ? `<div class="card end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn" id="bottomTimerBtn">⏱ Timer</button><button class="btn" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``) + emptyMessage;
+  }).join("") : ``) + (groups.length ? `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn" id="bottomTimerBtn">⏱ Timer</button><button class="btn" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``) + emptyMessage;
   bindExerciseEvents(all);
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
