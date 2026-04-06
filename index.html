@@ -2238,6 +2238,7 @@ body{
       </div>
       <div class="header-meta">
         <div class="sync-pill" id="syncStatus">Cloud: not connected</div>
+        <button class="btn header-ghost-btn" id="signOutBtn" type="button" style="display:none">Sign out</button>
       </div>
     </div>
   </div>
@@ -3583,6 +3584,17 @@ function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   if(overlay) overlay.style.display = "none";
 }
+
+function updateAuthUi() {
+  const signOutBtn = document.getElementById("signOutBtn");
+  if(signOutBtn) signOutBtn.style.display = currentUser ? "inline-flex" : "none";
+}
+
+async function signOutSupabase() {
+  if(!sb) return;
+  const { error } = await sb.auth.signOut();
+  if(error) throw error;
+}
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
 }
@@ -3698,6 +3710,7 @@ function resetToSeedState() {
 async function initSupabaseApp() {
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
+  const signOutBtn = document.getElementById("signOutBtn");
 
   if(signInBtn) signInBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
@@ -3734,6 +3747,21 @@ async function initSupabaseApp() {
     }
   };
 
+  if(signOutBtn) signOutBtn.onclick = async () => {
+    signOutBtn.disabled = true;
+    try {
+      setSyncStatus("Cloud: signing out…");
+      await signOutSupabase();
+      showToast("Signed out");
+    } catch (e) {
+      console.error("SIGN OUT ERROR", e);
+      setSyncStatus("Cloud: sign out failed");
+      showToast("Sign out failed");
+    } finally {
+      signOutBtn.disabled = false;
+    }
+  };
+
   sb.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
     console.log("AUTH USER", currentUser);
@@ -3750,6 +3778,7 @@ async function initSupabaseApp() {
       state = cachedUserState || structured(SEED_DATA);
 
       hideAuth();
+      updateAuthUi();
       cloudReady = true;
       initialSyncResolved = true;
       setSyncStatus("Cloud: connecting…");
@@ -3759,6 +3788,7 @@ async function initSupabaseApp() {
       resetToSeedState();
       persistStateToKey(ANON_STORAGE_KEY, state);
 
+      updateAuthUi();
       cloudReady = false;
       initialSyncResolved = true;
       hideBoot();
@@ -3782,12 +3812,14 @@ async function initSupabaseApp() {
 
   if(currentUser) {
     hideAuth();
+    updateAuthUi();
     cloudReady = true;
     initialSyncResolved = true;
     setSyncStatus("Cloud: connecting…");
     startCloudBootstrap();
   } else {
     hideBoot();
+    updateAuthUi();
     cloudReady = false;
     initialSyncResolved = true;
     showAuth();
