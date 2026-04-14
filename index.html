@@ -691,6 +691,79 @@ input,textarea,select,button { font:inherit; }
 }
 .auth-message.error { color: var(--red); }
 .auth-message.ok { color: var(--green); }
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  background: linear-gradient(180deg, rgba(15,17,21,.985), rgba(15,17,21,1));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.onboarding-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  text-align: center;
+}
+.onboarding-kicker {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.onboarding-card h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -.03em;
+}
+.onboarding-card .sub {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.onboarding-days {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+.onboarding-day {
+  min-height: 48px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel2);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+}
+.onboarding-day.active {
+  border-color: rgba(242,201,76,.42);
+  color: #ffe39a;
+  background: linear-gradient(145deg, rgba(242,201,76,.14), rgba(242,201,76,.08));
+}
+.onboarding-start-btn {
+  margin-top: 16px;
+  min-height: 48px;
+  width: 100%;
+  font-weight: 800;
+}
+.onboarding-start-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+@media (max-width:640px){
+  .onboarding-days { grid-template-columns: 1fr 1fr; }
+  .onboarding-card { padding: 22px 18px; }
+  .onboarding-card h2 { font-size: 26px; }
+}
 .status-note{font-size:11px;color:var(--muted);line-height:1.35;}
 .backup-tools-card .backup-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;}
 .backup-tools-card .backup-actions .btn{width:100%;}
@@ -2171,71 +2244,6 @@ body{
   .daycell .w{font-size:11px !important;}
 }
 
-
-/* Sign out button patch */
-.header-actions{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.header-ghost-btn{
-  min-height:42px;
-  padding:10px 16px;
-  border-radius:14px;
-  background:rgba(8,23,45,.88);
-  border:1px solid rgba(127,178,255,.22);
-  color:var(--text);
-  font-weight:700;
-  box-shadow:none;
-}
-.header-ghost-btn:disabled{
-  opacity:.6;
-  cursor:default;
-}
-@media (max-width:640px){
-  .header-actions{
-    gap:8px;
-  }
-  .header-ghost-btn{
-    min-height:38px;
-    padding:8px 14px;
-    font-size:12px !important;
-  }
-}
-
-
-/* First-run empty state */
-.empty-welcome-card{
-  display:grid;
-  gap:12px;
-  text-align:center;
-}
-.empty-welcome-card h3{
-  margin:0;
-  font-size:24px;
-  line-height:1.1;
-  letter-spacing:-.02em;
-}
-.empty-welcome-card p{
-  margin:0;
-  color:var(--muted);
-}
-.empty-welcome-actions{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  flex-wrap:wrap;
-}
-.empty-welcome-actions .btn{
-  min-width:180px;
-}
-@media (max-width:640px){
-  .empty-welcome-card h3{font-size:21px;}
-  .empty-welcome-actions{flex-direction:column;}
-  .empty-welcome-actions .btn{min-width:0;width:100%;}
-}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2259,6 +2267,15 @@ body{
   </div>
 </div>
 
+<div class="onboarding-overlay" id="onboardingOverlay" style="display:none">
+  <div class="onboarding-card">
+    <div class="onboarding-kicker">Welcome</div>
+    <h2>Choose your training days</h2>
+    <div class="sub">Set up the weekdays you want to train on. You can then build your own plan from a clean logbook.</div>
+    <div class="onboarding-days" id="onboardingDays"></div>
+    <button class="btn primary onboarding-start-btn" id="onboardingStartBtn" type="button">Start training</button>
+  </div>
+</div>
 
 <div class="boot-overlay" id="bootOverlay" style="display:none">
   <div class="boot-card">
@@ -2299,7 +2316,6 @@ body{
         </div>
         <div class="header-actions">
           <button class="btn" id="workoutModeBtn">WORKOUT MODE</button>
-          <button class="btn header-ghost-btn" id="signOutBtn" type="button" style="display:none">Sign out</button>
         </div>
       </div>
       <div class="header-meta">
@@ -2438,16 +2454,6 @@ body{
 // ===== APP CONSTANTS =====
 const SEED_DATA = {"mmOpen": true, "_cloudMeta": {"updated_at": "2026-04-04T11:05:04.860Z"}, "_n5cleared": true, "w1_wed_rec_s0": {"kg": "", "done": "", "reps": ""}, "w2_wed_rec_s0": {"kg": "", "done": "", "reps": ""}, "w3_wed_rec_s0": {"kg": "", "done": "", "reps": ""}, "w4_wed_rec_s0": {"kg": "", "done": "", "reps": ""}, "w5_wed_rec_s0": {"kg": "", "done": "", "reps": ""}, "w6_wed_rec_s0": {"kg": "", "done": "", "reps": ""}, "w7_wed_rec_s0": {"kg": "", "done": "", "reps": ""}, "w9_wed_rec_s0": {"kg": "", "done": "", "reps": ""}, "sc_w1_fri_dips": 2, "sc_w1_thu_sldl": 2, "sc_w2_fri_dips": 2, "sc_w2_thu_sldl": 3, "sc_w3_fri_dips": 3, "sc_w3_thu_sldl": 3, "sc_w4_thu_sldl": 3, "sc_w4_tue_cond": 1, "sc_w5_thu_sldl": 3, "sc_w6_thu_sldl": 3, "w1_fri_cond_s0": {"kg": "", "done": "", "reps": ""}, "w1_fri_dips_s0": {"kg": "", "done": "1", "reps": "12"}, "w1_fri_dips_s1": {"kg": "", "done": "1", "reps": "12"}, "w1_mon_cond_s0": {"kg": "", "done": "", "reps": ""}, "w1_thu_cond_s0": {"kg": "", "done": "", "reps": ""}, "w1_thu_sldl_s0": {"kg": "60", "done": "1", "reps": "10"}, "w1_thu_sldl_s1": {"kg": "60", "done": "1", "reps": "10"}, "w1_tue_cond_s0": {"kg": "", "done": "", "reps": ""}, "w2_fri_cond_s0": {"kg": "", "done": "", "reps": ""}, "w2_fri_dips_s0": {"done": "1", "reps": "12"}, "w2_fri_dips_s1": {"kg": "", "done": "1", "reps": "12"}, "w2_mon_cond_s0": {"kg": "", "done": "", "reps": ""}, "w2_thu_cond_s0": {"kg": "", "done": "", "reps": ""}, "w2_thu_sldl_s0": {"kg": "60", "done": "1", "reps": "10"}, "w2_thu_sldl_s1": {"kg": "60", "done": "1", "reps": "10"}, "w2_thu_sldl_s2": {"kg": "60", "done": "1", "reps": "10"}, "w2_tue_cond_s0": {"kg": "", "done": "", "reps": ""}, "w3_fri_cond_s0": {"kg": "", "done": "", "reps": ""}, "w3_fri_dips_s0": {"done": "1", "reps": "10"}, "w3_fri_dips_s1": {"done": "1", "reps": "10"}, "w3_fri_dips_s2": {"done": "1", "reps": "10"}, "w3_mon_cond_s0": {"kg": "", "done": "", "reps": ""}, "w3_thu_cond_s0": {"kg": "", "done": "", "reps": ""}, "w3_thu_sldl_s0": {"kg": "62.5", "done": "1", "reps": "10"}, "w3_thu_sldl_s1": {"kg": "62.5", "done": "1", "reps": "10"}, "w3_thu_sldl_s2": {"kg": "62.5", "done": "1", "reps": "10"}, "w3_tue_cond_s0": {"kg": "", "done": "", "reps": ""}, "w4_fri_cond_s0": {"kg": "", "done": "", "reps": ""}, "w4_mon_cond_s0": {"kg": "", "done": "", "reps": ""}, "w4_thu_sldl_s0": {"kg": "70", "done": "1", "reps": "12"}, "w4_thu_sldl_s1": {"kg": "70", "done": "1", "reps": "12"}, "w4_thu_sldl_s2": {"kg": "70", "done": "1", "reps": "12"}, "w4_tue_cond_s0": {"kg": "", "done": "", "reps": ""}, "w5_fri_cond_s0": {"kg": "", "done": "", "reps": ""}, "w5_mon_cond_s0": {"kg": "", "done": "", "reps": ""}, "w5_thu_cond_s0": {"kg": "", "done": "", "reps": ""}, "w5_thu_sldl_s0": {"kg": "70", "done": "1", "reps": "12"}, "w5_thu_sldl_s1": {"kg": "70", "done": "1", "reps": "12"}, "w5_thu_sldl_s2": {"kg": "70", "done": "1", "reps": "12"}, "w5_tue_cond_s0": {"kg": "", "done": "", "reps": ""}, "w6_fri_cond_s0": {"kg": "", "done": "", "reps": ""}, "w6_mon_cond_s0": {"kg": "", "done": "", "reps": ""}, "w6_thu_cond_s0": {"kg": "", "done": "", "reps": ""}, "w6_thu_sldl_s0": {"kg": "100", "done": "1", "reps": "10"}, "w6_thu_sldl_s1": {"kg": "100", "done": "1", "reps": "10"}, "w6_thu_sldl_s2": {"kg": "100", "done": "1", "reps": "10"}, "w6_tue_cond_s0": {"kg": "", "done": "", "reps": ""}, "w7_fri_cond_s0": {"kg": "", "done": "", "reps": ""}, "w7_mon_cond_s0": {"kg": "", "done": "", "reps": ""}, "w7_thu_cond_s0": {"kg": "", "done": "", "reps": ""}, "w7_thu_sldl_s0": {"kg": "", "done": "", "reps": ""}, "w7_tue_cond_s0": {"kg": "", "done": "", "reps": ""}, "w9_fri_cond_s0": {"kg": "", "done": "", "reps": ""}, "w9_mon_cond_s0": {"kg": "", "done": "", "reps": ""}, "w9_thu_cond_s0": {"kg": "", "done": "", "reps": ""}, "w9_tue_cond_s0": {"kg": "", "done": "", "reps": ""}, "note_w1_wed_rec": "Kõndimine + sprint 30 sek iga 2:30 järel — 35 min", "note_w2_wed_rec": "30 min treadmill, sprint 30 sec after every 2:30 min", "note_w3_wed_rec": "Running & Walking = 45 min", "note_w4_wed_rec": "Walking or running for 30 - 45 min", "note_w5_wed_rec": "30-45 min walk or run + stretching", "note_w6_wed_rec": "30-45 min walk or run, stretch", "note_w7_wed_rec": "Stretch, 45 min walk, abs and lower back", "note_w9_wed_rec": "Bike & Walk & Run for 30-45 min + Stretch", "sc_w1_fri_bench": 3, "sc_w1_mon_squat": 3, "sc_w2_fri_bench": 4, "sc_w2_mon_squat": 4, "sc_w3_fri_bench": 5, "sc_w3_mon_squat": 5, "sc_w4_fri_bench": 6, "sc_w4_mon_squat": 5, "sc_w5_fri_bench": 6, "sc_w5_mon_squat": 6, "sc_w6_fri_bench": 6, "sc_w6_mon_squat": 6, "sc_w7_fri_bench": 6, "sc_w7_mon_squat": 6, "sc_w9_mon_squat": 6, "w1_fri_bench_s0": {"kg": "55", "done": "1", "reps": "10"}, "w1_fri_bench_s1": {"kg": "55", "done": "1", "reps": "10"}, "w1_fri_bench_s2": {"kg": "55", "done": "1", "reps": "10"}, "w1_mon_squat_s0": {"kg": "50", "done": "1", "reps": "10"}, "w1_mon_squat_s1": {"kg": "50", "done": "1", "reps": "10"}, "w1_mon_squat_s2": {"kg": "50", "done": "1", "reps": "10"}, "w2_fri_bench_s0": {"kg": "60", "done": "1", "reps": "10"}, "w2_fri_bench_s1": {"kg": "60", "done": "1", "reps": "10"}, "w2_fri_bench_s2": {"kg": "60", "done": "1", "reps": "10"}, "w2_fri_bench_s3": {"kg": "60", "done": "1", "reps": "10"}, "w2_mon_squat_s0": {"kg": "60", "done": "1", "reps": "10"}, "w2_mon_squat_s1": {"kg": "60", "done": "1", "reps": "10"}, "w2_mon_squat_s2": {"kg": "60", "done": "1", "reps": "10"}, "w2_mon_squat_s3": {"kg": "60", "done": "1", "reps": "10"}, "w3_fri_bench_s0": {"kg": "62.5", "done": "1", "reps": "8"}, "w3_fri_bench_s1": {"kg": "62.5", "done": "1", "reps": "8"}, "w3_fri_bench_s2": {"kg": "62.5", "done": "1", "reps": "8"}, "w3_fri_bench_s3": {"kg": "62.5", "done": "1", "reps": "8"}, "w3_fri_bench_s4": {"kg": "62.5", "done": "1", "reps": "8"}, "w3_mon_squat_s0": {"kg": "62.5", "done": "1", "reps": "10"}, "w3_mon_squat_s1": {"kg": "62.5", "done": "1", "reps": "10"}, "w3_mon_squat_s2": {"kg": "62.5", "done": "1", "reps": "10"}, "w3_mon_squat_s3": {"kg": "62.5", "done": "1", "reps": "10"}, "w3_mon_squat_s4": {"kg": "62.5", "done": "1", "reps": "10"}, "w4_fri_bench_s0": {"kg": "62.5", "done": "1", "reps": "10"}, "w4_fri_bench_s1": {"kg": "65", "done": "1", "reps": "8"}, "w4_fri_bench_s2": {"kg": "67.5", "done": "1", "reps": "6"}, "w4_fri_bench_s3": {"kg": "65", "done": "1", "reps": "10"}, "w4_fri_bench_s4": {"kg": "67.5", "done": "1", "reps": "8"}, "w4_fri_bench_s5": {"kg": "70", "done": "1", "reps": "6"}, "w4_mon_squat_s0": {"kg": "50", "done": "1", "reps": "5"}, "w4_mon_squat_s1": {"kg": "50", "done": "1", "reps": "5"}, "w4_mon_squat_s2": {"kg": "50", "done": "1", "reps": "5"}, "w4_mon_squat_s3": {"kg": "50", "done": "1", "reps": "5"}, "w4_mon_squat_s4": {"kg": "50", "done": "1", "reps": "5"}, "w5_fri_bench_s0": {"kg": "62.5", "done": "1", "reps": "10"}, "w5_fri_bench_s1": {"kg": "65", "done": "1", "reps": "8"}, "w5_fri_bench_s2": {"kg": "67.5", "done": "1", "reps": "6"}, "w5_fri_bench_s3": {"kg": "65", "done": "1", "reps": "10"}, "w5_fri_bench_s4": {"kg": "67.5", "done": "1", "reps": "8"}, "w5_fri_bench_s5": {"kg": "70", "done": "1", "reps": "5"}, "w5_mon_squat_s0": {"kg": "65", "done": "1", "reps": "10"}, "w5_mon_squat_s1": {"kg": "67.5", "done": "1", "reps": "8"}, "w5_mon_squat_s2": {"kg": "70", "done": "1", "reps": "6"}, "w5_mon_squat_s3": {"kg": "67.5", "done": "1", "reps": "10"}, "w5_mon_squat_s4": {"kg": "70", "done": "1", "reps": "8"}, "w5_mon_squat_s5": {"kg": "72.5", "done": "1", "reps": "6"}, "w6_fri_bench_s0": {"kg": "65", "done": "1", "reps": "8"}, "w6_fri_bench_s1": {"kg": "67.5", "done": "1", "reps": "6"}, "w6_fri_bench_s2": {"kg": "70", "done": "1", "reps": "4"}, "w6_fri_bench_s3": {"kg": "67.5", "done": "1", "reps": "8"}, "w6_fri_bench_s4": {"kg": "70", "done": "1", "reps": "6"}, "w6_fri_bench_s5": {"kg": "72.5", "done": "1", "reps": "4"}, "w6_mon_squat_s0": {"kg": "67.5", "done": "1", "reps": "8"}, "w6_mon_squat_s1": {"kg": "70", "done": "1", "reps": "6"}, "w6_mon_squat_s2": {"kg": "72.5", "done": "1", "reps": "4"}, "w6_mon_squat_s3": {"kg": "70", "done": "1", "reps": "8"}, "w6_mon_squat_s4": {"kg": "72.5", "done": "1", "reps": "6"}, "w6_mon_squat_s5": {"kg": "75", "done": "1", "reps": "4"}, "w7_fri_bench_s0": {"kg": "40", "done": "1", "reps": "6"}, "w7_fri_bench_s1": {"kg": "42,5", "done": "1", "reps": "4"}, "w7_fri_bench_s2": {"kg": "45", "done": "1", "reps": "2"}, "w7_fri_bench_s3": {"kg": "42,5", "done": "1", "reps": "6"}, "w7_fri_bench_s4": {"kg": "45", "done": "1", "reps": "4"}, "w7_fri_bench_s5": {"kg": "47,5", "done": "1", "reps": "2"}, "w7_mon_squat_s0": {"kg": "72.5", "done": "1", "reps": "6"}, "w7_mon_squat_s1": {"kg": "75", "done": "1", "reps": "4"}, "w7_mon_squat_s2": {"kg": "77.5", "done": "1", "reps": "2"}, "w7_mon_squat_s3": {"kg": "75", "done": "1", "reps": "6"}, "w7_mon_squat_s4": {"kg": "77.5", "done": "1", "reps": "4"}, "w7_mon_squat_s5": {"kg": "80", "done": "1", "reps": "2"}, "w9_fri_bench_s0": {"kg": "62.5", "done": "", "reps": "10"}, "w9_fri_bench_s1": {"kg": "65", "done": "", "reps": "8"}, "w9_fri_bench_s2": {"kg": "67.5", "done": "", "reps": "6"}, "w9_fri_bench_s3": {"kg": "65", "done": "", "reps": "10"}, "w9_fri_bench_s4": {"kg": "67.5", "done": "", "reps": "8"}, "w9_fri_bench_s5": {"kg": "70", "done": "", "reps": "6"}, "w9_mon_squat_s0": {"kg": "65", "done": "", "reps": "10"}, "w9_mon_squat_s1": {"kg": "67.5", "done": "", "reps": "8"}, "w9_mon_squat_s2": {"kg": "70", "done": "", "reps": "8"}, "w9_mon_squat_s3": {"kg": "67.5", "done": "", "reps": "10"}, "w9_mon_squat_s4": {"kg": "70", "done": "", "reps": "8"}, "w9_mon_squat_s5": {"kg": "72.5", "done": "", "reps": "6"}, "w9_sat_bench_s0": {"kg": "", "done": "", "reps": ""}, "w9_sun_bench_s0": {"kg": "", "done": "", "reps": ""}, "w9_thu_bench_s0": {"kg": "", "done": "", "reps": ""}, "exss_w3_thu_sldl": "C1", "note_w1_fri_cond": "Bike 3×60 sek @ 60 km/h", "note_w1_mon_cond": "1000m rowing", "note_w1_thu_cond": "Rowing", "note_w1_tue_cond": "Rowing 3×50 sek @ 2 min puhkus", "note_w2_fri_cond": "Rowing, Sprint & etc", "note_w2_fri_dips": "Bodyweight, C1 & C2 & C2 after every 1:15", "note_w2_mon_cond": "4x250 row, 1 min rest", "note_w2_thu_cond": "Bike for 6 times level 5 for 1 min sprint", "note_w2_tue_cond": "Walking 5 min & 3z12 leg raises", "note_w3_fri_cond": "Bike 10x10 AFAP", "note_w3_fri_dips": "Bodyweight", "note_w3_mon_cond": "Cool down", "note_w3_thu_cond": "Running for calories 15-12-9", "note_w3_thu_sldl": "Rest as needed between the sets", "note_w3_tue_cond": "15 cal walk", "note_w4_fri_cond": "20 double down followed dips AMAP", "note_w4_mon_cond": "Sprint for 15 cal x 4 times", "note_w4_thu_sldl": "B1 - B2 after every 1:45 min", "note_w4_tue_cond": "Walked or run 30-45 min", "note_w5_fri_cond": "20 double down followed by dips AMAP", "note_w5_mon_cond": "7 min row + 7 min sprint", "note_w5_thu_cond": "10x30sec bike sprint", "note_w5_tue_cond": "8-7-6-5-4-3-2-1, 12 kg DB squat, 25 double under", "note_w6_fri_cond": "4 rounds: 15 cal row, 12 dips, 12 KB 20 kg towel curl", "note_w6_mon_cond": "5x5 incline x 30 sec on a bike", "note_w6_thu_cond": "Same as on Tuesday", "note_w6_tue_cond": "10 cal run, 10 dips, 10 toes to bar 5+ rounds in 7 min", "note_w7_fri_cond": "Rowing: 500m. 400m, 300m, 200m", "note_w7_mon_cond": "300m run 21 body weight squats, 200m run, 16 squats, 100,m run 11 squats", "note_w7_thu_cond": "15-12-9", "note_w7_tue_cond": "2 min work 2 min rest x 3", "note_w9_mon_cond": "5 min bike", "note_w9_tue_cond": "8-7-6-5-4-3-2-1 with 25 double under DB squat", "sc_w1_fri_hammer": 2, "sc_w1_thu_db_row": 4, "sc_w1_tue_pushup": 3, "sc_w2_fri_hammer": 2, "sc_w2_thu_db_row": 3, "sc_w2_tue_pushup": 2, "sc_w3_thu_db_row": 3, "sc_w3_tue_pushup": 2, "sc_w4_tue_pushup": 3, "sc_w6_tue_pushup": 3, "w1_fri_hammer_s0": {"kg": "14", "done": "1", "reps": "11"}, "w1_fri_hammer_s1": {"kg": "14", "done": "1", "reps": "11"}, "w1_thu_db_row_s0": {"kg": "20", "done": "1", "reps": "10"}, "w1_thu_db_row_s1": {"kg": "20", "done": "1", "reps": "10"}, "w1_thu_db_row_s2": {"kg": "20", "done": "1", "reps": "10"}, "w1_thu_db_row_s3": {"kg": "20", "done": "1", "reps": "10"}, "w1_tue_pushup_s0": {"kg": "", "done": "1", "reps": "15"}, "w1_tue_pushup_s1": {"kg": "", "done": "1", "reps": "12"}, "w1_tue_pushup_s2": {"kg": "", "done": "1", "reps": "10"}, "w2_fri_hammer_s0": {"kg": "16", "done": "1", "reps": "10"}, "w2_fri_hammer_s1": {"kg": "16", "done": "1", "reps": "10"}, "w2_thu_db_row_s0": {"kg": "22", "done": "1", "reps": "10"}, "w2_thu_db_row_s1": {"kg": "22", "done": "1", "reps": "10"}, "w2_thu_db_row_s2": {"kg": "22", "done": "1", "reps": "10"}, "w2_tue_pushup_s0": {"done": "1", "reps": "15"}, "w2_tue_pushup_s1": {"done": "1", "reps": "15"}, "w3_fri_hammer_s0": {"kg": "14", "reps": "14"}, "w3_fri_hammer_s1": {"kg": "14", "reps": "10"}, "w3_fri_hammer_s2": {"kg": "14", "reps": "9"}, "w3_thu_db_row_s0": {"kg": "22", "done": "1", "reps": "10"}, "w3_thu_db_row_s1": {"kg": "22", "done": "1", "reps": "10"}, "w3_thu_db_row_s2": {"kg": "22", "done": "1", "reps": "10"}, "w3_tue_pushup_s0": {"done": "1", "reps": "15"}, "w3_tue_pushup_s1": {"done": "1", "reps": "24"}, "w4_tue_pushup_s0": {"kg": "", "done": "1", "reps": "12"}, "w4_tue_pushup_s1": {"kg": "", "done": "1", "reps": "12"}, "w4_tue_pushup_s2": {"kg": "", "done": "1", "reps": "12"}, "w6_tue_pushup_s0": {"kg": "22", "done": "1", "reps": "10"}, "w6_tue_pushup_s1": {"kg": "22", "done": "1", "reps": "10"}, "w6_tue_pushup_s2": {"kg": "22", "done": "1", "reps": "10"}, "w9_thu_db_row_s0": {"kg": "75", "done": "1", "reps": "10"}, "w9_thu_db_row_s1": {"kg": "75", "done": "1", "reps": "10"}, "w9_thu_db_row_s2": {"kg": "75", "done": "1", "reps": "10"}, "excode_w9_wed_rec": "A", "note_w1_mon_squat": "+ 25 pull aparts + 5 pull-up iga seti järel", "note_w2_fri_bench": "20 pull-aparts after each set", "note_w2_mon_squat": "4 pull-ups, 25 pull-aparts, 1 set every 3:30", "note_w3_fri_bench": "20 pull-aparts after each set", "note_w3_mon_squat": "25 pull-aparts after each set + 2 pull-ups", "note_w4_fri_bench": "22 kg Seal DB row after each set", "note_w4_mon_squat": "50/60% from max 1 rep, 20 pull-aparts", "note_w5_fri_bench": "22kg single arm DB row after each set of press", "note_w6_fri_bench": "Every 4 min, 22kg single arm DB row after every set", "note_w7_mon_squat": "x3 pull-ups after each set", "note_w9_mon_squat": "20 pull-aparts, x3 pull-upd", "rest_w7_fri_bench": "2:00", "sc_w1_tue_ez_curl": 3, "sc_w2_tue_ez_curl": 2, "sc_w2_tue_pull_up": 3, "sc_w3_tue_ez_curl": 2, "sc_w3_tue_pull_up": 3, "sc_w4_tue_ez_curl": 3, "sc_w4_tue_pull_up": 3, "sc_w5_tue_pull_up": 3, "sc_w7_fri_pull_up": 6, "w1_tue_ez_curl_s0": {"kg": "20", "done": "1", "reps": "10"}, "w1_tue_ez_curl_s1": {"kg": "20", "done": "1", "reps": "10"}, "w1_tue_ez_curl_s2": {"kg": "20", "done": "1", "reps": "10"}, "w1_tue_pull_up_s0": {"kg": "", "done": "1", "reps": "6"}, "w1_tue_pull_up_s1": {"kg": "", "done": "1", "reps": "6"}, "w1_tue_pull_up_s2": {"kg": "", "done": "1", "reps": "6"}, "w2_tue_ez_curl_s0": {"kg": "30", "done": "1", "reps": "12"}, "w2_tue_ez_curl_s1": {"kg": "30", "done": "1", "reps": "12"}, "w2_tue_pull_up_s0": {"done": "1", "reps": "7"}, "w2_tue_pull_up_s1": {"kg": "", "done": "1", "reps": "7"}, "w2_tue_pull_up_s2": {"kg": "", "done": "1", "reps": "6"}, "w3_tue_ez_curl_s0": {"kg": "20", "done": "1", "reps": "15"}, "w3_tue_ez_curl_s1": {"kg": "20", "done": "1", "reps": "15"}, "w3_tue_pull_up_s0": {"done": "1", "reps": "10"}, "w3_tue_pull_up_s1": {"kg": "", "done": "1", "reps": "8"}, "w3_tue_pull_up_s2": {"kg": "", "done": "1", "reps": "5"}, "w4_tue_ez_curl_s0": {"kg": "30", "done": "1", "reps": "12"}, "w4_tue_ez_curl_s1": {"kg": "30", "done": "1", "reps": "12"}, "w4_tue_ez_curl_s2": {"kg": "30", "done": "1", "reps": "12"}, "w4_tue_pull_up_s0": {"done": "1", "reps": "5"}, "w4_tue_pull_up_s1": {"kg": "", "done": "1", "reps": "5"}, "w4_tue_pull_up_s2": {"kg": "", "done": "1", "reps": "1"}, "w5_tue_pull_up_s0": {"done": "1", "reps": "6"}, "w5_tue_pull_up_s1": {"kg": "", "done": "1", "reps": "4"}, "w5_tue_pull_up_s2": {"kg": "", "done": "1", "reps": "4"}, "w7_fri_pull_up_s0": {"kg": "", "done": "1", "reps": "6"}, "w7_fri_pull_up_s1": {"kg": "", "done": "1", "reps": "6"}, "w7_fri_pull_up_s2": {"kg": "", "done": "1", "reps": "6"}, "w7_fri_pull_up_s3": {"kg": "", "done": "1", "reps": "6"}, "w7_fri_pull_up_s4": {"kg": "", "done": "1", "reps": "6"}, "w7_fri_pull_up_s5": {"kg": "", "done": "1", "reps": "6"}, "w9_fri_pull_up_s0": {"kg": "", "done": "1", "reps": "6"}, "w9_fri_pull_up_s1": {"kg": "", "done": "1", "reps": "6"}, "w9_fri_pull_up_s2": {"kg": "", "done": "1", "reps": "6"}, "w9_fri_pull_up_s3": {"kg": "", "done": "1", "reps": "6"}, "w9_fri_pull_up_s4": {"kg": "", "done": "1", "reps": "6"}, "w9_fri_pull_up_s5": {"kg": "", "done": "1", "reps": "6"}, "w9_tue_pull_up_s0": {"done": "", "reps": "6"}, "w9_tue_pull_up_s1": {"done": "", "reps": "6"}, "w9_tue_pull_up_s2": {"done": "", "reps": "6"}, "excode_w1_fri_cond": "D", "excode_w1_fri_dips": "C1", "excode_w1_mon_cond": "D", "excode_w1_thu_cond": "D", "excode_w1_thu_sldl": "B2", "excode_w1_tue_cond": "D", "excode_w2_fri_cond": "D", "excode_w2_fri_dips": "C1", "excode_w2_mon_cond": "D", "excode_w2_thu_cond": "D", "excode_w2_tue_cond": "D", "excode_w3_fri_cond": "D", "excode_w3_fri_dips": "C1", "excode_w3_thu_cond": "D", "excode_w3_tue_cond": "D", "excode_w4_mon_cond": "D", "excode_w4_thu_sldl": "B2", "excode_w4_tue_cond": "D", "excode_w5_mon_cond": "C", "excode_w5_thu_sldl": "B2", "excode_w6_fri_cond": "C", "excode_w6_mon_cond": "C", "excode_w6_thu_cond": "C", "excode_w6_thu_sldl": "B2", "excode_w6_tue_cond": "D", "excode_w7_mon_cond": "C", "excode_w7_tue_cond": "C", "exname_w2_thu_sldl": "Barbell shrug", "exname_w3_thu_sldl": "Barbell shrug", "exname_w4_mon_cond": "Metcon", "exname_w4_thu_sldl": "Shrug", "exname_w4_tue_cond": "Conditioning", "exname_w5_thu_sldl": "Shurgs", "exname_w6_fri_cond": "Conditioning PUMP", "exname_w6_thu_sldl": "Barebell shrug", "exname_w9_mon_cond": "Cool down", "exss_w3_thu_db_row": "C3", "hidden_w4_fri_dips": true, "hidden_w4_thu_cond": true, "hidden_w5_fri_dips": true, "hidden_w6_fri_dips": true, "hidden_w7_fri_dips": true, "hidden_w9_fri_dips": true, "hidden_w9_thu_sldl": true, "note_w2_tue_pushup": "Bodyweight", "note_w3_thu_db_row": "Rest as needed between the sets", "note_w3_tue_pushup": "Bodyweight", "sc_w1_fri_chin_ups": 2, "sc_w1_mon_pause_sq": 4, "sc_w1_thu_ab_wheel": 4, "sc_w1_thu_deadlift": 3, "sc_w1_thu_split_sq": 2, "sc_w2_fri_chin_ups": 2, "sc_w2_mon_pause_sq": 5, "sc_w2_thu_ab_wheel": 3, "sc_w2_thu_deadlift": 3, "sc_w2_thu_split_sq": 3, "sc_w3_fri_chin_ups": 3, "sc_w3_mon_pause_sq": 6, "sc_w3_thu_ab_wheel": 3, "sc_w3_thu_deadlift": 4, "sc_w3_thu_split_sq": 3, "sc_w4_fri_chin_ups": 3, "sc_w4_mon_pause_sq": 3, "sc_w4_thu_ab_wheel": 1, "sc_w4_thu_deadlift": 6, "sc_w4_thu_split_sq": 3, "sc_w5_fri_chin_ups": 3, "sc_w5_mon_pause_sq": 3, "sc_w5_thu_deadlift": 6, "sc_w5_thu_split_sq": 3, "sc_w6_fri_chin_ups": 3, "sc_w6_mon_pause_sq": 4, "sc_w6_thu_deadlift": 6, "sc_w6_thu_split_sq": 3, "sc_w7_fri_chin_ups": 3, "sc_w7_mon_pause_sq": 3, "sc_w7_thu_deadlift": 6, "sc_w7_thu_split_sq": 3, "w1_fri_chin_ups_s0": {"kg": "", "done": "1", "reps": "8"}, "w1_fri_chin_ups_s1": {"kg": "", "done": "1", "reps": "8"}, "w1_mon_pause_sq_s0": {"kg": "50", "done": "1", "reps": "6"}, "w1_mon_pause_sq_s1": {"kg": "50", "done": "1", "reps": "6"}, "w1_mon_pause_sq_s2": {"kg": "50", "done": "1", "reps": "6"}, "w1_mon_pause_sq_s3": {"kg": "50", "done": "1", "reps": "6"}, "w1_thu_ab_wheel_s0": {"kg": "", "done": "1", "reps": "8"}, "w1_thu_ab_wheel_s1": {"kg": "", "done": "1", "reps": "8"}, "w1_thu_ab_wheel_s2": {"kg": "", "done": "1", "reps": "8"}, "w1_thu_ab_wheel_s3": {"kg": "", "done": "1", "reps": "8"}, "w1_thu_deadlift_s0": {"kg": "90", "done": "1", "reps": "10"}, "w1_thu_deadlift_s1": {"kg": "90", "done": "1", "reps": "10"}, "w1_thu_deadlift_s2": {"kg": "90", "done": "1", "reps": "10"}, "w1_thu_split_sq_s0": {"kg": "5", "done": "1", "reps": "12"}, "w1_thu_split_sq_s1": {"kg": "5", "done": "1", "reps": "12"}, "w2_fri_chin_ups_s0": {"done": "1", "reps": "7"}, "w2_fri_chin_ups_s1": {"kg": "", "done": "1", "reps": "7"}, "w2_mon_pause_sq_s0": {"kg": "50", "done": "1", "reps": "5"}, "w2_mon_pause_sq_s1": {"kg": "50", "done": "1", "reps": "5"}, "w2_mon_pause_sq_s2": {"kg": "50", "done": "1", "reps": "5"}, "w2_mon_pause_sq_s3": {"kg": "50", "done": "1", "reps": "5"}, "w2_mon_pause_sq_s4": {"kg": "50", "done": "1", "reps": "5"}, "w2_thu_ab_wheel_s0": {"done": "1", "reps": "10"}, "w2_thu_ab_wheel_s1": {"done": "1", "reps": "10"}, "w2_thu_ab_wheel_s2": {"done": "1", "reps": "10"}, "w2_thu_deadlift_s0": {"kg": "95", "done": "1", "reps": "10"}, "w2_thu_deadlift_s1": {"kg": "95", "done": "1", "reps": "10"}, "w2_thu_deadlift_s2": {"kg": "95", "done": "1", "reps": "10"}, "w2_thu_split_sq_s0": {"kg": "12", "done": "1", "reps": "10"}, "w2_thu_split_sq_s1": {"kg": "12", "done": "1", "reps": "10"}, "w2_thu_split_sq_s2": {"kg": "12", "done": "1", "reps": "10"}, "w3_fri_chin_ups_s0": {"done": "1", "reps": "10"}, "w3_fri_chin_ups_s1": {"done": "1", "reps": "9"}, "w3_fri_chin_ups_s2": {"done": "1", "reps": "5"}, "w3_mon_pause_sq_s0": {"kg": "50", "done": "1", "reps": "4"}, "w3_mon_pause_sq_s1": {"kg": "50", "done": "1", "reps": "4"}, "w3_mon_pause_sq_s2": {"kg": "50", "done": "1", "reps": "4"}, "w3_mon_pause_sq_s3": {"kg": "50", "done": "1", "reps": "4"}, "w3_mon_pause_sq_s4": {"kg": "50", "done": "1", "reps": "4"}, "w3_mon_pause_sq_s5": {"kg": "50", "done": "1", "reps": "4"}, "w3_thu_ab_wheel_s0": {"done": "1", "reps": "10"}, "w3_thu_ab_wheel_s1": {"done": "1", "reps": "10"}, "w3_thu_ab_wheel_s2": {"done": "1", "reps": "10"}, "w3_thu_deadlift_s0": {"kg": "100", "done": "1", "reps": "8"}, "w3_thu_deadlift_s1": {"kg": "100", "done": "1", "reps": "8"}, "w3_thu_deadlift_s2": {"kg": "100", "done": "1", "reps": "8"}, "w3_thu_deadlift_s3": {"kg": "100", "done": "1", "reps": "8"}, "w3_thu_split_sq_s0": {"done": "1", "reps": "10"}, "w3_thu_split_sq_s1": {"done": "1", "reps": "10"}, "w3_thu_split_sq_s2": {"done": "1", "reps": "10"}, "w4_fri_chin_ups_s0": {"done": "1", "reps": "4"}, "w4_fri_chin_ups_s1": {"done": "1", "reps": "4"}, "w4_fri_chin_ups_s2": {"done": "1", "reps": "4"}, "w4_mon_pause_sq_s0": {"kg": "150", "done": "1", "reps": "12"}, "w4_mon_pause_sq_s1": {"kg": "150", "done": "1", "reps": "12"}, "w4_mon_pause_sq_s2": {"kg": "150", "done": "1", "reps": "12"}, "w4_thu_ab_wheel_s0": {"kg": "", "done": "", "reps": ""}, "w4_thu_deadlift_s0": {"kg": "105", "done": "1", "reps": "10"}, "w4_thu_deadlift_s1": {"kg": "110", "done": "1", "reps": "8"}, "w4_thu_deadlift_s2": {"kg": "115", "done": "1", "reps": "6"}, "w4_thu_deadlift_s3": {"kg": "107.5", "done": "1", "reps": "10"}, "w4_thu_deadlift_s4": {"kg": "112.5", "done": "1", "reps": "8"}, "w4_thu_deadlift_s5": {"kg": "117.5", "done": "1", "reps": "6"}, "w4_thu_split_sq_s0": {"kg": "16", "done": "1", "reps": "16"}, "w4_thu_split_sq_s1": {"kg": "16", "done": "1", "reps": "16"}, "w4_thu_split_sq_s2": {"kg": "16", "done": "1", "reps": "16"}, "w5_fri_chin_ups_s0": {"done": "1", "reps": "4"}, "w5_fri_chin_ups_s1": {"done": "1", "reps": "4"}, "w5_fri_chin_ups_s2": {"done": "1", "reps": "4"}, "w5_mon_pause_sq_s0": {"kg": "57.5", "done": "1", "reps": "5"}, "w5_mon_pause_sq_s1": {"kg": "57.5", "done": "1", "reps": "5"}, "w5_mon_pause_sq_s2": {"kg": "57.5", "done": "1", "reps": "5"}, "w5_thu_deadlift_s0": {"kg": "105", "done": "1", "reps": "10"}, "w5_thu_deadlift_s1": {"kg": "110", "done": "1", "reps": "8"}, "w5_thu_deadlift_s2": {"kg": "115", "done": "1", "reps": "6"}, "w5_thu_deadlift_s3": {"kg": "107.5", "done": "1", "reps": "10"}, "w5_thu_deadlift_s4": {"kg": "112.5", "done": "1", "reps": "8"}, "w5_thu_deadlift_s5": {"kg": "117.5", "done": "1", "reps": "6"}, "w5_thu_split_sq_s0": {"kg": "16", "done": "1", "reps": "16"}, "w5_thu_split_sq_s1": {"kg": "16", "done": "1", "reps": "16"}, "w5_thu_split_sq_s2": {"kg": "16", "done": "1", "reps": "16"}, "w6_fri_chin_ups_s0": {"done": "1", "reps": "8"}, "w6_fri_chin_ups_s1": {"done": "1", "reps": "5"}, "w6_fri_chin_ups_s2": {"done": "1", "reps": "3"}, "w6_mon_pause_sq_s0": {"kg": "67.5", "done": "1", "reps": "4"}, "w6_mon_pause_sq_s1": {"kg": "67.5", "done": "1", "reps": "4"}, "w6_mon_pause_sq_s2": {"kg": "67.5", "done": "1", "reps": "4"}, "w6_mon_pause_sq_s3": {"kg": "67.5", "done": "1", "reps": "4"}, "w6_thu_deadlift_s0": {"kg": "117.5", "done": "1", "reps": "8"}, "w6_thu_deadlift_s1": {"kg": "122.5", "done": "1", "reps": "6"}, "w6_thu_deadlift_s2": {"kg": "127.5", "done": "1", "reps": "4"}, "w6_thu_deadlift_s3": {"kg": "122.5", "done": "1", "reps": "8"}, "w6_thu_deadlift_s4": {"kg": "125", "done": "1", "reps": "6"}, "w6_thu_deadlift_s5": {"kg": "130", "done": "1", "reps": "4"}, "w6_thu_split_sq_s0": {"kg": "20", "done": "1", "reps": "10"}, "w6_thu_split_sq_s1": {"kg": "20", "done": "1", "reps": "10"}, "w6_thu_split_sq_s2": {"kg": "20", "done": "1", "reps": "10"}, "w7_fri_chin_ups_s0": {"kg": "24", "done": "1", "reps": "8"}, "w7_fri_chin_ups_s1": {"kg": "24", "done": "1", "reps": "8"}, "w7_fri_chin_ups_s2": {"kg": "24", "done": "1", "reps": "8"}, "w7_mon_pause_sq_s0": {"kg": "72.5", "done": "1", "reps": "2"}, "w7_mon_pause_sq_s1": {"kg": "72.5", "done": "1", "reps": "2"}, "w7_mon_pause_sq_s2": {"kg": "72.5", "done": "1", "reps": "2"}, "w7_thu_deadlift_s0": {"kg": "117,5", "done": "1", "reps": "6"}, "w7_thu_deadlift_s1": {"kg": "122,5", "done": "1", "reps": "4"}, "w7_thu_deadlift_s2": {"kg": "127,5", "done": "1", "reps": "2"}, "w7_thu_deadlift_s3": {"kg": "122,5", "done": "1", "reps": "6"}, "w7_thu_deadlift_s4": {"kg": "127,5", "done": "1", "reps": "4"}, "w7_thu_deadlift_s5": {"kg": "132,5", "done": "1", "reps": "2"}, "w7_thu_split_sq_s0": {"kg": "30", "done": "1", "reps": "14"}, "w7_thu_split_sq_s1": {"kg": "30", "done": "1", "reps": "14"}, "w7_thu_split_sq_s2": {"kg": "30", "done": "1", "reps": "14"}, "w9_fri_chin_ups_s0": {"done": "", "reps": "4"}, "w9_fri_chin_ups_s1": {"done": "", "reps": "4"}, "w9_fri_chin_ups_s2": {"done": "", "reps": "4"}, "w9_mon_pause_sq_s0": {"kg": "57.5", "done": "", "reps": "5"}, "w9_mon_pause_sq_s1": {"kg": "57.5", "done": "", "reps": "5"}, "w9_mon_pause_sq_s2": {"kg": "57.5", "done": "", "reps": "5"}, "w9_sat_ab_wheel_s0": {"kg": "", "done": "", "reps": ""}, "w9_thu_ab_wheel_s0": {"kg": "40", "done": "1", "reps": "14"}, "w9_thu_ab_wheel_s1": {"kg": "40", "done": "1", "reps": "14"}, "w9_thu_ab_wheel_s2": {"kg": "40", "done": "1", "reps": "14"}, "w9_thu_deadlift_s0": {"kg": "117,5", "done": "1", "reps": "6"}, "w9_thu_deadlift_s1": {"kg": "122,5", "done": "1", "reps": "4"}, "w9_thu_deadlift_s2": {"kg": "127,5", "done": "1", "reps": "2"}, "w9_thu_deadlift_s3": {"kg": "122,5", "done": "1", "reps": "6"}, "w9_thu_deadlift_s4": {"kg": "127,5", "done": "1", "reps": "4"}, "w9_thu_deadlift_s5": {"kg": "132,5", "done": "1", "reps": "2"}, "excode_w1_fri_bench": "A", "excode_w1_mon_squat": "A", "excode_w2_fri_bench": "A", "excode_w2_mon_squat": "A", "excode_w3_fri_bench": "A", "excode_w3_mon_squat": "A", "excode_w4_fri_bench": "A", "excode_w4_mon_squat": "A", "excode_w5_fri_bench": "A", "excode_w5_mon_squat": "A", "excode_w6_fri_bench": "A", "excode_w6_mon_squat": "A", "excode_w7_fri_bench": "A1", "excode_w7_mon_squat": "A", "exlabel_w2_thu_sldl": "C1", "exlabel_w3_thu_sldl": "C1", "exlabel_w4_fri_cond": "C", "exlabel_w5_fri_cond": "C", "exlabel_w5_thu_cond": "C", "exlabel_w5_tue_cond": "C", "exlabel_w7_fri_cond": "C", "exlabel_w7_thu_cond": "C", "exname_w1_fri_bench": "Bench Press", "exname_w7_fri_bench": "Strict press", "note_w2_tue_ez_curl": "2 min interval", "note_w2_tue_pull_up": "Bodyweight", "note_w3_tue_pull_up": "3x10 oli kavas ette nähtud, bodyweight", "note_w4_tue_pull_up": "3x 5-8", "note_w5_tue_pull_up": "3x6-9", "note_w9_tue_pull_up": "3x6-9", "rest_w7_fri_pull_up": "2:00", "sc_w1_mon_rev_lunge": 3, "sc_w1_tue_chin_hold": 4, "sc_w1_tue_lat_raise": 3, "sc_w2_mon_rev_lunge": 2, "sc_w2_tue_chin_hold": 4, "sc_w2_tue_lat_raise": 2, "sc_w3_mon_rev_lunge": 2, "sc_w3_tue_chin_hold": 6, "sc_w3_tue_lat_raise": 6, "sc_w4_mon_rev_lunge": 3, "sc_w4_tue_chin_hold": 5, "sc_w7_tue_chin_hold": 3, "sc_w9_mon_rev_lunge": 1, "w1_mon_rev_lunge_s0": {"kg": "", "done": "1", "reps": "10"}, "w1_mon_rev_lunge_s1": {"kg": "", "done": "1", "reps": "10"}, "w1_mon_rev_lunge_s2": {"kg": "", "done": "1", "reps": "10"}, "w1_tue_chin_hold_s0": {"kg": "", "done": "1", "reps": "15"}, "w1_tue_chin_hold_s1": {"kg": "", "done": "1", "reps": "15"}, "w1_tue_chin_hold_s2": {"kg": "", "done": "1", "reps": "15"}, "w1_tue_chin_hold_s3": {"kg": "", "done": "1", "reps": "15"}, "w1_tue_lat_raise_s0": {"kg": "5", "done": "1", "reps": "15"}, "w1_tue_lat_raise_s1": {"kg": "5", "done": "1", "reps": "15"}, "w1_tue_lat_raise_s2": {"kg": "5", "done": "1", "reps": "15"}, "w2_mon_rev_lunge_s0": {"kg": "12", "done": "1", "reps": "20"}, "w2_mon_rev_lunge_s1": {"kg": "12", "done": "1", "reps": "20"}, "w2_tue_chin_hold_s0": {"kg": "", "done": "1", "reps": "10"}, "w2_tue_chin_hold_s1": {"kg": "", "done": "1", "reps": "10"}, "w2_tue_chin_hold_s2": {"kg": "", "done": "1", "reps": "10"}, "w2_tue_chin_hold_s3": {"kg": "", "done": "1", "reps": "10"}, "w2_tue_lat_raise_s0": {"kg": "6", "done": "1", "reps": "15"}, "w2_tue_lat_raise_s1": {"kg": "6", "done": "1", "reps": "15"}, "w3_mon_rev_lunge_s0": {"done": "1"}, "w3_mon_rev_lunge_s1": {"done": "1"}, "w3_tue_chin_hold_s0": {"done": "1"}, "w3_tue_chin_hold_s1": {"done": "1"}, "w3_tue_chin_hold_s2": {"done": "1"}, "w3_tue_chin_hold_s3": {"done": "1"}, "w3_tue_chin_hold_s4": {"done": "1"}, "w3_tue_chin_hold_s5": {"done": "1"}, "w3_tue_lat_raise_s0": {"kg": "9", "done": "1", "reps": "5"}, "w3_tue_lat_raise_s1": {"kg": "6", "done": "1", "reps": "10"}, "w3_tue_lat_raise_s2": {"kg": "4", "done": "1", "reps": "15"}, "w3_tue_lat_raise_s3": {"kg": "4", "done": "1", "reps": "15"}, "w3_tue_lat_raise_s4": {"kg": "6", "done": "1", "reps": "10"}, "w3_tue_lat_raise_s5": {"kg": "9", "done": "1", "reps": "5"}, "w4_mon_rev_lunge_s0": {"kg": "10", "done": "1", "reps": "16"}, "w4_mon_rev_lunge_s1": {"kg": "10", "done": "1", "reps": "16"}, "w4_mon_rev_lunge_s2": {"kg": "10", "done": "1", "reps": "16"}, "w4_tue_chin_hold_s0": {"done": "1"}, "w4_tue_chin_hold_s1": {"done": "1"}, "w4_tue_chin_hold_s2": {"done": "1"}, "w4_tue_chin_hold_s3": {"done": "1"}, "w4_tue_chin_hold_s4": {"done": "1"}, "w4_tue_lat_raise_s0": {"kg": "", "done": "1", "reps": ""}, "w4_tue_pull_up_2_s0": {"kg": "", "done": "", "reps": ""}, "w4_tue_pull_up_2_s1": {"kg": "", "done": "", "reps": ""}, "w4_tue_pull_up_2_s2": {"kg": "", "done": "", "reps": ""}, "w7_tue_chin_hold_s0": {"kg": "35", "done": "1", "reps": "6"}, "w7_tue_chin_hold_s1": {"kg": "35", "done": "1", "reps": "6"}, "w7_tue_chin_hold_s2": {"kg": "35", "done": "1", "reps": "6"}, "w9_mon_rev_lunge_s0": {"done": ""}, "blockdone_w1_wed_rec": "1", "blockdone_w2_wed_rec": "1", "blockdone_w3_wed_rec": "1", "blockdone_w4_wed_rec": "1", "blockdone_w5_wed_rec": "1", "blockdone_w6_wed_rec": "1", "blockdone_w7_wed_rec": "1", "blockdone_w9_wed_rec": "1", "excode_w1_fri_hammer": "C2", "excode_w1_thu_db_row": "C2", "excode_w1_tue_pushup": "C3", "excode_w2_fri_hammer": "C1", "excode_w2_tue_pushup": "C3", "excode_w3_tue_pushup": "C3", "excode_w4_tue_pushup": "C3", "excode_w6_tue_pushup": "C", "exname_w1_tue_pushup": "Push-Up", "exname_w2_fri_hammer": "DB Hammer Curl", "exname_w4_tue_pushup": "Push-Up", "exname_w6_tue_pushup": "Barebell seal row", "exss_w3_thu_ab_wheel": "C2", "exss_w3_thu_deadlift": "", "hidden_w4_fri_hammer": true, "hidden_w4_thu_db_row": true, "hidden_w5_fri_hammer": true, "hidden_w5_thu_db_row": true, "hidden_w5_tue_pushup": true, "hidden_w6_fri_hammer": true, "hidden_w6_thu_db_row": true, "hidden_w7_fri_hammer": true, "hidden_w7_thu_db_row": true, "hidden_w7_tue_pushup": true, "hidden_w9_fri_hammer": true, "hidden_w9_tue_pushup": true, "interval_w3_fri_dips": "1:15", "note_w1_mon_pause_sq": "+ 4 pull-up iga seti järel", "note_w1_thu_deadlift": "+ 25 pull aparts iga seti järel", "note_w2_thu_ab_wheel": "Bodyweight", "note_w2_thu_deadlift": "25 pull-aparts, 1 set after every 3 min", "note_w3_fri_chin_ups": "Bodyweight", "note_w3_thu_ab_wheel": "Rest as needed between the sets", "note_w3_thu_deadlift": "4x25 pull aparts after each set, 1 set after every 3 min", "note_w3_thu_split_sq": "Bodyweight", "note_w4_thu_ab_wheel": "10x30 sec sprint", "note_w4_thu_deadlift": "6x8 roll outs", "note_w4_thu_split_sq": "B1 - B2 after every 1:45 min", "note_w6_fri_chin_ups": "Bodyweight", "note_w7_thu_deadlift": "1 set every 3-4 min. 8 kneeling ab wheel", "rest_w7_fri_chin_ups": "2:00", "sc_w1_fri_bent_raise": 2, "sc_w1_tue_incline_db": 3, "sc_w2_fri_bent_raise": 2, "sc_w2_tue_incline_db": 3, "sc_w3_fri_bent_raise": 3, "sc_w3_tue_incline_db": 3, "sc_w5_tue_incline_db": 3, "sc_w6_tue_incline_db": 3, "w1_fri_bent_raise_s0": {"kg": "9", "done": "1", "reps": "10"}, "w1_fri_bent_raise_s1": {"kg": "9", "done": "1", "reps": "10"}, "w1_tue_incline_db_s0": {"kg": "26", "done": "1", "reps": "10"}, "w1_tue_incline_db_s1": {"kg": "26", "done": "1", "reps": "10"}, "w1_tue_incline_db_s2": {"kg": "26", "done": "1", "reps": "10"}, "w2_fri_bent_raise_s0": {"kg": "6", "done": "1", "reps": "24"}, "w2_fri_bent_raise_s1": {"kg": "6", "done": "1", "reps": "25"}, "w2_tue_incline_db_s0": {"kg": "26", "done": "1", "reps": "11"}, "w2_tue_incline_db_s1": {"kg": "26", "done": "1", "reps": "11"}, "w2_tue_incline_db_s2": {"kg": "26", "done": "1", "reps": "11"}, "w3_fri_bent_raise_s0": {"kg": "7", "done": "1", "reps": "25"}, "w3_fri_bent_raise_s1": {"kg": "7", "done": "1", "reps": "10"}, "w3_fri_bent_raise_s2": {"kg": "7", "done": "1", "reps": "15"}, "w3_tue_incline_db_s0": {"kg": "20", "done": "1", "reps": "12"}, "w3_tue_incline_db_s1": {"kg": "20", "done": "1", "reps": "12"}, "w3_tue_incline_db_s2": {"kg": "20", "done": "1", "reps": "12"}, "w4_tue_incline_db_s0": {"done": "1", "reps": "12"}, "w4_tue_incline_db_s1": {"done": "1", "reps": "12"}, "w4_tue_incline_db_s2": {"done": "1", "reps": "12"}, "w5_tue_incline_db_s0": {"kg": "24", "done": "1", "reps": "12"}, "w5_tue_incline_db_s1": {"kg": "22", "done": "1", "reps": "9"}, "w5_tue_incline_db_s2": {"kg": "20", "done": "1", "reps": "8"}, "w6_tue_incline_db_s0": {"kg": "22", "done": "1", "reps": "10"}, "w6_tue_incline_db_s1": {"kg": "22", "done": "1", "reps": "10"}, "w6_tue_incline_db_s2": {"kg": "22", "done": "1", "reps": "10"}, "w9_fri_incline_db_s0": {"kg": "24", "done": "1", "reps": "8"}, "w9_fri_incline_db_s1": {"kg": "24", "done": "1", "reps": "8"}, "w9_fri_incline_db_s2": {"kg": "24", "done": "1", "reps": "8"}, "w9_tue_incline_db_s0": {"kg": "24", "done": "", "reps": "12"}, "w9_tue_incline_db_s1": {"kg": "22", "done": "", "reps": "9"}, "w9_tue_incline_db_s2": {"kg": "20", "done": "", "reps": "8"}, "blockdone_w1_fri_cond": "1", "blockdone_w1_mon_cond": "1", "blockdone_w1_thu_cond": "1", "blockdone_w1_tue_cond": "1", "blockdone_w2_fri_cond": "1", "blockdone_w2_mon_cond": "1", "blockdone_w2_thu_cond": "1", "blockdone_w2_tue_cond": "1", "blockdone_w3_fri_cond": "1", "blockdone_w3_mon_cond": "1", "blockdone_w3_thu_cond": "1", "blockdone_w3_tue_cond": "1", "blockdone_w4_fri_cond": "1", "blockdone_w4_mon_cond": "1", "blockdone_w4_tue_cond": "1", "blockdone_w5_fri_cond": "1", "blockdone_w5_mon_cond": "1", "blockdone_w5_thu_cond": "1", "blockdone_w5_tue_cond": "1", "blockdone_w6_fri_cond": "1", "blockdone_w6_mon_cond": "1", "blockdone_w6_thu_cond": "1", "blockdone_w6_tue_cond": "1", "blockdone_w7_fri_cond": "1", "blockdone_w7_mon_cond": "1", "blockdone_w7_thu_cond": "1", "blockdone_w7_tue_cond": "1", "excode_w1_tue_ez_curl": "C2", "excode_w2_tue_ez_curl": "C2", "excode_w2_tue_pull_up": "B2", "excode_w3_tue_ez_curl": "C2", "excode_w3_tue_pull_up": "B2", "excode_w4_tue_pull_up": "B2", "excode_w5_tue_pull_up": "B2", "excode_w7_fri_pull_up": "A2", "exlabel_w2_thu_db_row": "C3", "exname_w1_tue_ez_curl": "EZ Bar Curl", "exname_w3_tue_ez_curl": "KB Towel Curl", "exname_w7_fri_pull_up": "Pull-Up", "hidden_w5_tue_ez_curl": true, "hidden_w6_tue_ez_curl": true, "hidden_w6_tue_pull_up": true, "hidden_w7_tue_ez_curl": true, "hidden_w7_tue_pull_up": true, "hidden_w9_tue_ez_curl": true, "note_w2_tue_chin_hold": "4x20 sec over bar hold", "note_w3_mon_rev_lunge": "50 cal row", "note_w3_tue_chin_hold": "6x10 sec", "note_w4_mon_rev_lunge": "10 back extensions, 1 round after 3 min", "note_w4_tue_chin_hold": "15 sec hold on top", "note_w9_mon_rev_lunge": "7 min row + 7 min sprint", "sc_w1_tue_pull_aparts": 4, "sc_w2_tue_pull_aparts": 4, "sc_w3_tue_pull_aparts": 6, "sc_w4_tue_pull_aparts": 5, "sc_w7_tue_pull_aparts": 3, "w1_tue_pull_aparts_s0": {"kg": "", "done": "1", "reps": "25"}, "w1_tue_pull_aparts_s1": {"kg": "", "done": "1", "reps": "25"}, "w1_tue_pull_aparts_s2": {"kg": "", "done": "1", "reps": "25"}, "w1_tue_pull_aparts_s3": {"kg": "", "done": "1", "reps": "25"}, "w2_tue_pull_aparts_s0": {"kg": "", "done": "1", "reps": "20"}, "w2_tue_pull_aparts_s1": {"kg": "", "done": "1", "reps": "20"}, "w2_tue_pull_aparts_s2": {"kg": "", "done": "1", "reps": "20"}, "w2_tue_pull_aparts_s3": {"kg": "", "done": "1", "reps": "20"}, "w3_tue_pull_aparts_s0": {"done": "1", "reps": "20"}, "w3_tue_pull_aparts_s1": {"done": "1", "reps": "20"}, "w3_tue_pull_aparts_s2": {"done": "1", "reps": "20"}, "w3_tue_pull_aparts_s3": {"done": "1", "reps": "20"}, "w3_tue_pull_aparts_s4": {"done": "1", "reps": "20"}, "w3_tue_pull_aparts_s5": {"done": "1", "reps": "20"}, "w4_tue_pull_aparts_s0": {"done": "1", "reps": "20"}, "w4_tue_pull_aparts_s1": {"done": "1", "reps": "20"}, "w4_tue_pull_aparts_s2": {"done": "1", "reps": "20"}, "w4_tue_pull_aparts_s3": {"done": "1", "reps": "20"}, "w4_tue_pull_aparts_s4": {"done": "1", "reps": "19"}, "w7_tue_pull_aparts_s0": {"done": "1", "reps": "8"}, "w7_tue_pull_aparts_s1": {"done": "1", "reps": "8"}, "w7_tue_pull_aparts_s2": {"done": "1", "reps": "8"}, "w9_sat_barbell_row_s0": {"kg": "", "done": "", "reps": ""}, "w9_sat_toes_to_bar_s0": {"kg": "", "done": "", "reps": ""}, "w9_sat_toes_to_bar_s1": {"kg": "", "done": "", "reps": ""}, "excode_w1_fri_chin_ups": "B2", "excode_w1_mon_pause_sq": "B", "excode_w1_thu_ab_wheel": "C1", "excode_w1_thu_deadlift": "A", "excode_w1_thu_split_sq": "B1", "excode_w2_fri_chin_ups": "B2", "excode_w2_mon_pause_sq": "B", "excode_w2_thu_deadlift": "A", "excode_w3_fri_chin_ups": "B2", "excode_w3_mon_pause_sq": "B", "excode_w3_thu_deadlift": "A", "excode_w3_thu_split_sq": "B", "excode_w4_fri_chin_ups": "B2", "excode_w4_thu_deadlift": "A", "excode_w4_thu_split_sq": "B1", "excode_w5_fri_chin_ups": "B2", "excode_w5_mon_pause_sq": "B", "excode_w5_thu_deadlift": "A", "excode_w5_thu_split_sq": "B1", "excode_w6_fri_chin_ups": "B2", "excode_w6_mon_pause_sq": "B", "excode_w6_thu_deadlift": "A", "excode_w6_thu_split_sq": "B1", "excode_w7_fri_chin_ups": "B2", "excode_w7_mon_pause_sq": "B", "excode_w7_thu_deadlift": "A", "excode_w7_thu_split_sq": "B1", "exlabel_w4_tue_ez_curl": "D", "exname_w1_mon_pause_sq": "Pause Back Squat", "exname_w2_fri_chin_ups": "Chin-Up", "exname_w2_thu_ab_wheel": "Ab Roll out", "exname_w3_thu_ab_wheel": "Ab Roll out", "exname_w4_fri_chin_ups": "False Ring pull-up", "exname_w4_mon_pause_sq": "Leg press", "exname_w4_thu_ab_wheel": "Conditioning", "exname_w4_thu_split_sq": "DB Reverse Lunge", "exname_w5_fri_chin_ups": "False grip ring pull-up", "exname_w5_mon_pause_sq": "Front squat", "exname_w5_thu_split_sq": "DB reverse lunge", "exname_w6_fri_chin_ups": "Wide grip strict pull-up", "exname_w7_fri_chin_ups": "Barbell seal row", "exname_w7_mon_pause_sq": "Pause Back Squat", "exname_w7_thu_deadlift": "Trap bar Deadlift", "exname_w7_thu_split_sq": "Back rack rear elevated split squat", "exname_w9_mon_pause_sq": "Front squat", "hidden_w5_thu_ab_wheel": true, "hidden_w6_thu_ab_wheel": true, "hidden_w7_thu_ab_wheel": true, "hidden_w9_thu_split_sq": true, "note_w2_tue_incline_db": "B1 & B2 every 1:45 min", "note_w3_fri_bent_raise": "Until failure", "note_w9_tue_incline_db": "3z12-15", "sc_w1_fri_seated_press": 2, "sc_w1_tue_strict_press": 3, "sc_w2_fri_seated_press": 2, "sc_w2_tue_strict_press": 4, "sc_w3_tue_strict_press": 6, "sc_w4_fri_seated_press": 3, "sc_w4_tue_strict_press": 5, "sc_w5_fri_seated_press": 3, "sc_w5_tue_strict_press": 6, "sc_w6_fri_seated_press": 3, "sc_w6_tue_strict_press": 6, "sc_w7_fri_seated_press": 3, "sc_w7_tue_strict_press": 6, "sc_w9_tue_strict_press": 6, "w1_fri_seated_press_s0": {"kg": "22", "done": "1", "reps": "8"}, "w1_fri_seated_press_s1": {"kg": "22", "done": "1", "reps": "8"}, "w1_tue_strict_press_s0": {"kg": "30", "done": "1", "reps": "10"}, "w1_tue_strict_press_s1": {"kg": "30", "done": "1", "reps": "10"}, "w1_tue_strict_press_s2": {"kg": "30", "done": "1", "reps": "10"}, "w1_tue_strict_press_s3": {"kg": "", "done": "", "reps": ""}, "w1_tue_strict_press_s4": {"kg": "", "done": "", "reps": ""}, "w2_fri_seated_press_s0": {"kg": "18", "done": "1", "reps": "12"}, "w2_fri_seated_press_s1": {"kg": "18", "done": "1", "reps": "12"}, "w2_tue_strict_press_s0": {"kg": "35", "done": "1", "reps": "8"}, "w2_tue_strict_press_s1": {"kg": "35", "done": "1", "reps": "8"}, "w2_tue_strict_press_s2": {"kg": "35", "done": "1", "reps": "8"}, "w2_tue_strict_press_s3": {"kg": "35", "done": "1", "reps": "8"}, "w3_fri_bent_raise_2_s0": {"kg": "", "done": "", "reps": ""}, "w3_fri_bent_raise_2_s1": {"kg": "", "done": "", "reps": ""}, "w3_fri_seated_press_s0": {"kg": "22", "done": "1", "reps": "10"}, "w3_fri_seated_press_s1": {"kg": "22", "done": "1", "reps": "10"}, "w3_fri_seated_press_s2": {"kg": "22", "done": "1", "reps": "4"}, "w3_tue_strict_press_s0": {"kg": "32.5", "done": "1", "reps": "6"}, "w3_tue_strict_press_s1": {"kg": "32.5", "done": "1", "reps": "6"}, "w3_tue_strict_press_s2": {"kg": "32.5", "done": "1", "reps": "6"}, "w3_tue_strict_press_s3": {"kg": "32.5", "done": "1", "reps": "6"}, "w3_tue_strict_press_s4": {"kg": "32.5", "done": "1", "reps": "6"}, "w3_tue_strict_press_s5": {"kg": "32.5", "done": "1", "reps": "6"}, "w4_fri_seated_press_s0": {"done": "1", "reps": "6"}, "w4_fri_seated_press_s1": {"done": "1", "reps": "6"}, "w4_fri_seated_press_s2": {"done": "1", "reps": "6"}, "w4_tue_strict_press_s0": {"kg": "22.5", "done": "1", "reps": "5"}, "w4_tue_strict_press_s1": {"kg": "22.5", "done": "1", "reps": "5"}, "w4_tue_strict_press_s2": {"kg": "22.5", "done": "1", "reps": "5"}, "w4_tue_strict_press_s3": {"kg": "22.5", "done": "1", "reps": "5"}, "w4_tue_strict_press_s4": {"kg": "22.5", "done": "1", "reps": "5"}, "w5_fri_seated_press_s0": {"done": "1", "reps": "6"}, "w5_fri_seated_press_s1": {"done": "1", "reps": "6"}, "w5_fri_seated_press_s2": {"done": "1", "reps": "6"}, "w5_tue_strict_press_s0": {"kg": "35", "done": "1", "reps": "10"}, "w5_tue_strict_press_s1": {"kg": "37.5", "done": "1", "reps": "8"}, "w5_tue_strict_press_s2": {"kg": "40", "done": "1", "reps": "6"}, "w5_tue_strict_press_s3": {"kg": "37.5", "done": "1", "reps": "10"}, "w5_tue_strict_press_s4": {"kg": "40", "done": "1", "reps": "8"}, "w5_tue_strict_press_s5": {"kg": "42.5", "done": "1", "reps": "6"}, "w6_fri_seated_press_s0": {"kg": "30", "done": "1", "reps": "10"}, "w6_fri_seated_press_s1": {"kg": "30", "done": "1", "reps": "10"}, "w6_fri_seated_press_s2": {"kg": "30", "done": "1", "reps": "10"}, "w6_tue_strict_press_s0": {"kg": "37.5", "done": "1", "reps": "8"}, "w6_tue_strict_press_s1": {"kg": "40", "done": "1", "reps": "6"}, "w6_tue_strict_press_s2": {"kg": "41.25", "done": "1", "reps": "4"}, "w6_tue_strict_press_s3": {"kg": "40", "done": "1", "reps": "8"}, "w6_tue_strict_press_s4": {"kg": "42.5", "done": "1", "reps": "6"}, "w6_tue_strict_press_s5": {"kg": "45", "done": "1", "reps": "4"}, "w7_fri_seated_press_s0": {"kg": "24", "done": "1", "reps": "8"}, "w7_fri_seated_press_s1": {"kg": "24", "done": "1", "reps": "8"}, "w7_fri_seated_press_s2": {"kg": "24", "done": "1", "reps": "8"}, "w7_tue_strict_press_s0": {"kg": "67.5", "done": "1", "reps": "6"}, "w7_tue_strict_press_s1": {"kg": "70", "done": "1", "reps": "4"}, "w7_tue_strict_press_s2": {"kg": "75", "done": "1", "reps": "2"}, "w7_tue_strict_press_s3": {"kg": "70", "done": "1", "reps": "6"}, "w7_tue_strict_press_s4": {"kg": "72.5", "done": "1", "reps": "4"}, "w7_tue_strict_press_s5": {"kg": "77.5", "done": "1", "reps": "2"}, "w9_fri_seated_press_s0": {"done": "", "reps": "6"}, "w9_fri_seated_press_s1": {"done": "", "reps": "6"}, "w9_fri_seated_press_s2": {"done": "", "reps": "6"}, "w9_fri_strict_press_s0": {"kg": "40", "done": "1", "reps": "6"}, "w9_fri_strict_press_s1": {"kg": "42,5", "done": "1", "reps": "4"}, "w9_fri_strict_press_s2": {"kg": "45", "done": "1", "reps": "2"}, "w9_fri_strict_press_s3": {"kg": "42,5", "done": "1", "reps": "6"}, "w9_fri_strict_press_s4": {"kg": "45", "done": "1", "reps": "4"}, "w9_fri_strict_press_s5": {"kg": "47,5", "done": "1", "reps": "2"}, "w9_tue_strict_press_s0": {"kg": "35", "done": "", "reps": "10"}, "w9_tue_strict_press_s1": {"kg": "37.5", "done": "", "reps": "8"}, "w9_tue_strict_press_s2": {"kg": "40", "done": "", "reps": "6"}, "w9_tue_strict_press_s3": {"kg": "37.5", "done": "", "reps": "10"}, "w9_tue_strict_press_s4": {"kg": "40", "done": "", "reps": "8"}, "w9_tue_strict_press_s5": {"kg": "42.5", "done": "", "reps": "6"}, "excode_w1_mon_rev_lunge": "C", "excode_w1_tue_chin_hold": "A2", "excode_w1_tue_lat_raise": "C1", "excode_w2_tue_chin_hold": "A2", "excode_w2_tue_lat_raise": "C1", "excode_w3_mon_rev_lunge": "C", "excode_w3_tue_chin_hold": "A2", "excode_w3_tue_lat_raise": "C1", "excode_w4_tue_chin_hold": "A2", "excode_w4_tue_lat_raise": "C2", "exlabel_w2_thu_ab_wheel": "C2", "exlabel_w2_thu_split_sq": "B", "exlabel_w4_mon_pause_sq": "B", "exlabel_w4_thu_ab_wheel": "C", "exname_w1_mon_rev_lunge": "DB Reverse Lunge", "exname_w1_tue_lat_raise": "DB Lateral Raise", "exname_w2_mon_rev_lunge": "DB Reverse Lunge", "exname_w3_mon_rev_lunge": "Metcon", "exname_w4_mon_rev_lunge": "Strength Accessory/Walking lunges", "exname_w4_tue_lat_raise": "Strength circuit", "exname_w7_tue_chin_hold": "Seated slide strict press", "exname_w9_mon_rev_lunge": "Conditioning", "hidden_w5_mon_rev_lunge": true, "hidden_w5_tue_chin_hold": true, "hidden_w5_tue_lat_raise": true, "hidden_w6_mon_rev_lunge": true, "hidden_w6_tue_chin_hold": true, "hidden_w6_tue_lat_raise": true, "hidden_w7_mon_rev_lunge": true, "hidden_w7_tue_lat_raise": true, "hidden_w9_tue_chin_hold": true, "hidden_w9_tue_lat_raise": true, "interval_w3_tue_pull_up": "1:45", "note_w2_tue_pull_aparts": "4x20", "note_w3_tue_pull_aparts": "6x20 pull-aparts", "note_w4_tue_pull_aparts": "20 pulla-aparts", "note_w7_tue_pull_aparts": "Bodyweight", "w2_thu_barbell_shrug_s0": {"kg": "", "done": "", "reps": ""}, "w2_thu_barbell_shrug_s1": {"kg": "", "done": "", "reps": ""}, "w9_sat_barbell_shrug_s0": {"kg": "", "done": "", "reps": ""}, "excode_w1_fri_bent_raise": "C3", "excode_w1_tue_incline_db": "B1", "excode_w2_fri_bent_raise": "C3", "excode_w2_tue_incline_db": "B1", "excode_w3_fri_bent_raise": "C3", "excode_w3_tue_incline_db": "B1", "excode_w5_tue_incline_db": "B1", "excode_w6_tue_incline_db": "B", "exlabel_w2_mon_rev_lunge": "C", "exlabel_w3_mon_rev_lunge": "C", "exlabel_w4_mon_rev_lunge": "C", "exlabel_w4_tue_lat_raise": "C", "exlabel_w7_tue_chin_hold": "B1", "exlabel_w9_mon_rev_lunge": "C", "exname_w1_tue_incline_db": "Incline DB Bench Press", "exname_w2_fri_bent_raise": "Bent-Over Rear Delt Raise", "exname_w5_tue_incline_db": "Low incline DB Bench Press", "exname_w6_tue_incline_db": "Incline DB Bench Press", "exname_w9_tue_incline_db": "Low incline DB Bench Press", "hidden_w4_fri_bent_raise": true, "hidden_w5_fri_bent_raise": true, "hidden_w6_fri_bent_raise": true, "hidden_w7_fri_bent_raise": true, "hidden_w7_tue_incline_db": true, "hidden_w9_fri_bent_raise": true, "interval_w3_mon_pause_sq": "2:30", "note_w2_fri_seated_press": "B1 & B2 Superset after every 1:45", "note_w2_tue_strict_press": "A1-A3 Superset after 75-90 sec", "note_w3_tue_strict_press": "A1 - A3 after every 75 sec", "note_w4_tue_strict_press": "5x5 50/60%, ", "note_w5_tue_strict_press": "Pull-ups after every 1:45, 10-8-6-5-5-5", "note_w6_fri_seated_press": "B1 & B2 after every 1:45", "note_w6_tue_strict_press": "4 pull-ups after every set, alternate every 2 min", "note_w7_tue_strict_press": "every rep followed by 22 kg DB row", "note_w9_tue_strict_press": "10,8,6,5,5,5 pull-ups after every 1:45 min", "rest_w7_fri_seated_press": "2:00", "sc_w3_fri_seated_press_2": 3, "sc_w7_thu_trap_bar_shrug": 3, "sc_w8_wed_treadmill_walk": 1, "w3_fri_seated_press_2_s0": {"kg": "22", "done": "1", "reps": "10"}, "w3_fri_seated_press_2_s1": {"kg": "22", "done": "1", "reps": "10"}, "w3_fri_seated_press_2_s2": {"kg": "22", "done": "1", "reps": "4"}, "w7_thu_trap_bar_shrug_s0": {"kg": "75", "done": "1", "reps": "10"}, "w7_thu_trap_bar_shrug_s1": {"kg": "75", "done": "1", "reps": "10"}, "w7_thu_trap_bar_shrug_s2": {"kg": "75", "done": "1", "reps": "10"}, "w8_wed_treadmill_walk_s0": {"kg": "", "done": "", "reps": ""}, "blockdone_w4_thu_ab_wheel": "1", "excode_w1_tue_pull_aparts": "A3", "excode_w2_tue_pull_aparts": "A3", "excode_w3_tue_pull_aparts": "A3", "excode_w4_tue_pull_aparts": "A3", "exname_w7_tue_pull_aparts": "Wide grip strict pull-ups", "hidden_w5_tue_pull_aparts": true, "hidden_w6_tue_pull_aparts": true, "hidden_w9_tue_pull_aparts": true, "interval_w3_tue_chin_hold": "1:15", "interval_w4_mon_rev_lunge": "3:00", "blockdone_w3_mon_rev_lunge": "1", "excode_w1_fri_seated_press": "B1", "excode_w1_tue_strict_press": "A1", "excode_w2_fri_seated_press": "B1", "excode_w2_tue_strict_press": "A1", "excode_w3_tue_strict_press": "A1", "excode_w4_fri_seated_press": "B1", "excode_w4_tue_strict_press": "A1", "excode_w5_fri_seated_press": "B1", "excode_w5_tue_strict_press": "A", "excode_w6_fri_seated_press": "B1", "excode_w6_tue_strict_press": "A", "excode_w7_fri_seated_press": "B1", "excode_w7_tue_strict_press": "A", "exlabel_w7_tue_pull_aparts": "B2", "exname_w1_tue_strict_press": "Strict Press", "exname_w4_fri_seated_press": "Pike push-up", "exname_w5_fri_seated_press": "Pike push-ups", "exname_w6_fri_seated_press": "Seated sliding strict press with barebell", "exname_w7_fri_seated_press": "Incline DB bench press", "exname_w7_tue_strict_press": "Bench Press", "interval_w3_fri_bent_raise": "1:15", "interval_w3_tue_incline_db": "1:45", "note_w8_wed_treadmill_walk": "Walked 30-45 min", "w9_fri_barbell_seal_row_s0": {"kg": "24", "done": "1", "reps": "8"}, "w9_fri_barbell_seal_row_s1": {"kg": "24", "done": "1", "reps": "8"}, "w9_fri_barbell_seal_row_s2": {"kg": "24", "done": "1", "reps": "8"}, "w9_sat_barbell_seal_row_s0": {"kg": "", "done": "1", "reps": ""}, "interval_w3_tue_pull_aparts": "1:15", "w9_sat_trap_bar_deadlift_s0": {"kg": "", "done": "", "reps": ""}, "excode_w3_fri_seated_press_2": "B1", "excode_w7_thu_trap_bar_shrug": "B2", "exname_w3_fri_seated_press_2": "Seated DB Shoulder Press", "exname_w7_thu_trap_bar_shrug": "Trap Bar Shrug", "exname_w8_wed_treadmill_walk": "Treadmill Walk", "interval_w3_tue_strict_press": "1:15", "interval_w6_fri_seated_press": "1:45", "blockdone_w8_wed_treadmill_walk": "1", "sc_w3_fri_seated_db_hammer_curls": 3, "w3_fri_seated_db_hammer_curls_s0": {"kg": "14", "done": "1", "reps": "14"}, "w3_fri_seated_db_hammer_curls_s1": {"kg": "14", "done": "1", "reps": "10"}, "w3_fri_seated_db_hammer_curls_s2": {"kg": "14", "done": "1", "reps": "9"}, "sc_w1_tue_wide_grip_strict_pull_up": 3, "w1_tue_wide_grip_strict_pull_up_s0": {"kg": "", "done": "1", "reps": "6"}, "w1_tue_wide_grip_strict_pull_up_s1": {"kg": "", "done": "1", "reps": "6"}, "w1_tue_wide_grip_strict_pull_up_s2": {"kg": "", "done": "1", "reps": "6"}, "excode_w3_fri_seated_db_hammer_curls": "C2", "exname_w3_fri_seated_db_hammer_curls": "Seated DB Hammer Curls", "excode_w1_tue_wide_grip_strict_pull_up": "B2", "exname_w1_tue_wide_grip_strict_pull_up": "Wide Grip Strict Pull-Up"};
 const STORAGE_KEY = "timo_training_v81_real";
-const ANON_STORAGE_KEY = `${STORAGE_KEY}__anon`;
-let activeStorageKey = ANON_STORAGE_KEY;
-
-function getUserStorageKey(userId) {
-  return `${STORAGE_KEY}__user__${userId}`;
-}
-
-function createEmptyState() {
-  return { mmOpen: true };
-}
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -2607,41 +2613,73 @@ function addDays(d,n) { const c=new Date(d); c.setDate(c.getDate()+n); return c;
 function weekStartDate(week) { return addDays(PROGRAM_START, (week-1)*7); }
 function dayDate(week, day) { return addDays(weekStartDate(week), DAY_ORDER.indexOf(day)); }
 function weekRangeLabel(week) { const s=weekStartDate(week), e=addDays(s,6); return `${fmtShortDate(s)} – ${fmtShortDate(e)}`; }
+function createEmptyState() {
+  return {
+    mmOpen: true,
+    _cloudMeta: {},
+    _userPlan: { onboardingDone: false, trainingDays: [] }
+  };
+}
+function normalizeTrainingDays(days) {
+  return [...new Set((Array.isArray(days) ? days : []).map(x => String(x || "").toLowerCase()).filter(x => DAY_ORDER.includes(x)))].sort((a,b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b));
+}
+function hasAnyExerciseData(obj=state) {
+  return Object.keys(obj || {}).some(k => /^w\d+_[a-z]{3}_.+_s\d+$/i.test(k) || /^sc_w\d+_[a-z]{3}_.+$/i.test(k));
+}
+function getDerivedTrainingDays(obj=state) {
+  const days = new Set();
+  Object.keys(obj || {}).forEach(k => {
+    const m = k.match(/^w\d+_([a-z]{3})_.+_s\d+$/i) || k.match(/^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w\d+_([a-z]{3})_.+$/i);
+    if(m && DAY_ORDER.includes(m[1])) days.add(m[1]);
+  });
+  return DAY_ORDER.filter(day => days.has(day));
+}
+function getTrainingDays(obj=state) {
+  const planDays = normalizeTrainingDays(obj?._userPlan?.trainingDays);
+  if(planDays.length) return planDays;
+  return getDerivedTrainingDays(obj);
+}
+function isTrainingDay(day, obj=state) {
+  return getTrainingDays(obj).includes(day);
+}
+function ensurePlanMetadata() {
+  if(!state._userPlan || typeof state._userPlan !== "object") state._userPlan = { onboardingDone: false, trainingDays: [] };
+  if(hasAnyExerciseData(state)) {
+    const derived = getDerivedTrainingDays(state);
+    if(derived.length) {
+      state._userPlan.trainingDays = normalizeTrainingDays(state._userPlan.trainingDays).length ? normalizeTrainingDays(state._userPlan.trainingDays) : derived;
+      state._userPlan.onboardingDone = true;
+    }
+  }
+}
+function shouldShowOnboarding() {
+  ensurePlanMetadata();
+  return !hasAnyExerciseData(state) && !(state._userPlan?.onboardingDone && getTrainingDays(state).length);
+}
 
 // ===== STATE =====
-function getStoredStateByKey(key) {
-  const saved = localStorage.getItem(key);
-  if(!saved) return null;
-  try { return JSON.parse(saved); } catch { return null; }
-}
-
-function persistStateToKey(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-function removeStateForKey(key) {
-  try { localStorage.removeItem(key); } catch {}
-}
-
-function switchActiveStorageKeyForUser(user) {
-  activeStorageKey = user?.id ? getUserStorageKey(user.id) : ANON_STORAGE_KEY;
-}
-
 function loadState() {
-  const saved = getStoredStateByKey(activeStorageKey);
-  if(!saved) return structured(SEED_DATA);
-  return saved;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if(!saved) return createEmptyState();
+  try {
+    const parsed = JSON.parse(saved);
+    if(!parsed || typeof parsed !== "object") return createEmptyState();
+    return parsed;
+  } catch {
+    return createEmptyState();
+  }
 }
 let state = loadState();
+ensurePlanMetadata();
 
 function saveState() {
-  persistStateToKey(activeStorageKey, state);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   safeSetText("saveStatus", "Saved locally on this device.");
   scheduleCloudSave();
   renderApp();
 }
 function saveStateQuiet(message="Saved locally on this device.") {
-  persistStateToKey(activeStorageKey, state);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   safeSetText("saveStatus", message);
   scheduleCloudSave();
 }
@@ -2789,11 +2827,17 @@ function getExercisesForWeekDay(week,day) {
     return a.localeCompare(b);
   });
 }
-function allDaysInWeek(week) { return DAY_ORDER.filter(day => getExercisesForWeekDay(week,day).length); }
+function allDaysInWeek(week) {
+  const configured = getTrainingDays(state);
+  if(configured.length) return configured;
+  const detected = DAY_ORDER.filter(day => getExercisesForWeekDay(week,day).length);
+  return detected.length ? detected : ["mon"];
+}
 function getFirstDay(week) { return allDaysInWeek(week)[0] || "mon"; }
 function dayStatus(week,day) {
   const exs = getExercisesForWeekDay(week,day);
   if(!exs.length) {
+    if(isTrainingDay(day)) return "planned";
     if(day === "sat" || day === "sun") return "rest";
     return "none";
   }
@@ -2936,15 +2980,6 @@ function computeRadarLifetime() {
   return totals;
 }
 
-function isEffectivelyEmptyState() {
-  const keys = Object.keys(state || {}).filter(k => {
-    if(k === "mmOpen") return false;
-    if(k === "_cloudMeta") return false;
-    return true;
-  });
-  return keys.length === 0;
-}
-
 // ===== UI STATE =====
 let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false};
 function goToday() {
@@ -2952,6 +2987,36 @@ function goToday() {
   ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
   if(info) { ui.week=info.week; ui.day=info.day; }
   else { ui.week=getInitialWeek(); ui.day=getFirstDay(ui.week); }
+  renderApp();
+}
+const onboardingState = { selected: new Set(["mon","wed","fri"]) };
+function renderOnboarding() {
+  const overlay = ensureElement("onboardingOverlay");
+  const host = ensureElement("onboardingDays");
+  const startBtn = ensureElement("onboardingStartBtn");
+  if(!overlay || !host || !startBtn) return;
+  const needs = shouldShowOnboarding();
+  overlay.style.display = needs ? "flex" : "none";
+  if(!needs) return;
+  host.innerHTML = DAY_ORDER.map(day => `<button type="button" class="onboarding-day ${onboardingState.selected.has(day)?'active':''}" data-onboarding-day="${day}">${DAY_LABEL[day]}</button>`).join("");
+  startBtn.disabled = onboardingState.selected.size === 0;
+  document.querySelectorAll("[data-onboarding-day]").forEach(btn => {
+    btn.onclick = () => {
+      const day = btn.dataset.onboardingDay;
+      if(onboardingState.selected.has(day)) onboardingState.selected.delete(day);
+      else onboardingState.selected.add(day);
+      renderOnboarding();
+    };
+  });
+}
+function completeOnboarding() {
+  const selectedDays = normalizeTrainingDays(Array.from(onboardingState.selected));
+  if(!selectedDays.length) return;
+  state._userPlan = { onboardingDone: true, trainingDays: selectedDays };
+  ui.week = getInitialWeek();
+  ui.day = selectedDays[0];
+  ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+  saveState();
   renderApp();
 }
 
@@ -3059,7 +3124,9 @@ function renderCalendar() {
 
 // ===== RENDER: DAY PILLS =====
 function renderDays() {
-  const pills = DAY_ORDER.map(day => `<div class="pill ${day===ui.day?'active':''}" data-day="${day}">${DAY_LABEL[day]}</div>`).join("");
+  const visibleDays = allDaysInWeek(ui.week);
+  if(!visibleDays.includes(ui.day)) ui.day = visibleDays[0] || "mon";
+  const pills = visibleDays.map(day => `<div class="pill ${day===ui.day?'active':''}" data-day="${day}">${DAY_LABEL[day]}</div>`).join("");
   document.getElementById("dayPills").innerHTML = pills;
   const mobile=document.getElementById("mobileDayPills"); if(mobile) mobile.innerHTML = pills;
   document.querySelectorAll("[data-day]").forEach(el => el.onclick = () => { ui.day=el.dataset.day; ui.activeExerciseIndex=0; renderApp(); });
@@ -3293,17 +3360,7 @@ function renderExercises() {
   const focus = ui.workoutMode ? `<div class="card workout-focus-card"><div class="workout-date-big">${fmtFullDate(dayDate(ui.week,ui.day))}</div><div class="section-title"><h3>${focusMeta}</h3></div>${progressRow}<div class="workout-nav-row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div></div>` : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
-  const isSignedInEmpty = !!currentUser && isEffectivelyEmptyState();
-  const emptyMessage = !groups.length && !q ? `
-    <div class="card empty-welcome-card">
-      <h3>${isSignedInEmpty ? "Your logbook is ready" : "No exercises on this day yet"}</h3>
-      <p>${isSignedInEmpty ? "Start by adding your first exercise. Your account is private and synced to your own cloud space." : "Add an exercise for this day or switch to another day in the plan."}</p>
-      <div class="empty-welcome-actions">
-        <button class="btn primary" id="emptyAddExerciseBtn" type="button">${isSignedInEmpty ? "Add first exercise" : "Add exercise"}</button>
-        <button class="btn" id="emptyGoTodayBtn" type="button">Go to today</button>
-      </div>
-    </div>
-  ` : "";
+  const emptyMessage = "";
   wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
   wrap.innerHTML = focus + (groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
@@ -3371,48 +3428,6 @@ function renderExercises() {
   });
   const finishWorkoutBtnInline = document.getElementById("finishWorkoutBtnInline");
   if(finishWorkoutBtnInline) finishWorkoutBtnInline.onclick = () => finishWorkoutNow();
-  const emptyAddExerciseBtn = document.getElementById("emptyAddExerciseBtn");
-  if(emptyAddExerciseBtn) emptyAddExerciseBtn.onclick = () => {
-    const target = document.getElementById("addExerciseName");
-    if(target) {
-      target.scrollIntoView({block:"center", behavior:"smooth"});
-      setTimeout(() => target.focus(), 250);
-    }
-  };
-  const emptyGoTodayBtn = document.getElementById("emptyGoTodayBtn");
-  if(emptyGoTodayBtn) emptyGoTodayBtn.onclick = () => goToday();
-  const bottomTimerBtnLive = document.getElementById("bottomTimerBtn");
-  if(bottomTimerBtnLive) bottomTimerBtnLive.onclick = () => openTimer();
-  const bottomAddExerciseBtnLive = document.getElementById("bottomAddExerciseBtn");
-  if(bottomAddExerciseBtnLive) bottomAddExerciseBtnLive.onclick = () => {
-    const target = document.getElementById("addExerciseName");
-    if(target) {
-      target.scrollIntoView({block:"center", behavior:"smooth"});
-      setTimeout(() => target.focus(), 250);
-    }
-  };
-  const bottomAddSetBtnLive = document.getElementById("bottomAddSetBtn");
-  if(bottomAddSetBtnLive) bottomAddSetBtnLive.onclick = () => {
-    const exs = getExercisesForWeekDay(ui.week, ui.day);
-    let active = null;
-    if(ui.workoutMode){
-      active = exs[ui.activeExerciseIndex] || null;
-    }
-    if(!active || isRecoveryLike(ui.week, ui.day, active)) {
-      active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
-    }
-    if(!active) {
-      showToast("No strength exercise selected");
-      return;
-    }
-    const c = setCountOf(ui.week,ui.day,active);
-    state[`w${ui.week}_${ui.day}_${active}_s${c}`] = {kg:"",reps:"",done:""};
-    state[`sc_w${ui.week}_${ui.day}_${active}`] = c+1;
-    saveState();
-    showToast("Set added");
-    const card = document.querySelector(`[data-exercise-card="${active}"]`);
-    if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
-  };
   if(ui.workoutMode && activeGroup && activeGroup.items.length){
     const activeCard = document.querySelector(`[data-exercise-card="${activeGroup.items[0]}"]`);
     if(activeCard) activeCard.scrollIntoView({block:"nearest", behavior:"smooth"});
@@ -3539,7 +3554,8 @@ function renderAddScopeLabels() {
 
 // ===== APP RENDER ENTRY =====
 function renderApp() {
-    renderMetrics();
+  ensurePlanMetadata();
+  renderMetrics();
   renderCalendar();
   renderDays();
   refreshScopeLabels();
@@ -3547,6 +3563,7 @@ function renderApp() {
   renderExercises();
   renderHistoryPreview();
   renderAddScopeLabels();
+  renderOnboarding();
   const dl=document.getElementById("exerciseSuggestions");
   if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
 }
@@ -3575,6 +3592,8 @@ document.getElementById("addExerciseBtn").onclick = () => {
   document.getElementById("addHistoryMode").value="empty";
   renderHistoryPreview();
 };
+const onboardingStartBtn = document.getElementById("onboardingStartBtn");
+if(onboardingStartBtn) onboardingStartBtn.onclick = () => completeOnboarding();
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
 if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
   const target = document.getElementById("addExerciseName");
@@ -3623,7 +3642,7 @@ if(importFile) importFile.onchange = async e => {
 };
 
 window.addEventListener("beforeunload", () => {
-  try { persistStateToKey(activeStorageKey, state); } catch {}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
 });
 
 
@@ -3682,17 +3701,6 @@ function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   if(overlay) overlay.style.display = "none";
 }
-
-function updateAuthUi() {
-  const signOutBtn = document.getElementById("signOutBtn");
-  if(signOutBtn) signOutBtn.style.display = currentUser ? "inline-flex" : "none";
-}
-
-async function signOutSupabase() {
-  if(!sb) return;
-  const { error } = await sb.auth.signOut();
-  if(error) throw error;
-}
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
 }
@@ -3735,7 +3743,7 @@ async function loadCloudState() {
       state = data.state_json;
       if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
       state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
-      persistStateToKey(activeStorageKey, state);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       applyingCloudState = false;
       renderApp();
       setSyncStatus("Cloud: loaded");
@@ -3745,14 +3753,14 @@ async function loadCloudState() {
       return false;
     }
   }
-  setSyncStatus("Cloud: ready");
+  setSyncStatus("Cloud: empty");
   return false;
 }
 async function saveCloudStateNow() {
   if(!currentUser || applyingCloudState || !initialSyncResolved) return false;
   const iso = new Date().toISOString();
   stampLocalUpdatedAt(iso);
-  persistStateToKey(activeStorageKey, state);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const payload = {
     user_id: currentUser.id,
     state_json: state,
@@ -3799,16 +3807,10 @@ async function startCloudBootstrap() {
   }
 }
 
-function resetToSeedState() {
-  state = structured(SEED_DATA);
-  if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
-}
-
 // ===== CLOUD / AUTH =====
 async function initSupabaseApp() {
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
-  const signOutBtn = document.getElementById("signOutBtn");
 
   if(signInBtn) signInBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
@@ -3845,52 +3847,20 @@ async function initSupabaseApp() {
     }
   };
 
-  if(signOutBtn) signOutBtn.onclick = async () => {
-    signOutBtn.disabled = true;
-    try {
-      setSyncStatus("Cloud: signing out…");
-      await signOutSupabase();
-      showToast("Signed out");
-    } catch (e) {
-      console.error("SIGN OUT ERROR", e);
-      setSyncStatus("Cloud: sign out failed");
-      showToast("Sign out failed");
-    } finally {
-      signOutBtn.disabled = false;
-    }
-  };
-
   sb.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
     console.log("AUTH USER", currentUser);
 
-    if (cloudSaveTimer) {
-      clearTimeout(cloudSaveTimer);
-      cloudSaveTimer = null;
-    }
-
-    switchActiveStorageKeyForUser(currentUser);
-
     if(currentUser) {
-      const cachedUserState = getStoredStateByKey(activeStorageKey);
-      state = cachedUserState || createEmptyState();
-
       hideAuth();
-      updateAuthUi();
       cloudReady = true;
       initialSyncResolved = true;
       setSyncStatus("Cloud: connecting…");
-      renderApp();
       startCloudBootstrap();
     } else {
-      resetToSeedState();
-      persistStateToKey(ANON_STORAGE_KEY, state);
-
-      updateAuthUi();
       cloudReady = false;
       initialSyncResolved = true;
       hideBoot();
-      renderApp();
       showAuth();
       setSyncStatus("Cloud: local only");
     }
@@ -3900,8 +3870,6 @@ async function initSupabaseApp() {
     showBoot("Checking your session…");
     const { data } = await withTimeout(sb.auth.getSession(), 2500);
     currentUser = data?.session?.user || null;
-    switchActiveStorageKeyForUser(currentUser);
-    state = getStoredStateByKey(activeStorageKey) || createEmptyState();
     console.log("SESSION USER", currentUser);
   } catch (e) {
     console.error("SESSION ERROR", e);
@@ -3910,14 +3878,12 @@ async function initSupabaseApp() {
 
   if(currentUser) {
     hideAuth();
-    updateAuthUi();
     cloudReady = true;
     initialSyncResolved = true;
     setSyncStatus("Cloud: connecting…");
     startCloudBootstrap();
   } else {
     hideBoot();
-    updateAuthUi();
     cloudReady = false;
     initialSyncResolved = true;
     showAuth();
@@ -4176,7 +4142,7 @@ if(calendarToggleBtn) calendarToggleBtn.onclick = () => { ui.calendarCollapsed =
 // ===== RELEASE READINESS HELPERS =====
 function persistLocalStateNow() {
   try {
-    persistStateToKey(activeStorageKey, state);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     return true;
   } catch (e) {
     console.error("Local persist failed", e);
