@@ -83,11 +83,17 @@ input,textarea,select,button { font:inherit; }
 .btn.gold { border-color:rgba(242,201,76,.42); color:#ffe39a; background:linear-gradient(145deg, rgba(242,201,76,.14), rgba(242,201,76,.08)); }
 .field,.select { min-height:42px; padding:10px 12px; }
 .textarea { width:100%; min-height:42px; padding:10px 12px; resize:vertical; line-height:1.35; }
+.metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+.metric,.card {
+  background:linear-gradient(180deg, rgba(15,33,61,.98), rgba(10,24,45,.98)); border:1px solid var(--line); border-radius:20px; box-shadow:var(--shadow);
+}
 .metric { padding:12px; }
 .metric .k { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.06em; }
 .metric .v { margin-top:5px; font-size:20px; font-weight:700; }
 .metric{text-align:left;}
 .metric .s { margin-top:6px; color:var(--muted); font-size:12px; }
+.layout { display:grid; grid-template-columns:330px 1fr; gap:16px; align-items:start; }
+.left,.right{display:grid;gap:16px;align-content:start;}
 
 .section-title { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:12px; }
 .section-title h2,.section-title h3 { margin:0; font-size:15px; font-weight:650; }
@@ -197,6 +203,8 @@ input,textarea,select,button { font:inherit; }
 .radar-wrap { aspect-ratio:1 / 1; max-width:300px; margin:0 auto; }
 .hidden-desktop { display:none; }
 
+
+
 .search-results { display:grid; gap:10px; }
 .search-item {
   width:100%; display:flex; align-items:center; justify-content:space-between; gap:14px;
@@ -233,6 +241,7 @@ input,textarea,select,button { font:inherit; }
 .workout-focus-card{display:grid;gap:12px;}
 .workout-focus-card .section-title{margin-bottom:0;justify-content:center;}
 
+
 .compact-last .info-box{padding:9px 11px}
 .block-header{padding:9px 12px}
 .exercise-actions .btn{min-height:38px;padding:8px 11px}
@@ -252,6 +261,7 @@ input,textarea,select,button { font:inherit; }
 .quick-toast.show{opacity:1;transform:translateX(-50%) translateY(-4px);}
 .btn:active{transform:scale(.97);}
 *{transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,transform .12s ease;}
+
 
 .topbar{padding-top:max(10px, env(safe-area-inset-top));}
 .topbar-inner{gap:8px;}
@@ -374,6 +384,7 @@ input,textarea,select,button { font:inherit; }
   .search-row .field{font-size:13px;min-height:36px;}
 }
 
+
 .days-card .section-title,.search-card .section-title,.add-card .section-title{justify-content:center;text-align:center;}
 .days-card .pills{justify-content:center;}
 .pill{text-align:center;min-width:86px;justify-content:center;}
@@ -390,6 +401,7 @@ input,textarea,select,button { font:inherit; }
 .add-card .row{justify-content:center;}
 .add-card .info-box{text-align:left;}
 .compact-search-card,.days-card{text-align:center;}
+
 
 /* V12.9.1 calendar + radar premium polish */
 .calendar-collapsible .section-title{
@@ -631,6 +643,7 @@ input,textarea,select,button { font:inherit; }
   visibility: hidden;
 }
 
+
 .auth-overlay {
   position: fixed;
   inset: 0;
@@ -692,6 +705,7 @@ input,textarea,select,button { font:inherit; }
   font-size: 12px;
 }
 
+
 .boot-overlay{position:fixed;inset:0;z-index:9998;background:linear-gradient(180deg, rgba(15,17,21,.98), rgba(15,17,21,1));display:flex;align-items:center;justify-content:center;padding:24px}
 .boot-card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:24px;text-align:center}
 .boot-card h2{margin:0;font-size:28px;letter-spacing:-.03em}
@@ -699,6 +713,7 @@ input,textarea,select,button { font:inherit; }
 .boot-spinner{width:34px;height:34px;margin:0 auto 14px;border-radius:999px;border:3px solid rgba(201,168,106,.2);border-top-color:var(--gold);animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .app.booting{}
+
 
 /* V12.4 safe polish overrides */
 .topbar{
@@ -1024,6 +1039,9 @@ input,textarea,select,button { font:inherit; }
   }
 }
 
+
+
+
 /* PATCH 2.6.1 — unified layout system */
 :root{--section-gap:20px;--stack-gap:20px;}
 .app{padding-top:14px;}
@@ -1071,6 +1089,8 @@ input,textarea,select,button { font:inherit; }
   .left,.right{gap:var(--stack-gap) !important;}
   .add-grid{grid-template-columns:1fr !important;gap:10px !important;}
 }
+
+
 
 /* 2.7 design system lock */
 :root{
@@ -1237,6 +1257,8 @@ input,textarea,select,button { font:inherit; }
   }
 }
 
+
+
 /* patch 2.7.3 header + radar polish */
 .topbar-main{gap:10px !important; padding-bottom:18px !important;}
 .brand-lockup{display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:8px !important;}
@@ -1284,6 +1306,8 @@ input,textarea,select,button { font:inherit; }
   .brand-subtitle{font-size:16px !important;}
   .brand-icon{width:30px !important; height:30px !important;}
 }
+
+
 
 /* Patch 2.8 — typography polish system */
 :root{
@@ -1444,6 +1468,7 @@ body{
   .empty-state,
   .daycell .w{font-size:11px !important;}
 }
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
