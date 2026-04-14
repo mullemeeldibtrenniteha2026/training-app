@@ -26,7 +26,7 @@ Purpose:
 <link rel="icon" type="image/png" sizes="192x192" href="./icon_192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="./icon_512.png" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Timo Training Logbook v4.1</title>
+<title>Timo Training Logbook v4.1.3</title>
 <style>
 :root {
   --bg:#08172d; --panel:#0f213d; --panel2:#132a4a; --line:#243a61;
@@ -2252,7 +2252,7 @@ body{
   </div>
 </div>
 
-<div class="app" id="mainApp" style="display:none">
+<div class="app" id="mainApp">
   <div class="topbar">
     <div class="topbar-inner">
       <div class="topbar-main">
@@ -2576,15 +2576,21 @@ function dayDate(week, day) { return addDays(weekStartDate(week), DAY_ORDER.inde
 function weekRangeLabel(week) { const s=weekStartDate(week), e=addDays(s,6); return `${fmtShortDate(s)} – ${fmtShortDate(e)}`; }
 
 // ===== STATE =====
+function safeLocalGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
+function safeLocalSet(key, value) { try { localStorage.setItem(key, value); return true; } catch { return false; } }
+function safeLocalRemove(key) { try { localStorage.removeItem(key); } catch {} }
+function safeSessionGet(key) { try { return sessionStorage.getItem(key); } catch { return null; } }
+function safeSessionSet(key, value) { try { sessionStorage.setItem(key, value); return true; } catch { return false; } }
+function safeSessionRemove(key) { try { sessionStorage.removeItem(key); } catch {} }
 function loadState() {
   let saved = null;
-  try { saved = localStorage.getItem(activeStorageKey); } catch { /* incognito / Safari private — localStorage blocked */ }
+  saved = safeLocalGet(activeStorageKey);
   if(!saved) return currentUser ? createEmptyState() : structured(SEED_DATA);
   try { return JSON.parse(saved); } catch { return currentUser ? createEmptyState() : structured(SEED_DATA); }
 }
 let state = loadState();
 
-function persistActiveLocalState() { try { localStorage.setItem(activeStorageKey, JSON.stringify(state)); } catch {} }
+function persistActiveLocalState() { safeLocalSet(activeStorageKey, JSON.stringify(state)); }
 
 function saveState() {
   persistActiveLocalState();
@@ -2758,8 +2764,6 @@ function dayStatus(week,day) {
   });
   if(regularDone) return "done";
   if(recoveryDone) return "recovery";
-  // Only mark as "planned" if there are real strength exercises, OR the day is explicitly selected as a training day.
-  // Recovery-only days (e.g. wed rec) that aren't selected training days are treated as rest.
   if(hasRegular || selected.includes(day)) return "planned";
   return "none";
 }
@@ -3532,8 +3536,7 @@ window.addEventListener("beforeunload", () => {
 
 const SUPABASE_URL = "https://krpbqzhttgelrbhkohct.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Ea08srA5UXkyRBx00sIQFw_hEQ8u_7t";
-if(!window.supabase) { console.error("Supabase library failed to load — auth and cloud sync unavailable."); }
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+const sb = (window.supabase && typeof window.supabase.createClient === "function") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 let currentUser = null;
 let cloudSaveTimer = null;
 let cloudReady = false;
@@ -3578,26 +3581,12 @@ function setAuthMessage(text, mode="") {
 }
 function showAuth() {
   const overlay = document.getElementById("authOverlay");
-  const app = document.getElementById("mainApp");
-  if(app) {
-    app.style.display = "none";
-    app.style.visibility = "hidden";
-  }
   if(overlay) overlay.style.display = "flex";
-  hideOnboarding();
-  const lock = document.getElementById("lockOverlay");
-  if(lock) lock.style.display = "none";
-  hideBoot();
   setSyncStatus("Cloud: sign in required");
 }
 function hideAuth() {
   const overlay = document.getElementById("authOverlay");
-  const app = document.getElementById("mainApp");
   if(overlay) overlay.style.display = "none";
-  if(app) {
-    app.style.display = "";
-    app.style.visibility = "visible";
-  }
 }
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
@@ -3739,11 +3728,7 @@ function renderOnboardingDays() {
   if(startBtn) startBtn.disabled = onboardingSelection.length === 0;
 }
 function shouldShowOnboardingForState(targetState) {
-  const prefs = targetState?._userPrefs;
-  const days = Array.isArray(prefs?.trainingDays) ? prefs.trainingDays : null;
-  if(prefs?.onboardingDone === true) return false;
-  if(days && days.length > 0) return false;
-  if(targetState && targetState._cloudMeta && targetState._cloudMeta.updated_at) return false;
+  if(targetState?._userPrefs?.onboardingDone) return false;
   if(hasMeaningfulTrainingData(targetState)) return false;
   return true;
 }
@@ -3835,12 +3820,17 @@ async function forceSignOut() {
 }
 async function initSupabaseApp() {
   if(!sb) {
-    // Supabase library blocked (common in incognito with extensions) — run in local-only mode
-    setSyncStatus("Local only");
-    hideBoot();
-    goToday();
+    currentUser = null;
+    activeStorageKey = ANON_STORAGE_KEY;
+    cloudReady = false;
+    updateConnectivityState();
+    setSyncStatus("Cloud: unavailable");
+    showAuth();
+    updateAuthEntryUI();
+    showSignOut(false);
     return;
   }
+
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
   const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
@@ -3917,10 +3907,8 @@ async function initSupabaseApp() {
     if(!currentUser) {
       authGatePassed = false;
       hideOnboarding();
-      showSignOut(false);
       showAuth();
       setSyncStatus("Cloud: sign in required");
-      return;
     }
   });
 
@@ -4005,26 +3993,26 @@ let appUnlocked = false;
 let lastActiveAt = Date.now();
 
 function nowTs() { return Date.now(); }
-function getStoredPin() { const key = pinScopedKey(PIN_KEY); return key ? (localStorage.getItem(key) || "") : ""; }
-function setStoredPin(pin) { const key = pinScopedKey(PIN_KEY); if(key) localStorage.setItem(key, pin); }
+function getStoredPin() { const key = pinScopedKey(PIN_KEY); return key ? (safeLocalGet(key) || "") : ""; }
+function setStoredPin(pin) { const key = pinScopedKey(PIN_KEY); if(key) safeLocalSet(key, pin); }
 function clearStoredPin() {
   const pinKey = pinScopedKey(PIN_KEY);
   const sessionKey = pinScopedKey(PIN_SESSION_KEY);
   const stageKey = pinScopedKey(PIN_STAGE_KEY);
-  if(pinKey) localStorage.removeItem(pinKey);
-  if(sessionKey) sessionStorage.removeItem(sessionKey);
-  if(stageKey) localStorage.removeItem(stageKey);
+  if(pinKey) safeLocalRemove(pinKey);
+  if(sessionKey) safeSessionRemove(sessionKey);
+  if(stageKey) safeLocalRemove(stageKey);
 }
 function markSessionActive() {
   const sessionKey = pinScopedKey(PIN_SESSION_KEY);
   if(!sessionKey) return;
-  sessionStorage.setItem(sessionKey, String(nowTs()));
+  safeSessionSet(sessionKey, String(nowTs()));
   lastActiveAt = nowTs();
 }
 function isSessionFresh() {
   const sessionKey = pinScopedKey(PIN_SESSION_KEY);
   if(!sessionKey) return true;
-  const raw = sessionStorage.getItem(sessionKey);
+  const raw = safeSessionGet(sessionKey);
   const ts = raw ? Number(raw) : 0;
   return !!ts && nowTs() - ts < LOCK_TIMEOUT_MS;
 }
@@ -4163,7 +4151,7 @@ function setupLockScreen() {
       markSessionActive();
     } else {
       const sessionKey = pinScopedKey(PIN_SESSION_KEY);
-      const raw = sessionKey ? sessionStorage.getItem(sessionKey) : null;
+      const raw = sessionKey ? safeSessionGet(sessionKey) : null;
       const ts = raw ? Number(raw) : 0;
       if(ts && nowTs() - ts >= LOCK_TIMEOUT_MS) openLockScreen();
       else if(!appUnlocked && shouldStartLocked()) openLockScreen();
@@ -4311,8 +4299,6 @@ function bootApp() {
   installReleaseReadinessListeners();
   installBackupActions();
   resetTimer();
-  hideOnboarding();
-  showAuth();
   initSupabaseApp();
   goToday();
   updateConnectivityState();
