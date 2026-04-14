@@ -2252,7 +2252,7 @@ body{
   </div>
 </div>
 
-<div class="app" id="mainApp">
+<div class="app" id="mainApp" style="display:none">
   <div class="topbar">
     <div class="topbar-inner">
       <div class="topbar-main">
@@ -3575,7 +3575,10 @@ function setAuthMessage(text, mode="") {
 function showAuth() {
   const overlay = document.getElementById("authOverlay");
   const app = document.getElementById("mainApp");
-  if(app) app.style.visibility = "hidden";
+  if(app) {
+    app.style.display = "none";
+    app.style.visibility = "hidden";
+  }
   if(overlay) overlay.style.display = "flex";
   hideOnboarding();
   const lock = document.getElementById("lockOverlay");
@@ -3587,7 +3590,10 @@ function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   const app = document.getElementById("mainApp");
   if(overlay) overlay.style.display = "none";
-  if(app) app.style.visibility = "visible";
+  if(app) {
+    app.style.display = "";
+    app.style.visibility = "visible";
+  }
 }
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
@@ -3733,6 +3739,7 @@ function shouldShowOnboardingForState(targetState) {
   const days = Array.isArray(prefs?.trainingDays) ? prefs.trainingDays : null;
   if(prefs?.onboardingDone === true) return false;
   if(days && days.length > 0) return false;
+  if(targetState && targetState._cloudMeta && targetState._cloudMeta.updated_at) return false;
   if(hasMeaningfulTrainingData(targetState)) return false;
   return true;
 }
@@ -4293,6 +4300,7 @@ function bootApp() {
   installReleaseReadinessListeners();
   installBackupActions();
   resetTimer();
+  hideOnboarding();
   showAuth();
   initSupabaseApp();
   goToday();
