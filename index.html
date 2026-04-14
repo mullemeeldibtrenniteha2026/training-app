@@ -695,8 +695,10 @@ input,textarea,select,button { font:inherit; }
 .backup-tools-card .backup-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;}
 .backup-tools-card .backup-actions .btn{width:100%;}
 .backup-tools-card .status-note{margin-top:8px;text-align:center;}
-.backup-tools-card .account-actions{display:none;grid-template-columns:1fr;gap:10px;margin-top:10px;}
-.backup-tools-card .account-actions .btn{width:100%;}
+.backup-tools-card .account-actions{display:none;grid-template-columns:1fr;gap:10px;margin-top:10px;justify-items:center;}
+.backup-tools-card .account-actions .btn{width:min(100%,340px);}
+.backup-tools-card .account-actions .signout-btn{background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);border:1px solid rgba(255,194,71,.38);color:#1a1204;font-weight:900;letter-spacing:.04em;box-shadow:0 10px 24px rgba(255,159,10,.22), inset 0 1px 0 rgba(255,255,255,.22);justify-content:center;text-align:center;}
+.backup-tools-card .account-actions .signout-btn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.18), inset 0 1px 0 rgba(255,255,255,.18);} 
 @media (max-width:640px){
   .backup-tools-card .backup-actions{grid-template-columns:1fr;}
 }
@@ -1628,7 +1630,7 @@ body{
           <button class="btn" id="importBackupBtn">Import JSON</button>
         </div>
         <div class="account-actions" id="accountActionsRow">
-          <button class="btn" id="signOutBtn" type="button">Sign out</button>
+          <button class="btn signout-btn" id="signOutBtn" type="button">Sign out</button>
         </div>
         <input type="file" id="backupImportFile" accept="application/json" style="display:none" />
         <div class="status-note">Keep a local backup of your training data.</div>
