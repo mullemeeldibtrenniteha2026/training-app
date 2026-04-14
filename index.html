@@ -2117,6 +2117,64 @@ body{
   }
 }
 
+
+/* =========================================
+   ITERATION 3 HOTFIX
+   Restore dark input surfaces inside workout cards
+   without changing logic or structure
+========================================= */
+
+.exercise .codebox,
+.exercise .exercise-name,
+.exercise .field,
+.exercise .textarea,
+.exercise .select,
+.exercise .setinput{
+  -webkit-appearance:none;
+  appearance:none;
+  background:#101828 !important;
+  color:var(--text) !important;
+  border:1px solid var(--line) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03) !important;
+}
+
+.exercise .exercise-name{
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  color:var(--text) !important;
+}
+
+.exercise.active-workout .exercise-name{
+  color:#fff3c9 !important;
+}
+
+.exercise .codebox{
+  background:#221d17 !important;
+  border:1px solid #5e4e2c !important;
+  color:#e6cd9d !important;
+  text-align:center;
+}
+
+.exercise .textarea,
+.exercise .field,
+.exercise .select,
+.exercise .setinput{
+  border-radius:12px;
+}
+
+.exercise .setinput[data-role="volume"]{
+  background:#101828 !important;
+  color:#dbe6f4 !important;
+  opacity:1 !important;
+}
+
+.exercise .setinput::placeholder,
+.exercise .textarea::placeholder,
+.exercise .field::placeholder{
+  color:#7f95b1 !important;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
