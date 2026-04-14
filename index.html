@@ -100,7 +100,6 @@ input,textarea,select,button { font:inherit; }
 .section-title .meta,.help { color:var(--muted); font-size:12px; line-height:1.45; }
 .weekdays,.calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:8px; }
 .weekdays div { text-align:center; color:var(--muted); font-size:11px; }
-.calendar-head { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
 .calendar-collapsible.is-collapsed .calendar-body{display:none;}
 .calendar-toggle{min-width:72px;text-align:center;}
 .daycell {
@@ -174,7 +173,6 @@ input,textarea,select,button { font:inherit; }
 
 .calendar-collapsible{margin-top:2px;}
 .days-card,.compact-search-card,.radar-card,.add-card,.calendar-collapsible,.search-results-card,.block-group,.workout-focus-card,.end-panel-shell{box-shadow:0 16px 36px rgba(0,0,0,.24);}
-.add-grid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;}
 .add-grid > .field,.add-grid > .select,.add-grid > .btn{width:100%;min-width:0;height:48px;min-height:48px;border-radius:14px;padding:0 14px;}
 .add-grid > .field{justify-content:flex-start;text-align:left;}
 .add-grid > .select{-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%, #8ea3bd 50%),linear-gradient(135deg,#8ea3bd 50%, transparent 50%);background-position:calc(100% - 18px) calc(50% - 3px),calc(100% - 12px) calc(50% - 3px);background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:34px;text-align:left;justify-content:flex-start;}
@@ -335,15 +333,11 @@ input,textarea,select,button { font:inherit; }
 .radar-header-actions{margin-top:4px;}
 #radarToggle{box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.18);}
 #radarToggle button{min-width:82px;}
-.compact-search-card .field{max-width:460px;}
 .month-pill{display:inline-flex;align-items:center;justify-content:center;padding:8px 16px;border-radius:999px;background:linear-gradient(180deg, rgba(242,201,76,.18), rgba(242,201,76,.08));border:1px solid rgba(242,201,76,.24);box-shadow:0 8px 20px rgba(242,201,76,.08);}
 .header-meta{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
 .header-meta .help,.header-meta .sync-pill{margin:0;}
-.compact-search-card{padding-top:12px;padding-bottom:12px;}
 .compact-search-card .section-title{margin-bottom:8px;justify-content:center;}
-.compact-search-card .section-title h3{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;}
 .compact-search-card .field{max-width:540px;margin:0 auto;display:block;text-align:center;}
-.search-inline-actions{justify-content:center;}
 .metric,.card{text-align:left;}
 @media (max-width:640px){
   .metrics .metric{text-align:center;}
@@ -407,7 +401,6 @@ input,textarea,select,button { font:inherit; }
 .add-card .row{justify-content:center;}
 .add-card .info-box{text-align:left;}
 .compact-search-card,.days-card{text-align:center;}
-.compact-search-card .field{text-align:center;}
 
 
 /* V12.9.1 calendar + radar premium polish */
