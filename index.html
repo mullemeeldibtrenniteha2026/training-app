@@ -3728,6 +3728,12 @@ function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   if(overlay) overlay.style.display = "none";
 }
+function updateAuthUi() {
+  const signOutBtn = document.getElementById("signOutBtn");
+  const workoutModeBtn = document.getElementById("workoutModeBtn");
+  if(signOutBtn) signOutBtn.style.display = currentUser ? "inline-flex" : "none";
+  if(workoutModeBtn) workoutModeBtn.disabled = !currentUser;
+}
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
 }
@@ -3911,6 +3917,8 @@ async function initSupabaseApp() {
     signOutBtn.disabled = true;
     try {
       setSyncStatus("Cloud: signing out…");
+      const sessionKey = getPinSessionKey();
+      if(sessionKey) sessionStorage.removeItem(sessionKey);
       await signOutSupabase();
       showToast("Signed out");
     } catch (e) {
@@ -3940,6 +3948,7 @@ async function initSupabaseApp() {
       ensurePlanMetadata();
       hideAuth();
       updateAuthUi();
+      setupLockScreen();
       cloudReady = true;
       initialSyncResolved = true;
       setSyncStatus("Cloud: connecting…");
@@ -3951,6 +3960,7 @@ async function initSupabaseApp() {
       state = anonState || createEmptyState();
       ensurePlanMetadata();
       updateAuthUi();
+      setupLockScreen();
       cloudReady = false;
       initialSyncResolved = true;
       hideBoot();
@@ -3980,6 +3990,7 @@ async function initSupabaseApp() {
     onboardingState.selected = new Set();
     hideAuth();
     updateAuthUi();
+    setupLockScreen();
     cloudReady = true;
     initialSyncResolved = true;
     setSyncStatus("Cloud: connecting…");
@@ -3988,6 +3999,7 @@ async function initSupabaseApp() {
   } else {
     hideBoot();
     updateAuthUi();
+    setupLockScreen();
     cloudReady = false;
     initialSyncResolved = true;
     renderApp();
@@ -4050,9 +4062,8 @@ function closeTimer() {
 
 
 // ===== DEVICE LOCK / PIN =====
-const PIN_KEY = "timo_training_pin_v1";
-const PIN_SESSION_KEY = "timo_training_pin_session_v1";
-const PIN_STAGE_KEY = "timo_training_pin_stage_v1";
+const PIN_KEY_PREFIX = "timo_training_pin_v2";
+const PIN_SESSION_KEY_PREFIX = "timo_training_pin_session_v2";
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 let pinBuffer = "";
 let pinTemp = "";
@@ -4061,24 +4072,36 @@ let appUnlocked = false;
 let lastActiveAt = Date.now();
 
 function nowTs() { return Date.now(); }
-function getStoredPin() { return localStorage.getItem(PIN_KEY) || ""; }
-function setStoredPin(pin) { localStorage.setItem(PIN_KEY, pin); }
+function getPinKey() { return currentUser?.id ? `${PIN_KEY_PREFIX}__${currentUser.id}` : ""; }
+function getPinSessionKey() { return currentUser?.id ? `${PIN_SESSION_KEY_PREFIX}__${currentUser.id}` : ""; }
+function getStoredPin() {
+  const key = getPinKey();
+  return key ? (localStorage.getItem(key) || "") : "";
+}
+function setStoredPin(pin) {
+  const key = getPinKey();
+  if(key) localStorage.setItem(key, pin);
+}
 function clearStoredPin() {
-  localStorage.removeItem(PIN_KEY);
-  localStorage.removeItem(PIN_SESSION_KEY);
-  localStorage.removeItem(PIN_STAGE_KEY);
+  const key = getPinKey();
+  const sessionKey = getPinSessionKey();
+  if(key) localStorage.removeItem(key);
+  if(sessionKey) sessionStorage.removeItem(sessionKey);
 }
 function markSessionActive() {
-  sessionStorage.setItem(PIN_SESSION_KEY, String(nowTs()));
+  const sessionKey = getPinSessionKey();
+  if(sessionKey) sessionStorage.setItem(sessionKey, String(nowTs()));
   lastActiveAt = nowTs();
 }
 function isSessionFresh() {
-  const raw = sessionStorage.getItem(PIN_SESSION_KEY);
+  const sessionKey = getPinSessionKey();
+  if(!sessionKey) return false;
+  const raw = sessionStorage.getItem(sessionKey);
   const ts = raw ? Number(raw) : 0;
   return !!ts && nowTs() - ts < LOCK_TIMEOUT_MS;
 }
 function shouldStartLocked() {
-  return !isSessionFresh();
+  return !!currentUser && !!getStoredPin() && !isSessionFresh();
 }
 function setLockMessage(text, isError=false) {
   const el = document.getElementById("pinMessage");
@@ -4192,11 +4215,13 @@ function renderPinPad() {
     btn.onclick = () => pressPinKey(btn.dataset.pinKey);
   });
 }
+let lockScreenListenersInstalled = false;
 function setupLockScreen() {
   renderPinPad();
   updateLockTexts();
   const resetBtn = document.getElementById("pinResetBtn");
-  if(resetBtn) {
+  if(resetBtn && !resetBtn.dataset.bound) {
+    resetBtn.dataset.bound = "1";
     resetBtn.onclick = () => {
       const ok = confirm("This will remove the saved PIN on this device and let you create a new one.");
       if(!ok) return;
@@ -4204,22 +4229,29 @@ function setupLockScreen() {
       pinTemp = "";
       pinBuffer = "";
       updateLockTexts();
+      closeLockScreen();
     };
   }
-  document.addEventListener("visibilitychange", () => {
-    if(document.visibilityState === "hidden") {
-      markSessionActive();
-    } else {
-      const raw = sessionStorage.getItem(PIN_SESSION_KEY);
-      const ts = raw ? Number(raw) : 0;
-      if(ts && nowTs() - ts >= LOCK_TIMEOUT_MS) openLockScreen();
-      else if(!appUnlocked && shouldStartLocked()) openLockScreen();
-      else markSessionActive();
-    }
-  });
-  ["click","input","touchstart","keydown","scroll"].forEach(evt => {
-    document.addEventListener(evt, () => { if(appUnlocked) markSessionActive(); }, {passive:true});
-  });
+  if(!lockScreenListenersInstalled) {
+    lockScreenListenersInstalled = true;
+    document.addEventListener("visibilitychange", () => {
+      if(!currentUser) return;
+      if(document.visibilityState === "hidden") {
+        markSessionActive();
+      } else if(shouldStartLocked()) {
+        openLockScreen();
+      } else {
+        markSessionActive();
+      }
+    });
+    ["click","input","touchstart","keydown","scroll"].forEach(evt => {
+      document.addEventListener(evt, () => { if(appUnlocked && currentUser) markSessionActive(); }, {passive:true});
+    });
+  }
+  if(!currentUser) {
+    closeLockScreen();
+    return;
+  }
   if(shouldStartLocked()) openLockScreen();
   else closeLockScreen();
 }
@@ -4359,7 +4391,6 @@ function bootApp() {
   installBackupActions();
   resetTimer();
   initSupabaseApp();
-  setupLockScreen();
   goToday();
   updateConnectivityState();
 }
