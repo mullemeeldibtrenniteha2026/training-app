@@ -1610,6 +1610,264 @@ body{
   }
 }
 
+/* =========================================
+   PHASE 2 AUTHORITATIVE LAYER
+   Scope: exercise / block / set / workout UI
+   Protected zones intentionally excluded:
+   header / auth / overlays / sign out
+========================================= */
+
+.block-group{
+  border-radius:22px;
+  overflow:hidden;
+}
+
+.block-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  background:#14181f;
+  border-bottom:1px solid var(--line);
+}
+
+.block-title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
+  letter-spacing:-.01em;
+}
+
+.block-chip{
+  min-width:44px;
+  height:32px;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  font-size:13px;
+}
+
+.exercise{
+  padding:14px 12px;
+  border-top:1px solid rgba(36,51,75,.55);
+}
+
+.exercise:first-child{
+  border-top:none;
+}
+
+.exercise-main{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  justify-content:space-between;
+}
+
+.left-main{
+  display:flex;
+  gap:10px;
+  min-width:0;
+  align-items:flex-start;
+}
+
+.codebox{
+  width:58px;
+  min-width:58px;
+  height:42px;
+  border-radius:12px;
+}
+
+.exercise-name{
+  width:100%;
+  font-size:18px;
+  line-height:1.12;
+}
+
+.exercise-meta{
+  margin-top:5px;
+  font-size:11px;
+  line-height:1.4;
+  color:#96abc4;
+}
+
+.compare{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+  margin-top:10px;
+}
+
+.field-grid{
+  grid-template-columns:110px 1fr;
+  gap:12px;
+  align-items:start;
+  margin-top:12px;
+}
+
+.label{
+  font-size:11px;
+  padding-top:9px;
+}
+
+.sets{
+  display:grid;
+  gap:8px;
+  margin-top:11px;
+}
+
+.setrow{
+  display:grid;
+  grid-template-columns:54px minmax(0,1fr) minmax(0,1fr) 94px 44px;
+  gap:8px;
+  align-items:end;
+  padding:8px;
+  border-radius:16px;
+}
+
+.setn,
+.donebtn{
+  height:42px;
+  border-radius:12px;
+}
+
+.setinput{
+  width:100%;
+  min-height:42px;
+  padding:9px 10px;
+  border-radius:12px;
+}
+
+.exercise-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:12px;
+}
+
+.workout-focus-card{
+  display:grid;
+  gap:12px;
+  text-align:center;
+}
+
+.workout-date-big{
+  text-align:center;
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:-.02em;
+  color:#f2c94c;
+  margin-bottom:8px;
+}
+
+.workout-progress-row{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.workout-progress-pill{
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:800;
+}
+
+.workout-nav-row{
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-top:10px;
+}
+
+.workout-nav-row .btn{
+  min-width:120px;
+}
+
+.finish-workout-row{
+  display:flex;
+  justify-content:center;
+  margin:18px 14px 16px;
+}
+
+.finish-workout-btn{
+  min-width:min(100%,340px);
+  min-height:48px;
+  padding:12px 20px;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:900;
+  letter-spacing:.06em;
+}
+
+@media (max-width:640px){
+  .exercise{
+    padding:14px 12px;
+  }
+
+  .left-main{
+    gap:10px;
+  }
+
+  .codebox{
+    width:54px;
+    min-width:54px;
+    height:40px;
+    font-size:14px;
+    border-radius:12px;
+  }
+
+  .exercise-name{
+    font-size:17px;
+  }
+
+  .field-grid{
+    grid-template-columns:1fr;
+    gap:7px;
+    margin-top:10px;
+  }
+
+  .label{
+    padding-top:0;
+    text-align:center;
+  }
+
+  .sets{
+    gap:8px;
+    margin-top:11px;
+  }
+
+  .setrow{
+    grid-template-columns:44px 1fr 1fr 70px 40px;
+    gap:6px;
+    padding:7px;
+    border-radius:14px;
+  }
+
+  .setn,
+  .donebtn{
+    height:40px;
+    border-radius:10px;
+  }
+
+  .workout-progress-row{
+    gap:8px;
+  }
+
+  .finish-workout-row{
+    margin:16px 0 14px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
