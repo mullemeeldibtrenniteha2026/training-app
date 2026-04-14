@@ -1,29 +1,28 @@
 {
-  "name": "Training",
+  "name": "Timo Training",
   "short_name": "Training",
-  "description": "Personal training tracker",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0f1115",
-  "theme_color": "#0f1115",
-
+  "background_color": "#08172d",
+  "theme_color": "#0b1220",
   "icons": [
     {
-      "src": "icon_180.png",
+      "src": "./icon_180.png",
       "sizes": "180x180",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "icon_192.png",
+      "src": "./icon_192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "icon_512.png",
+      "src": "./icon_512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
