@@ -17,7 +17,7 @@ Purpose:
 <head>
 <meta charset="UTF-8" />
 
-<meta name="theme-color" content="#0f1115" />
+<meta name="theme-color" content="#0b1220" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Training" />
@@ -26,10 +26,7 @@ Purpose:
 <link rel="icon" type="image/png" sizes="192x192" href="./icon_192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="./icon_512.png" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0b1220" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Timo Training Logbook v3.6</title>
+<title>Timo Training Logbook v4.1</title>
 <style>
 :root {
   --bg:#08172d; --panel:#0f213d; --panel2:#132a4a; --line:#243a61;
@@ -691,79 +688,6 @@ input,textarea,select,button { font:inherit; }
 }
 .auth-message.error { color: var(--red); }
 .auth-message.ok { color: var(--green); }
-.onboarding-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10020;
-  background: linear-gradient(180deg, rgba(15,17,21,.985), rgba(15,17,21,1));
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-.onboarding-card {
-  width: 100%;
-  max-width: 460px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  box-shadow: var(--shadow);
-  padding: 24px;
-  text-align: center;
-}
-.onboarding-kicker {
-  font-size: 11px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 10px;
-}
-.onboarding-card h2 {
-  margin: 0;
-  font-size: 28px;
-  letter-spacing: -.03em;
-}
-.onboarding-card .sub {
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.45;
-}
-.onboarding-days {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: 10px;
-  margin-top: 18px;
-}
-.onboarding-day {
-  min-height: 48px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: var(--panel2);
-  color: var(--text);
-  font-weight: 700;
-  cursor: pointer;
-}
-.onboarding-day.active {
-  border-color: rgba(242,201,76,.42);
-  color: #ffe39a;
-  background: linear-gradient(145deg, rgba(242,201,76,.14), rgba(242,201,76,.08));
-}
-.onboarding-start-btn {
-  margin-top: 16px;
-  min-height: 48px;
-  width: 100%;
-  font-weight: 800;
-}
-.onboarding-start-btn:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-@media (max-width:640px){
-  .onboarding-days { grid-template-columns: 1fr 1fr; }
-  .onboarding-card { padding: 22px 18px; }
-  .onboarding-card h2 { font-size: 26px; }
-}
 .status-note{font-size:11px;color:var(--muted);line-height:1.35;}
 .backup-tools-card .backup-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;}
 .backup-tools-card .backup-actions .btn{width:100%;}
@@ -1121,8 +1045,6 @@ input,textarea,select,button { font:inherit; }
 
 
 /* Patch 2.1 — cleaner headers and hidden helper copy */
-#saveStatus{display:none !important;}
-#historyPreview{display:none !important;}
 .header-meta{justify-content:center;}
 .header-meta .sync-pill{margin:0 auto;}
 
@@ -1675,7 +1597,6 @@ input,textarea,select,button { font:inherit; }
 .header-actions #workoutModeBtn{min-height:40px !important;padding:9px 16px !important;font-size:13px !important;letter-spacing:.05em;}
 .header-meta{position:absolute;right:0;bottom:0;justify-content:flex-end !important;align-items:flex-end;gap:0;pointer-events:none;}
 .header-meta .sync-pill{pointer-events:auto;font-size:11px !important;padding:6px 10px !important;min-height:auto;border-radius:999px;}
-#saveStatus{display:none !important;}
 .metrics{margin:0 0 var(--section-gap) 0 !important;gap:12px !important;}
 .layout{margin-top:0 !important;gap:var(--section-gap) !important;align-items:start;}
 .left,.right{gap:var(--stack-gap) !important;align-content:start;}
@@ -2244,6 +2165,33 @@ body{
   .daycell .w{font-size:11px !important;}
 }
 
+
+.auth-actions-secondary{grid-template-columns:1fr 1fr;margin-top:10px;}
+#signOutBtn{min-height:42px;padding:10px 16px;border-radius:14px;}
+.onboarding-overlay{position:fixed;inset:0;z-index:10020;background:linear-gradient(180deg, rgba(15,17,21,.985), rgba(15,17,21,1));display:flex;align-items:center;justify-content:center;padding:24px;}
+.onboarding-card{width:100%;max-width:760px;background:var(--panel);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:28px 32px;text-align:center;}
+.onboarding-kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.onboarding-card h2{margin:0;font-size:28px;letter-spacing:-.03em;}
+.onboarding-sub{margin:14px auto 0;max-width:560px;color:var(--muted);line-height:1.45;font-size:14px;}
+.onboarding-days{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px;}
+.onboarding-day{min-height:72px;border-radius:20px;border:1px solid var(--line);background:rgba(19,42,74,.72);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;}
+.onboarding-day.active{border-color:rgba(242,201,76,.45);background:linear-gradient(145deg, rgba(242,201,76,.18), rgba(242,201,76,.10));color:#ffe6a4;}
+.onboarding-start{margin-top:20px;min-height:56px;width:100%;font-size:18px;font-weight:800;}
+@media (max-width:640px){.auth-actions-secondary{grid-template-columns:1fr;} .onboarding-card{padding:24px 18px;border-radius:24px;} .onboarding-days{grid-template-columns:1fr;} .onboarding-day{min-height:64px;font-size:16px;}}
+
+
+#saveStatus{
+  min-height:18px;
+  text-align:right;
+}
+#historyPreview{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.4;
+  text-align:left;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2263,6 +2211,10 @@ body{
       <button class="btn primary" id="signInBtn">Sign in</button>
       <button class="btn" id="signUpBtn">Create account</button>
     </div>
+    <div class="auth-actions auth-actions-secondary">
+      <button class="btn" id="continueSessionBtn" style="display:none">Continue</button>
+      <button class="btn" id="forgotPasswordBtn">Forgot password</button>
+    </div>
     <div class="auth-message" id="authMessage"></div>
   </div>
 </div>
@@ -2271,9 +2223,9 @@ body{
   <div class="onboarding-card">
     <div class="onboarding-kicker">Welcome</div>
     <h2>Choose your training days</h2>
-    <div class="sub">Set up the weekdays you want to train on. You can then build your own plan from a clean logbook.</div>
+    <div class="onboarding-sub">Set up the weekdays you want to train on. You can then build your own plan from a clean logbook.</div>
     <div class="onboarding-days" id="onboardingDays"></div>
-    <button class="btn primary onboarding-start-btn" id="onboardingStartBtn" type="button">Start training</button>
+    <button class="btn primary onboarding-start" id="onboardingStartBtn" disabled>Start training</button>
   </div>
 </div>
 
@@ -2316,10 +2268,12 @@ body{
         </div>
         <div class="header-actions">
           <button class="btn" id="workoutModeBtn">WORKOUT MODE</button>
+          <button class="btn" id="signOutBtn" style="display:none">Sign out</button>
         </div>
       </div>
       <div class="header-meta">
         <div class="sync-pill" id="syncStatus">Cloud: not connected</div>
+        <div class="help" id="saveStatus"></div>
       </div>
     </div>
   </div>
@@ -2393,7 +2347,7 @@ body{
           </select>
           <button class="btn primary" id="addExerciseBtn">Add</button>
         </div>
-
+        <div class="help" id="historyPreview"></div>
       </div>
 
       <div class="card backup-tools-card">
@@ -2456,10 +2410,11 @@ const SEED_DATA = {"mmOpen": true, "_cloudMeta": {"updated_at": "2026-04-04T11:0
 const STORAGE_KEY = "timo_training_v81_real";
 const ANON_STORAGE_KEY = `${STORAGE_KEY}__anon`;
 let activeStorageKey = ANON_STORAGE_KEY;
-
-function getUserStorageKey(userId) {
-  return `${STORAGE_KEY}__user__${userId}`;
-}
+function getUserStorageKey(userId) { return `${STORAGE_KEY}__user__${userId}`; }
+function createEmptyState() { return { mmOpen: true, _userPrefs: { trainingDays: [], onboardingDone: false } }; }
+function getSelectedTrainingDays() { return Array.isArray(state?._userPrefs?.trainingDays) ? state._userPrefs.trainingDays : []; }
+function setSelectedTrainingDays(days) { if(!state._userPrefs || typeof state._userPrefs !== "object") state._userPrefs = {}; state._userPrefs.trainingDays = Array.from(new Set(days)); state._userPrefs.onboardingDone = true; }
+function hasMeaningfulTrainingData(targetState) { const s = targetState || {}; return Object.keys(s).some(k => !["mmOpen","_cloudMeta","_userPrefs"].includes(k)); }
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -2619,90 +2574,25 @@ function addDays(d,n) { const c=new Date(d); c.setDate(c.getDate()+n); return c;
 function weekStartDate(week) { return addDays(PROGRAM_START, (week-1)*7); }
 function dayDate(week, day) { return addDays(weekStartDate(week), DAY_ORDER.indexOf(day)); }
 function weekRangeLabel(week) { const s=weekStartDate(week), e=addDays(s,6); return `${fmtShortDate(s)} – ${fmtShortDate(e)}`; }
-function createEmptyState() {
-  return {
-    mmOpen: true,
-    _cloudMeta: {},
-    _userPlan: { onboardingDone: false, trainingDays: [] }
-  };
-}
-function normalizeTrainingDays(days) {
-  return [...new Set((Array.isArray(days) ? days : []).map(x => String(x || "").toLowerCase()).filter(x => DAY_ORDER.includes(x)))].sort((a,b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b));
-}
-function hasAnyExerciseData(obj=state) {
-  return Object.keys(obj || {}).some(k => /^w\d+_[a-z]{3}_.+_s\d+$/i.test(k) || /^sc_w\d+_[a-z]{3}_.+$/i.test(k));
-}
-function getDerivedTrainingDays(obj=state) {
-  const days = new Set();
-  Object.keys(obj || {}).forEach(k => {
-    const m = k.match(/^w\d+_([a-z]{3})_.+_s\d+$/i) || k.match(/^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w\d+_([a-z]{3})_.+$/i);
-    if(m && DAY_ORDER.includes(m[1])) days.add(m[1]);
-  });
-  return DAY_ORDER.filter(day => days.has(day));
-}
-function getTrainingDays(obj=state) {
-  const planDays = normalizeTrainingDays(obj?._userPlan?.trainingDays);
-  if(planDays.length) return planDays;
-  return getDerivedTrainingDays(obj);
-}
-function isTrainingDay(day, obj=state) {
-  return getTrainingDays(obj).includes(day);
-}
-function ensurePlanMetadata() {
-  if(!state._userPlan || typeof state._userPlan !== "object") state._userPlan = { onboardingDone: false, trainingDays: [] };
-  if(hasAnyExerciseData(state)) {
-    const derived = getDerivedTrainingDays(state);
-    if(derived.length) {
-      state._userPlan.trainingDays = normalizeTrainingDays(state._userPlan.trainingDays).length ? normalizeTrainingDays(state._userPlan.trainingDays) : derived;
-      state._userPlan.onboardingDone = true;
-    }
-  }
-}
-function shouldShowOnboarding() {
-  ensurePlanMetadata();
-  return !hasAnyExerciseData(state) && !(state._userPlan?.onboardingDone && getTrainingDays(state).length);
-}
 
 // ===== STATE =====
-function getStoredStateByKey(key) {
-  const saved = localStorage.getItem(key);
-  if(!saved) return null;
-  try {
-    const parsed = JSON.parse(saved);
-    if(!parsed || typeof parsed !== "object") return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function persistStateToKey(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-function removeStateForKey(key) {
-  try { localStorage.removeItem(key); } catch {}
-}
-
-function switchActiveStorageKeyForUser(user) {
-  activeStorageKey = user?.id ? getUserStorageKey(user.id) : ANON_STORAGE_KEY;
-}
-
 function loadState() {
-  const saved = getStoredStateByKey(activeStorageKey);
-  return saved || createEmptyState();
+  const saved = localStorage.getItem(activeStorageKey);
+  if(!saved) return currentUser ? createEmptyState() : structured(SEED_DATA);
+  try { return JSON.parse(saved); } catch { return currentUser ? createEmptyState() : structured(SEED_DATA); }
 }
 let state = loadState();
-ensurePlanMetadata();
+
+function persistActiveLocalState() { try { localStorage.setItem(activeStorageKey, JSON.stringify(state)); } catch {} }
 
 function saveState() {
-  persistStateToKey(activeStorageKey, state);
+  persistActiveLocalState();
   safeSetText("saveStatus", "Saved locally on this device.");
   scheduleCloudSave();
   renderApp();
 }
 function saveStateQuiet(message="Saved locally on this device.") {
-  persistStateToKey(activeStorageKey, state);
+  persistActiveLocalState();
   safeSetText("saveStatus", message);
   scheduleCloudSave();
 }
@@ -2801,7 +2691,7 @@ function blockDoneOf(week,day,ex) { return state[`blockdone_w${week}_${day}_${ex
 function setCountOf(week,day,ex) {
   const sc = state[`sc_w${week}_${day}_${ex}`];
   if(sc != null) return Math.max(1, Number(sc));
-  const keys = Object.keys(state).filter(k => new RegExp(`^w${week}_${day}_${ex}_s\d+$`).test(k));
+  const keys = Object.keys(state).filter(k => new RegExp(`^w${week}_${day}_${ex}_s\\d+$`).test(k));
   if(!keys.length) return 1;
   return Math.max(...keys.map(k => Number(k.match(/_s(\d+)$/)[1]))) + 1;
 }
@@ -2830,7 +2720,7 @@ function getExercisesForWeekDay(week,day) {
   const ids=[], seen=new Set();
   Object.keys(state).forEach(k => {
     let m=k.match(new RegExp(`^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_(.+)$`));
-    if(!m) m=k.match(new RegExp(`^w${week}_${day}_(.+?)_s\d+$`));
+    if(!m) m=k.match(new RegExp(`^w${week}_${day}_(.+?)_s\\d+$`));
     if(m) {
       const ex=m[1];
       if(!seen.has(ex)) { seen.add(ex); ids.push(ex); }
@@ -2850,17 +2740,13 @@ function getExercisesForWeekDay(week,day) {
     return a.localeCompare(b);
   });
 }
-function allDaysInWeek(week) {
-  const configured = getTrainingDays(state);
-  if(configured.length) return configured;
-  const detected = DAY_ORDER.filter(day => getExercisesForWeekDay(week,day).length);
-  return detected.length ? detected : ["mon"];
-}
+function allDaysInWeek(week) { const fromExercises = DAY_ORDER.filter(day => getExercisesForWeekDay(week,day).length); const selected = getSelectedTrainingDays(); return fromExercises.length ? fromExercises : (selected.length ? selected : DAY_ORDER.filter(day => day !== "sat" && day !== "sun")); }
 function getFirstDay(week) { return allDaysInWeek(week)[0] || "mon"; }
 function dayStatus(week,day) {
   const exs = getExercisesForWeekDay(week,day);
+  const selected = getSelectedTrainingDays();
   if(!exs.length) {
-    if(isTrainingDay(day)) return "planned";
+    if(selected.includes(day)) return "planned";
     if(day === "sat" || day === "sun") return "rest";
     return "none";
   }
@@ -2871,7 +2757,7 @@ function dayStatus(week,day) {
   });
   if(regularDone) return "done";
   if(recoveryDone) return "recovery";
-  if(hasRegular || exs.length) return "planned";
+  if(hasRegular || selected.includes(day)) return "planned";
   return "none";
 }
 function dateToProgramDay(date) {
@@ -2978,7 +2864,7 @@ function addExercise(scope,displayName,historyMode) {
 function deleteExercise(week,day,ex) {
   Object.keys(state).forEach(k => {
     if(new RegExp(`^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_${ex}$`).test(k)) delete state[k];
-    if(new RegExp(`^w${week}_${day}_${ex}_s\d+$`).test(k)) delete state[k];
+    if(new RegExp(`^w${week}_${day}_${ex}_s\\d+$`).test(k)) delete state[k];
   });
   saveState();
 }
@@ -3011,40 +2897,6 @@ function goToday() {
   if(info) { ui.week=info.week; ui.day=info.day; }
   else { ui.week=getInitialWeek(); ui.day=getFirstDay(ui.week); }
   renderApp();
-}
-const onboardingState = { selected: new Set() };
-function renderOnboarding() {
-  const overlay = ensureElement("onboardingOverlay");
-  const host = ensureElement("onboardingDays");
-  const startBtn = ensureElement("onboardingStartBtn");
-  if(!overlay || !host || !startBtn) return;
-  const needs = shouldShowOnboarding();
-  overlay.style.display = needs ? "flex" : "none";
-  if(!needs) return;
-  const existingPlanDays = normalizeTrainingDays(state?._userPlan?.trainingDays);
-  if(onboardingState.selected.size === 0 && existingPlanDays.length) {
-    onboardingState.selected = new Set(existingPlanDays);
-  }
-  host.innerHTML = DAY_ORDER.map(day => `<button type="button" class="onboarding-day ${onboardingState.selected.has(day)?'active':''}" data-onboarding-day="${day}">${DAY_LABEL[day]}</button>`).join("");
-  startBtn.disabled = onboardingState.selected.size === 0;
-  document.querySelectorAll("[data-onboarding-day]").forEach(btn => {
-    btn.onclick = () => {
-      const day = btn.dataset.onboardingDay;
-      if(onboardingState.selected.has(day)) onboardingState.selected.delete(day);
-      else onboardingState.selected.add(day);
-      renderOnboarding();
-    };
-  });
-}
-function completeOnboarding() {
-  const selectedDays = normalizeTrainingDays(Array.from(onboardingState.selected));
-  if(!selectedDays.length) return;
-  state._userPlan = { onboardingDone: true, trainingDays: selectedDays };
-  ui.week = getInitialWeek();
-  ui.day = selectedDays[0];
-  ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
-  saveState();
-  showToast("Training days saved");
 }
 
 // ===== STABILITY HELPERS =====
@@ -3151,9 +3003,7 @@ function renderCalendar() {
 
 // ===== RENDER: DAY PILLS =====
 function renderDays() {
-  const visibleDays = allDaysInWeek(ui.week);
-  if(!visibleDays.includes(ui.day)) ui.day = visibleDays[0] || "mon";
-  const pills = visibleDays.map(day => `<div class="pill ${day===ui.day?'active':''}" data-day="${day}">${DAY_LABEL[day]}</div>`).join("");
+  const pills = DAY_ORDER.map(day => `<div class="pill ${day===ui.day?'active':''}" data-day="${day}">${DAY_LABEL[day]}</div>`).join("");
   document.getElementById("dayPills").innerHTML = pills;
   const mobile=document.getElementById("mobileDayPills"); if(mobile) mobile.innerHTML = pills;
   document.querySelectorAll("[data-day]").forEach(el => el.onclick = () => { ui.day=el.dataset.day; ui.activeExerciseIndex=0; renderApp(); });
@@ -3268,15 +3118,16 @@ function renderHistoryPreview() {
   if(!box) return;
   const name = document.getElementById("addExerciseName").value.trim();
   if(!name) {
-    box.innerHTML = ``;
+    box.innerHTML = "";
     return;
   }
   const preview = historyPreview(name);
   if(!preview) {
-    box.innerHTML = ``;
+    box.innerHTML = "";
     return;
   }
-  box.innerHTML = ``;
+  const parts = [preview.dateLabel, preview.summary].filter(Boolean);
+  box.textContent = `Last time: ${parts.join(" · ")}`;
 }
 
 function getWorkoutGroups(exercises){
@@ -3581,8 +3432,7 @@ function renderAddScopeLabels() {
 
 // ===== APP RENDER ENTRY =====
 function renderApp() {
-  ensurePlanMetadata();
-  renderMetrics();
+    renderMetrics();
   renderCalendar();
   renderDays();
   refreshScopeLabels();
@@ -3590,7 +3440,6 @@ function renderApp() {
   renderExercises();
   renderHistoryPreview();
   renderAddScopeLabels();
-  renderOnboarding();
   const dl=document.getElementById("exerciseSuggestions");
   if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
 }
@@ -3619,8 +3468,6 @@ document.getElementById("addExerciseBtn").onclick = () => {
   document.getElementById("addHistoryMode").value="empty";
   renderHistoryPreview();
 };
-const onboardingStartBtn = document.getElementById("onboardingStartBtn");
-if(onboardingStartBtn) onboardingStartBtn.onclick = () => completeOnboarding();
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
 if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
   const target = document.getElementById("addExerciseName");
@@ -3632,9 +3479,13 @@ if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
 const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
 if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
   const exs = getExercisesForWeekDay(ui.week, ui.day);
+  const groups = getWorkoutGroups(exs);
   let active = null;
   if(ui.workoutMode){
-    active = exs[ui.activeExerciseIndex] || null;
+    const activeGroup = groups[ui.activeExerciseIndex] || null;
+    if(activeGroup) {
+      active = activeGroup.items.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || activeGroup.items[0] || null;
+    }
   }
   if(!active || isRecoveryLike(ui.week, ui.day, active)) {
     active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
@@ -3651,7 +3502,7 @@ if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
   const card = document.querySelector(`[data-exercise-card="${active}"]`);
   if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
 };
-const exportBtn = document.getElementById("exportBtn");
+const exportBtn = document.getElementById("exportBackupBtn");
 if(exportBtn) exportBtn.onclick = () => {
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
   const a=document.createElement("a");
@@ -3660,7 +3511,9 @@ if(exportBtn) exportBtn.onclick = () => {
   a.click();
   URL.revokeObjectURL(a.href);
 };
-const importFile = document.getElementById("importFile");
+const importFile = document.getElementById("backupImportFile");
+const importBtnLegacy = document.getElementById("importBackupBtn");
+if(importBtnLegacy && importFile) importBtnLegacy.onclick = () => importFile.click();
 if(importFile) importFile.onchange = async e => {
   const file=e.target.files?.[0];
   if(!file) return;
@@ -3669,14 +3522,16 @@ if(importFile) importFile.onchange = async e => {
 };
 
 window.addEventListener("beforeunload", () => {
-  try { persistStateToKey(activeStorageKey, state); } catch {}
+  persistActiveLocalState();
 });
 
 
 
 const SUPABASE_URL = "https://krpbqzhttgelrbhkohct.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Ea08srA5UXkyRBx00sIQFw_hEQ8u_7t";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = (window.supabase && typeof window.supabase.createClient === "function")
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+  : null;
 let currentUser = null;
 let cloudSaveTimer = null;
 let cloudReady = false;
@@ -3760,7 +3615,6 @@ async function fetchCloudRow() {
 async function loadCloudState() {
   if(!currentUser) return false;
   const data = await fetchCloudRow();
-  console.log("CLOUD DATA", data);
   if(data && data.state_json) {
     const cloudIso = data.updated_at || null;
     const localIso = getLocalUpdatedAt();
@@ -3770,7 +3624,7 @@ async function loadCloudState() {
       state = data.state_json;
       if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
       state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
-      persistStateToKey(activeStorageKey, state);
+      persistActiveLocalState();
       applyingCloudState = false;
       renderApp();
       setSyncStatus("Cloud: loaded");
@@ -3787,7 +3641,7 @@ async function saveCloudStateNow() {
   if(!currentUser || applyingCloudState || !initialSyncResolved) return false;
   const iso = new Date().toISOString();
   stampLocalUpdatedAt(iso);
-  persistStateToKey(activeStorageKey, state);
+  persistActiveLocalState();
   const payload = {
     user_id: currentUser.id,
     state_json: state,
@@ -3835,21 +3689,158 @@ async function startCloudBootstrap() {
 }
 
 // ===== CLOUD / AUTH =====
+let authGatePassed = false;
+let authFlowInProgress = false;
+let lockScreenInitialized = false;
+let onboardingSelection = [];
+
+function showSignOut(show) {
+  const btn = document.getElementById("signOutBtn");
+  if(btn) btn.style.display = show ? "inline-flex" : "none";
+}
+function showOnboarding() {
+  const overlay = document.getElementById("onboardingOverlay");
+  if(overlay) overlay.style.display = "flex";
+  onboardingSelection = [...getSelectedTrainingDays()];
+  renderOnboardingDays();
+}
+function hideOnboarding() {
+  const overlay = document.getElementById("onboardingOverlay");
+  if(overlay) overlay.style.display = "none";
+}
+function renderOnboardingDays() {
+  const host = document.getElementById("onboardingDays");
+  const startBtn = document.getElementById("onboardingStartBtn");
+  if(!host) return;
+  host.innerHTML = DAY_ORDER.map(day => `<button class="onboarding-day ${onboardingSelection.includes(day) ? "active" : ""}" data-onboarding-day="${day}">${DAY_LABEL[day]}</button>`).join("");
+  host.querySelectorAll("[data-onboarding-day]").forEach(btn => {
+    btn.onclick = () => {
+      const day = btn.dataset.onboardingDay;
+      onboardingSelection = onboardingSelection.includes(day) ? onboardingSelection.filter(x => x !== day) : [...onboardingSelection, day];
+      renderOnboardingDays();
+    };
+  });
+  if(startBtn) startBtn.disabled = onboardingSelection.length === 0;
+}
+function shouldShowOnboardingForState(targetState) {
+  if(targetState?._userPrefs?.onboardingDone) return false;
+  if(hasMeaningfulTrainingData(targetState)) return false;
+  return true;
+}
+function updateAuthEntryUI() {
+  const continueBtn = document.getElementById("continueSessionBtn");
+  if(currentUser) {
+    if(continueBtn) {
+      continueBtn.style.display = "inline-flex";
+      continueBtn.textContent = `Continue as ${currentUser.email || "current user"}`;
+    }
+    setAuthMessage(`Signed in as ${currentUser.email || "current user"}. Continue or switch account.`, "ok");
+  } else {
+    if(continueBtn) continueBtn.style.display = "none";
+    setAuthMessage("");
+  }
+}
+async function completeOnboarding() {
+  if(!currentUser || onboardingSelection.length === 0) return;
+  setSelectedTrainingDays(onboardingSelection);
+  ui.day = onboardingSelection[0];
+  persistActiveLocalState();
+  hideOnboarding();
+  renderApp();
+  await saveCloudStateNow();
+  if(!lockScreenInitialized) { setupLockScreen(); lockScreenInitialized = true; }
+  else if(shouldStartLocked()) openLockScreen(); else closeLockScreen();
+}
+async function enterAuthenticatedApp() {
+  if(!currentUser || authFlowInProgress) return;
+  authFlowInProgress = true;
+  authGatePassed = true;
+  activeStorageKey = getUserStorageKey(currentUser.id);
+  state = loadState();
+  renderApp();
+  showSignOut(true);
+  hideAuth();
+  hideOnboarding();
+  showBoot("Loading your data…");
+  setSyncStatus("Cloud: connecting…");
+  cloudReady = true;
+  initialSyncResolved = true;
+  try {
+    const row = await fetchCloudRow();
+    if(row && row.state_json) {
+      applyingCloudState = true;
+      state = row.state_json;
+      if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
+      state._cloudMeta.updated_at = row.updated_at || new Date().toISOString();
+      persistActiveLocalState();
+      applyingCloudState = false;
+      renderApp();
+    } else {
+      state = loadState();
+      if(!state || typeof state !== "object") state = createEmptyState();
+      renderApp();
+    }
+    hideBoot();
+    if(shouldShowOnboardingForState(state)) {
+      showOnboarding();
+      setSyncStatus("Cloud: ready");
+    } else {
+      await saveCloudStateNow();
+      setSyncStatus("Cloud: synced");
+      if(!lockScreenInitialized) { setupLockScreen(); lockScreenInitialized = true; }
+      else if(shouldStartLocked()) openLockScreen(); else closeLockScreen();
+    }
+  } catch (e) {
+    console.error("AUTH FLOW ERROR", e);
+    hideBoot();
+    setSyncStatus("Cloud: unavailable");
+  } finally {
+    authFlowInProgress = false;
+  }
+}
+async function forceSignOut() {
+  try { await sb.auth.signOut(); } catch(e) { console.error(e); }
+  currentUser = null;
+  authGatePassed = false;
+  activeStorageKey = ANON_STORAGE_KEY;
+  state = structured(SEED_DATA);
+  renderApp();
+  hideOnboarding();
+  hideBoot();
+  const lock = document.getElementById("lockOverlay");
+  if(lock) lock.style.display = "none";
+  showSignOut(false);
+  showAuth();
+  updateAuthEntryUI();
+}
 async function initSupabaseApp() {
+  if(!sb) {
+    currentUser = null;
+    cloudReady = false;
+    initialSyncResolved = true;
+    setSyncStatus("Cloud: unavailable");
+    showAuth();
+    updateAuthEntryUI();
+    return;
+  }
+
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
+  const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+  const continueSessionBtn = document.getElementById("continueSessionBtn");
   const signOutBtn = document.getElementById("signOutBtn");
+  const onboardingStartBtn = document.getElementById("onboardingStartBtn");
 
   if(signInBtn) signInBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
-    if(!email || !password) {
-      setAuthMessage("Enter email and password.", "error");
-      return;
-    }
+    if(!email || !password) { setAuthMessage("Enter email and password.", "error"); return; }
     setAuthMessage("Signing in…");
     try {
-      await signInSupabase(email, password);
+      const result = await signInSupabase(email, password);
+      currentUser = result?.user || result?.session?.user || currentUser;
+      updateAuthEntryUI();
+      await enterAuthenticatedApp();
       setAuthMessage("");
     } catch (e) {
       console.error("SIGN IN ERROR", e);
@@ -3860,106 +3851,73 @@ async function initSupabaseApp() {
   if(signUpBtn) signUpBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
-    if(!email || !password) {
-      setAuthMessage("Enter email and password.", "error");
-      return;
-    }
+    if(!email || !password) { setAuthMessage("Enter email and password.", "error"); return; }
     setAuthMessage("Creating account…");
     try {
       const result = await signUpSupabase(email, password);
-      if(result?.user && !result?.session) setAuthMessage("Account created. Check your email and then sign in.", "ok");
-      else setAuthMessage("Account created. You can continue.", "ok");
+      if(result?.session?.user || result?.user?.id) {
+        currentUser = result?.session?.user || result?.user;
+        activeStorageKey = getUserStorageKey(currentUser.id);
+        state = createEmptyState();
+        persistActiveLocalState();
+        await enterAuthenticatedApp();
+        setAuthMessage("");
+      } else {
+        setAuthMessage("Account created. Check your email and then sign in.", "ok");
+      }
     } catch (e) {
       console.error("SIGN UP ERROR", e);
       setAuthMessage(e.message || "Sign up failed.", "error");
     }
   };
 
-  if(signOutBtn) signOutBtn.onclick = async () => {
-    signOutBtn.disabled = true;
+  if(forgotPasswordBtn) forgotPasswordBtn.onclick = async () => {
+    const email = document.getElementById("authEmail").value.trim();
+    if(!email) { setAuthMessage("Enter your email first.", "error"); return; }
+    setAuthMessage("Sending reset email…");
     try {
-      setSyncStatus("Cloud: signing out…");
-      await signOutSupabase();
-      showToast("Signed out");
+      const { error } = await withTimeout(sb.auth.resetPasswordForEmail(email), 5000);
+      if(error) throw error;
+      setAuthMessage("Password reset email sent.", "ok");
     } catch (e) {
-      console.error("SIGN OUT ERROR", e);
-      setSyncStatus("Cloud: sign out failed");
-      showToast("Sign out failed");
-    } finally {
-      signOutBtn.disabled = false;
+      console.error("RESET ERROR", e);
+      setAuthMessage(e.message || "Password reset failed.", "error");
     }
   };
 
+  if(continueSessionBtn) continueSessionBtn.onclick = async () => {
+    if(!currentUser) { setAuthMessage("No signed-in session found.", "error"); return; }
+    await enterAuthenticatedApp();
+  };
+  if(signOutBtn) signOutBtn.onclick = async () => { await forceSignOut(); };
+  if(onboardingStartBtn) onboardingStartBtn.onclick = async () => { await completeOnboarding(); };
+
   sb.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
-    console.log("AUTH USER", currentUser);
-
-    if(cloudSaveTimer) {
-      clearTimeout(cloudSaveTimer);
-      cloudSaveTimer = null;
-    }
-
-    switchActiveStorageKeyForUser(currentUser);
-
-    if(currentUser) {
-      const cachedUserState = getStoredStateByKey(activeStorageKey);
-      state = cachedUserState || createEmptyState();
-      ensurePlanMetadata();
-      hideAuth();
-      updateAuthUi();
-      cloudReady = true;
-      initialSyncResolved = true;
-      setSyncStatus("Cloud: connecting…");
-      renderApp();
-      startCloudBootstrap();
-    } else {
-      switchActiveStorageKeyForUser(null);
-      const anonState = getStoredStateByKey(activeStorageKey);
-      state = anonState || createEmptyState();
-      ensurePlanMetadata();
-      updateAuthUi();
-      cloudReady = false;
-      initialSyncResolved = true;
-      hideBoot();
-      renderApp();
+    activeStorageKey = currentUser ? getUserStorageKey(currentUser.id) : ANON_STORAGE_KEY;
+    updateAuthEntryUI();
+    showSignOut(!!currentUser && authGatePassed);
+    if(!currentUser) {
+      authGatePassed = false;
+      hideOnboarding();
       showAuth();
-      setSyncStatus("Cloud: local only");
+      setSyncStatus("Cloud: sign in required");
     }
   });
 
   try {
-    showBoot("Checking your session…");
     const { data } = await withTimeout(sb.auth.getSession(), 2500);
     currentUser = data?.session?.user || null;
-    switchActiveStorageKeyForUser(currentUser);
-    state = getStoredStateByKey(activeStorageKey) || createEmptyState();
-    ensurePlanMetadata();
-    console.log("SESSION USER", currentUser);
+    activeStorageKey = currentUser ? getUserStorageKey(currentUser.id) : ANON_STORAGE_KEY;
   } catch (e) {
     console.error("SESSION ERROR", e);
     currentUser = null;
-    switchActiveStorageKeyForUser(null);
-    state = getStoredStateByKey(activeStorageKey) || createEmptyState();
-    ensurePlanMetadata();
+    activeStorageKey = ANON_STORAGE_KEY;
   }
 
-  if(currentUser) {
-    hideAuth();
-    updateAuthUi();
-    cloudReady = true;
-    initialSyncResolved = true;
-    setSyncStatus("Cloud: connecting…");
-    renderApp();
-    startCloudBootstrap();
-  } else {
-    hideBoot();
-    updateAuthUi();
-    cloudReady = false;
-    initialSyncResolved = true;
-    renderApp();
-    showAuth();
-    setSyncStatus("Cloud: local only");
-  }
+  showAuth();
+  updateAuthEntryUI();
+  showSignOut(false);
 }
 
 
@@ -4019,6 +3977,7 @@ function closeTimer() {
 const PIN_KEY = "timo_training_pin_v1";
 const PIN_SESSION_KEY = "timo_training_pin_session_v1";
 const PIN_STAGE_KEY = "timo_training_pin_stage_v1";
+function pinScopedKey(base){ return currentUser ? `${base}_${currentUser.id}` : ""; }
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 let pinBuffer = "";
 let pinTemp = "";
@@ -4027,23 +3986,31 @@ let appUnlocked = false;
 let lastActiveAt = Date.now();
 
 function nowTs() { return Date.now(); }
-function getStoredPin() { return localStorage.getItem(PIN_KEY) || ""; }
-function setStoredPin(pin) { localStorage.setItem(PIN_KEY, pin); }
+function getStoredPin() { const key = pinScopedKey(PIN_KEY); return key ? (localStorage.getItem(key) || "") : ""; }
+function setStoredPin(pin) { const key = pinScopedKey(PIN_KEY); if(key) localStorage.setItem(key, pin); }
 function clearStoredPin() {
-  localStorage.removeItem(PIN_KEY);
-  localStorage.removeItem(PIN_SESSION_KEY);
-  localStorage.removeItem(PIN_STAGE_KEY);
+  const pinKey = pinScopedKey(PIN_KEY);
+  const sessionKey = pinScopedKey(PIN_SESSION_KEY);
+  const stageKey = pinScopedKey(PIN_STAGE_KEY);
+  if(pinKey) localStorage.removeItem(pinKey);
+  if(sessionKey) sessionStorage.removeItem(sessionKey);
+  if(stageKey) localStorage.removeItem(stageKey);
 }
 function markSessionActive() {
-  sessionStorage.setItem(PIN_SESSION_KEY, String(nowTs()));
+  const sessionKey = pinScopedKey(PIN_SESSION_KEY);
+  if(!sessionKey) return;
+  sessionStorage.setItem(sessionKey, String(nowTs()));
   lastActiveAt = nowTs();
 }
 function isSessionFresh() {
-  const raw = sessionStorage.getItem(PIN_SESSION_KEY);
+  const sessionKey = pinScopedKey(PIN_SESSION_KEY);
+  if(!sessionKey) return true;
+  const raw = sessionStorage.getItem(sessionKey);
   const ts = raw ? Number(raw) : 0;
   return !!ts && nowTs() - ts < LOCK_TIMEOUT_MS;
 }
 function shouldStartLocked() {
+  if(!currentUser) return false;
   return !isSessionFresh();
 }
 function setLockMessage(text, isError=false) {
@@ -4176,7 +4143,8 @@ function setupLockScreen() {
     if(document.visibilityState === "hidden") {
       markSessionActive();
     } else {
-      const raw = sessionStorage.getItem(PIN_SESSION_KEY);
+      const sessionKey = pinScopedKey(PIN_SESSION_KEY);
+      const raw = sessionKey ? sessionStorage.getItem(sessionKey) : null;
       const ts = raw ? Number(raw) : 0;
       if(ts && nowTs() - ts >= LOCK_TIMEOUT_MS) openLockScreen();
       else if(!appUnlocked && shouldStartLocked()) openLockScreen();
@@ -4186,8 +4154,8 @@ function setupLockScreen() {
   ["click","input","touchstart","keydown","scroll"].forEach(evt => {
     document.addEventListener(evt, () => { if(appUnlocked) markSessionActive(); }, {passive:true});
   });
-  if(shouldStartLocked()) openLockScreen();
-  else closeLockScreen();
+  if(currentUser && shouldStartLocked()) openLockScreen();
+  else { const overlay = document.getElementById("lockOverlay"); if(overlay) overlay.style.display = "none"; }
 }
 
 const bottomTimerBtn = document.getElementById("bottomTimerBtn");
@@ -4213,7 +4181,7 @@ if(calendarToggleBtn) calendarToggleBtn.onclick = () => { ui.calendarCollapsed =
 // ===== RELEASE READINESS HELPERS =====
 function persistLocalStateNow() {
   try {
-    persistStateToKey(activeStorageKey, state);
+    persistActiveLocalState();
     return true;
   } catch (e) {
     console.error("Local persist failed", e);
@@ -4325,10 +4293,11 @@ function bootApp() {
   installBackupActions();
   resetTimer();
   initSupabaseApp();
-  setupLockScreen();
   goToday();
   updateConnectivityState();
+  showSignOut(false);
 }
+
 
 bootApp();
 </script>
