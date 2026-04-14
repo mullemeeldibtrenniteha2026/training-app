@@ -2264,6 +2264,9 @@ body{
       <button class="btn" id="signUpBtn">Create account</button>
     </div>
     <div class="auth-message" id="authMessage"></div>
+    <div class="lock-footer">
+      <button class="lock-link" id="forgotPasswordBtn" type="button">Forgot password?</button>
+    </div>
   </div>
 </div>
 
@@ -3021,10 +3024,6 @@ function renderOnboarding() {
   const needs = shouldShowOnboarding();
   overlay.style.display = needs ? "flex" : "none";
   if(!needs) return;
-  const existingPlanDays = normalizeTrainingDays(state?._userPlan?.trainingDays);
-  if(onboardingState.selected.size === 0 && existingPlanDays.length) {
-    onboardingState.selected = new Set(existingPlanDays);
-  }
   host.innerHTML = DAY_ORDER.map(day => `<button type="button" class="onboarding-day ${onboardingState.selected.has(day)?'active':''}" data-onboarding-day="${day}">${DAY_LABEL[day]}</button>`).join("");
   startBtn.disabled = onboardingState.selected.size === 0;
   document.querySelectorAll("[data-onboarding-day]").forEach(btn => {
@@ -3040,6 +3039,7 @@ function completeOnboarding() {
   const selectedDays = normalizeTrainingDays(Array.from(onboardingState.selected));
   if(!selectedDays.length) return;
   state._userPlan = { onboardingDone: true, trainingDays: selectedDays };
+  onboardingState.selected = new Set();
   ui.week = getInitialWeek();
   ui.day = selectedDays[0];
   ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
@@ -3745,6 +3745,15 @@ async function signUpSupabase(email, password) {
   if(error) throw error;
   return data;
 }
+async function signOutSupabase() {
+  const { error } = await withTimeout(sb.auth.signOut(), 5000);
+  if(error) throw error;
+}
+async function resetPasswordSupabase(email) {
+  const redirectTo = window.location.href.split('#')[0];
+  const { error } = await withTimeout(sb.auth.resetPasswordForEmail(email, { redirectTo }), 5000);
+  if(error) throw error;
+}
 async function fetchCloudRow() {
   if(!currentUser) return null;
   const { data, error } = await withTimeout(
@@ -3867,11 +3876,34 @@ async function initSupabaseApp() {
     setAuthMessage("Creating account…");
     try {
       const result = await signUpSupabase(email, password);
+      if(result?.user?.id) {
+        const newKey = getUserStorageKey(result.user.id);
+        removeStateForKey(newKey);
+        persistStateToKey(newKey, createEmptyState());
+      }
       if(result?.user && !result?.session) setAuthMessage("Account created. Check your email and then sign in.", "ok");
-      else setAuthMessage("Account created. You can continue.", "ok");
+      else setAuthMessage("Account created. Continue with your training setup.", "ok");
     } catch (e) {
       console.error("SIGN UP ERROR", e);
       setAuthMessage(e.message || "Sign up failed.", "error");
+    }
+  };
+
+  const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+
+  if(forgotPasswordBtn) forgotPasswordBtn.onclick = async () => {
+    const email = document.getElementById("authEmail").value.trim();
+    if(!email) {
+      setAuthMessage("Enter your email first, then use Forgot password.", "error");
+      return;
+    }
+    setAuthMessage("Sending reset email…");
+    try {
+      await resetPasswordSupabase(email);
+      setAuthMessage("Password reset email sent. Check your inbox.", "ok");
+    } catch (e) {
+      console.error("RESET PASSWORD ERROR", e);
+      setAuthMessage(e.message || "Password reset failed.", "error");
     }
   };
 
@@ -3902,6 +3934,7 @@ async function initSupabaseApp() {
     switchActiveStorageKeyForUser(currentUser);
 
     if(currentUser) {
+      onboardingState.selected = new Set();
       const cachedUserState = getStoredStateByKey(activeStorageKey);
       state = cachedUserState || createEmptyState();
       ensurePlanMetadata();
@@ -3944,6 +3977,7 @@ async function initSupabaseApp() {
   }
 
   if(currentUser) {
+    onboardingState.selected = new Set();
     hideAuth();
     updateAuthUi();
     cloudReady = true;
