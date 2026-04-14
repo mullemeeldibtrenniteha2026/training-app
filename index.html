@@ -3581,12 +3581,22 @@ function setAuthMessage(text, mode="") {
 }
 function showAuth() {
   const overlay = document.getElementById("authOverlay");
+  const app = document.getElementById("mainApp");
+  if(app) {
+    app.style.display = "none";
+    app.style.visibility = "hidden";
+  }
   if(overlay) overlay.style.display = "flex";
   setSyncStatus("Cloud: sign in required");
 }
 function hideAuth() {
   const overlay = document.getElementById("authOverlay");
+  const app = document.getElementById("mainApp");
   if(overlay) overlay.style.display = "none";
+  if(app) {
+    app.style.display = "";
+    app.style.visibility = "visible";
+  }
 }
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
@@ -3728,7 +3738,9 @@ function renderOnboardingDays() {
   if(startBtn) startBtn.disabled = onboardingSelection.length === 0;
 }
 function shouldShowOnboardingForState(targetState) {
+  const selectedDays = Array.isArray(targetState?._userPrefs?.trainingDays) ? targetState._userPrefs.trainingDays.filter(Boolean) : [];
   if(targetState?._userPrefs?.onboardingDone) return false;
+  if(selectedDays.length > 0) return false;
   if(hasMeaningfulTrainingData(targetState)) return false;
   return true;
 }
@@ -4295,14 +4307,19 @@ function runBasicStabilityChecks() {
   }
 }
 function bootApp() {
+  const app = document.getElementById("mainApp");
+  if(app) {
+    app.style.display = "none";
+    app.style.visibility = "hidden";
+  }
   runBasicStabilityChecks();
   installReleaseReadinessListeners();
   installBackupActions();
   resetTimer();
-  initSupabaseApp();
   goToday();
   updateConnectivityState();
   showSignOut(false);
+  initSupabaseApp();
 }
 
 
