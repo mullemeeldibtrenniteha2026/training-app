@@ -31,6 +31,9 @@ Purpose:
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Timo Training Logbook v3.6</title>
 <style>
+/* =========================
+   1. ROOT / TOKENS
+========================= */
 :root {
   --bg:#08172d; --panel:#0f213d; --panel2:#132a4a; --line:#243a61;
   --text:#f7f9fc; --muted:#a8bad0; --soft:#d9e4f1;
@@ -55,10 +58,16 @@ Purpose:
   --ls-section:-0.02em;
   --ls-micro:0.06em;
 }
+/* =========================
+   2. BASE / RESET
+========================= */
 * { box-sizing:border-box; }
 html,body { margin:0; padding:0; background:radial-gradient(circle at top, #10284a 0%, var(--bg) 48%, #06111f 100%); color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,sans-serif; }
 input,textarea,select,button { font:inherit; }
+/* =========================
+   3. LAYOUT / SHELL
+========================= */
 .app { max-width:1200px; margin:0 auto; padding:14px 14px 96px; }
 .topbar {
   position:sticky; top:0; z-index:20; margin:-14px -14px 12px;
@@ -207,6 +216,9 @@ input,textarea,select,button { font:inherit; }
 
 
 
+/* =========================
+   4. SEARCH / RESULTS / WORKOUT UI
+========================= */
 .search-results { display:grid; gap:10px; }
 .search-item {
   width:100%; display:flex; align-items:center; justify-content:space-between; gap:14px;
@@ -410,7 +422,9 @@ input,textarea,select,button { font:inherit; }
 .compact-search-card .field{text-align:center;}
 
 
-/* V12.9.1 calendar + radar premium polish */
+/* =========================
+   6. CALENDAR / RADAR FINAL TUNING
+========================= */
 .calendar-collapsible .section-title{
   display:grid;
   grid-template-columns:1fr auto;
@@ -556,6 +570,9 @@ input,textarea,select,button { font:inherit; }
   .textarea { min-height:34px; padding:7px 9px; }
 }
 
+/* =========================
+   5. OVERLAYS / AUTH / LOCK / BOOT
+========================= */
 .lock-overlay {
   position: fixed;
   inset: 0;
@@ -718,7 +735,9 @@ input,textarea,select,button { font:inherit; }
 .app.booting{}
 
 
-/* V12.4 safe polish overrides */
+/* =========================
+   7. GLOBAL VISUAL POLISH
+========================= */
 .topbar{
   border-bottom:1px solid rgba(36,51,75,.55);
   padding-bottom:10px;
@@ -1047,7 +1066,9 @@ input,textarea,select,button { font:inherit; }
 
 
 
-/* PATCH 2.6.1 — unified layout system */
+/* =========================
+   8. FINAL LAYOUT SYSTEM
+========================= */
 :root{--section-gap:20px;--stack-gap:20px;}
 .app{padding-top:14px;}
 .topbar{margin:-14px -14px var(--section-gap);}
@@ -1097,7 +1118,9 @@ input,textarea,select,button { font:inherit; }
 
 
 
-/* 2.7 design system lock */
+/* =========================
+   9. DESIGN SYSTEM LOCK
+========================= */
 :root{
   --space-section:20px;
   --space-card:16px;
@@ -1266,7 +1289,9 @@ input,textarea,select,button { font:inherit; }
 
 
 
-/* patch 2.7.3 header + radar polish */
+/* =========================
+   10. HEADER / RADAR FINAL STATE
+========================= */
 .topbar-main{gap:10px !important; padding-bottom:18px !important;}
 .brand-lockup{display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:8px !important;}
 .brand-copy{display:flex !important; flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:4px !important;}
@@ -1316,7 +1341,9 @@ input,textarea,select,button { font:inherit; }
 
 
 
-/* Patch 2.8 — typography polish system */
+/* =========================
+   11. TYPOGRAPHY FINAL STATE
+========================= */
 :root{
   --type-display:32px;
   --type-display-mobile:28px;
