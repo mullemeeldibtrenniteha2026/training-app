@@ -1503,6 +1503,41 @@ body{
   .daycell .w{font-size:11px !important;}
 }
 
+
+
+/* Account Actions */
+.header-actions{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.header-ghost-btn{
+  min-height:42px;
+  padding:10px 16px;
+  border-radius:14px;
+  background:rgba(8,23,45,.88);
+  border:1px solid rgba(127,178,255,.22);
+  color:var(--text);
+  font-weight:700;
+  box-shadow:none;
+}
+.header-ghost-btn:disabled{
+  opacity:.6;
+  cursor:default;
+}
+@media (max-width:640px){
+  .header-actions{
+    gap:8px;
+  }
+  .header-ghost-btn{
+    min-height:38px;
+    padding:8px 14px;
+    font-size:12px !important;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1566,6 +1601,7 @@ body{
         </div>
         <div class="header-actions">
           <button class="btn" id="workoutModeBtn">WORKOUT MODE</button>
+          <button class="btn header-ghost-btn" id="signOutBtn" type="button" style="display:none">Sign out</button>
         </div>
       </div>
       <div class="header-meta">
@@ -2859,6 +2895,11 @@ function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   if(overlay) overlay.style.display = "none";
 }
+function updateAccountActions() {
+  const signOutBtn = document.getElementById("signOutBtn");
+  if(!signOutBtn) return;
+  signOutBtn.style.display = currentUser ? "inline-flex" : "none";
+}
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
 }
@@ -3005,9 +3046,26 @@ async function initSupabaseApp() {
     }
   };
 
+  const signOutBtn = document.getElementById("signOutBtn");
+  if(signOutBtn) signOutBtn.onclick = async () => {
+    signOutBtn.disabled = true;
+    try {
+      const { error } = await withTimeout(sb.auth.signOut(), 5000);
+      if(error) throw error;
+    } catch (e) {
+      console.error("SIGN OUT ERROR", e);
+      setAuthMessage(e.message || "Sign out failed.", "error");
+    } finally {
+      signOutBtn.disabled = false;
+      updateAccountActions();
+    }
+  };
+
   sb.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
     console.log("AUTH USER", currentUser);
+
+    updateAccountActions();
 
     if(currentUser) {
       hideAuth();
@@ -3033,6 +3091,8 @@ async function initSupabaseApp() {
     console.error("SESSION ERROR", e);
     currentUser = null;
   }
+
+  updateAccountActions();
 
   if(currentUser) {
     hideAuth();
