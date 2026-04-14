@@ -2252,7 +2252,7 @@ body{
   </div>
 </div>
 
-<div class="app" id="mainApp" style="display:none">
+<div class="app" id="mainApp">
   <div class="topbar">
     <div class="topbar-inner">
       <div class="topbar-main">
@@ -3576,16 +3576,12 @@ function setAuthMessage(text, mode="") {
 }
 function showAuth() {
   const overlay = document.getElementById("authOverlay");
-  const app = document.getElementById("mainApp");
-  if(app) app.style.display = "none";
   if(overlay) overlay.style.display = "flex";
   setSyncStatus("Cloud: sign in required");
 }
 function hideAuth() {
   const overlay = document.getElementById("authOverlay");
-  const app = document.getElementById("mainApp");
   if(overlay) overlay.style.display = "none";
-  if(app) app.style.display = "block";
 }
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
@@ -4291,41 +4287,17 @@ function runBasicStabilityChecks() {
     console.error("Basic stability checks failed", e);
   }
 }
-async function bootApp() {
+function bootApp() {
   runBasicStabilityChecks();
   installReleaseReadinessListeners();
   installBackupActions();
   resetTimer();
-
-  const app = document.getElementById("mainApp");
-  if(app) app.style.display = "none";
-  showSignOut(false);
-
-  await initSupabaseApp();
-
-  if (!sb) {
-    showAuth();
-    return;
-  }
-
-  let session = null;
-  try {
-    const result = await withTimeout(sb.auth.getSession(), 2500);
-    session = result?.data?.session || null;
-  } catch (e) {
-    console.error("BOOT SESSION ERROR", e);
-  }
-
-  if (!session) {
-    showAuth();
-    return;
-  }
-
-  currentUser = session.user || null;
-  activeStorageKey = currentUser ? getUserStorageKey(currentUser.id) : ANON_STORAGE_KEY;
-  await enterAuthenticatedApp();
+  initSupabaseApp();
+  goToday();
   updateConnectivityState();
+  showSignOut(false);
 }
+
 
 bootApp();
 </script>
