@@ -1992,6 +1992,131 @@ body{
 }
 
 
+
+
+/* =========================================
+   ITERATION 3 AUTHORITATIVE LAYER
+   Scope: micro UX polish for workout interaction
+   CSS only — no DOM / JS / auth / overlay changes
+========================================= */
+
+.setrow{
+  min-height:74px;
+  padding:10px;
+  gap:10px;
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(20,38,67,.92), rgba(13,27,49,.96));
+  border:1px solid rgba(48,72,112,.88);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.setn{
+  background:linear-gradient(180deg, rgba(18,27,40,.96), rgba(14,21,33,.98));
+  border-color:rgba(58,78,111,.85);
+  color:#dbe6f4;
+  font-weight:800;
+}
+
+.setcol .k{
+  margin-bottom:6px;
+  color:#9eb1c8;
+}
+
+.setinput{
+  min-height:44px;
+  border-color:rgba(58,78,111,.88);
+  background:linear-gradient(180deg, rgba(13,22,34,.98), rgba(16,25,38,.98));
+  color:#f7f9fc;
+  font-weight:600;
+}
+
+.setinput::placeholder{
+  color:#7f95b1;
+}
+
+.donebtn{
+  width:44px;
+  height:44px;
+  border-radius:13px;
+  border-color:rgba(58,78,111,.88);
+  background:linear-gradient(180deg, rgba(17,27,41,.98), rgba(12,20,31,.98));
+  color:#9eb1c8;
+  font-weight:800;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.donebtn.on{
+  background:linear-gradient(180deg, rgba(57,181,106,.24), rgba(57,181,106,.12));
+  border-color:rgba(57,181,106,.58);
+  color:#d9ffe5;
+  box-shadow:0 10px 18px rgba(57,181,106,.12), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.exercise.active-workout{
+  border-color:rgba(242,201,76,.58);
+  box-shadow:0 0 0 1px rgba(242,201,76,.18) inset, 0 14px 28px rgba(0,0,0,.18);
+  background:linear-gradient(180deg, rgba(44,36,24,.78), rgba(20,27,39,.98));
+}
+
+.exercise.active-workout .exercise-name{
+  color:#fff3c9;
+}
+
+.exercise.superset{
+  border-left-width:5px;
+  border-left-color:rgba(242,201,76,.88);
+  background-image:linear-gradient(90deg, rgba(242,201,76,.06), rgba(242,201,76,0) 22%);
+}
+
+.codebox{
+  font-weight:800;
+  letter-spacing:-.01em;
+}
+
+.exercise-actions .btn,
+.workout-progress-pill,
+.finish-workout-btn,
+.finish-workout-inline-btn{
+  touch-action:manipulation;
+}
+
+.exercise-actions .btn{
+  min-height:40px;
+}
+
+.workout-progress-pill{
+  width:42px;
+  height:42px;
+}
+
+@media (max-width:640px){
+  .setrow{
+    min-height:70px;
+    padding:8px;
+    gap:7px;
+    border-radius:16px;
+  }
+
+  .setinput,
+  .donebtn,
+  .setn{
+    min-height:42px;
+    height:42px;
+  }
+
+  .donebtn{
+    width:42px;
+  }
+
+  .exercise.superset{
+    border-left-width:4px;
+  }
+
+  .exercise-actions .btn{
+    min-height:42px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
