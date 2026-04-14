@@ -695,6 +695,8 @@ input,textarea,select,button { font:inherit; }
 .backup-tools-card .backup-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;}
 .backup-tools-card .backup-actions .btn{width:100%;}
 .backup-tools-card .status-note{margin-top:8px;text-align:center;}
+.backup-tools-card .account-actions{display:none;grid-template-columns:1fr;gap:10px;margin-top:10px;}
+.backup-tools-card .account-actions .btn{width:100%;}
 @media (max-width:640px){
   .backup-tools-card .backup-actions{grid-template-columns:1fr;}
 }
@@ -1624,6 +1626,9 @@ body{
         <div class="backup-actions">
           <button class="btn" id="exportBackupBtn">Export JSON</button>
           <button class="btn" id="importBackupBtn">Import JSON</button>
+        </div>
+        <div class="account-actions" id="accountActionsRow">
+          <button class="btn" id="signOutBtn" type="button">Sign out</button>
         </div>
         <input type="file" id="backupImportFile" accept="application/json" style="display:none" />
         <div class="status-note">Keep a local backup of your training data.</div>
@@ -2832,6 +2837,18 @@ function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   if(overlay) overlay.style.display = "none";
 }
+function updateAuthUi() {
+  const signOutBtn = document.getElementById("signOutBtn");
+  const accountActionsRow = document.getElementById("accountActionsRow");
+  const visible = !!currentUser;
+  if(signOutBtn) signOutBtn.style.display = visible ? "inline-flex" : "none";
+  if(accountActionsRow) accountActionsRow.style.display = visible ? "grid" : "none";
+}
+async function signOutSupabase() {
+  if(!sb) return;
+  const { error } = await sb.auth.signOut();
+  if(error) throw error;
+}
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
 }
@@ -2942,6 +2959,7 @@ async function startCloudBootstrap() {
 async function initSupabaseApp() {
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
+  const signOutBtn = document.getElementById("signOutBtn");
 
   if(signInBtn) signInBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
@@ -2978,17 +2996,34 @@ async function initSupabaseApp() {
     }
   };
 
+  if(signOutBtn) signOutBtn.onclick = async () => {
+    signOutBtn.disabled = true;
+    try {
+      setSyncStatus("Cloud: signing out…");
+      await signOutSupabase();
+      showToast("Signed out");
+    } catch (e) {
+      console.error("SIGN OUT ERROR", e);
+      setSyncStatus("Cloud: sign out failed");
+      showToast("Sign out failed");
+    } finally {
+      signOutBtn.disabled = false;
+    }
+  };
+
   sb.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user || null;
     console.log("AUTH USER", currentUser);
 
     if(currentUser) {
       hideAuth();
+      updateAuthUi();
       cloudReady = true;
       initialSyncResolved = true;
       setSyncStatus("Cloud: connecting…");
       startCloudBootstrap();
     } else {
+      updateAuthUi();
       cloudReady = false;
       initialSyncResolved = true;
       hideBoot();
@@ -3009,12 +3044,14 @@ async function initSupabaseApp() {
 
   if(currentUser) {
     hideAuth();
+    updateAuthUi();
     cloudReady = true;
     initialSyncResolved = true;
     setSyncStatus("Cloud: connecting…");
     startCloudBootstrap();
   } else {
     hideBoot();
+    updateAuthUi();
     cloudReady = false;
     initialSyncResolved = true;
     showAuth();
