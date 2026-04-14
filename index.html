@@ -1838,6 +1838,160 @@ body{
   .finish-summary-stat .v{font-size:20px;}
 }
 
+
+/* =========================================
+   ITERATION 2 AUTHORITATIVE LAYER
+   Scope: layout / spacing / visual rhythm
+   Protected zones intentionally excluded:
+   JS / HTML structure / auth / overlays / finish flow
+========================================= */
+
+:root{
+  --iter2-space-page:20px;
+  --iter2-space-stack:18px;
+  --iter2-space-card:16px;
+  --iter2-space-card-tight:12px;
+}
+
+.app{
+  padding:14px 14px 32px;
+}
+
+.topbar{
+  margin:-14px -14px var(--iter2-space-page);
+  padding:max(12px, env(safe-area-inset-top)) 14px 12px;
+}
+
+.topbar-inner{
+  gap:12px;
+}
+
+.topbar-main{
+  gap:10px;
+  padding-bottom:18px;
+}
+
+.metrics{
+  gap:12px;
+  margin-bottom:var(--iter2-space-page);
+}
+
+.layout{
+  gap:var(--iter2-space-page);
+  margin-top:0;
+  align-items:start;
+}
+
+.left,
+.right{
+  gap:var(--iter2-space-stack);
+  align-content:start;
+  margin:0;
+}
+
+.card,
+.metric{
+  border-radius:20px;
+}
+
+.card{
+  padding:var(--iter2-space-card);
+}
+
+.metric{
+  padding:var(--iter2-space-card);
+}
+
+.section-title{
+  margin:0 0 var(--iter2-space-card-tight);
+  min-height:24px;
+}
+
+.days-card .section-title,
+.compact-search-card .section-title,
+.radar-card .section-title,
+.add-card .section-title,
+.calendar-collapsible .section-title{
+  margin-bottom:var(--iter2-space-card-tight);
+}
+
+.exercise-list,
+#searchResultsHost{
+  gap:var(--iter2-space-stack);
+}
+
+.finish-workout-row{
+  margin:18px 0 0;
+}
+
+.workout-progress-row{
+  margin-top:12px;
+}
+
+@media (max-width:980px){
+  :root{
+    --iter2-space-page:18px;
+    --iter2-space-stack:16px;
+    --iter2-space-card:15px;
+    --iter2-space-card-tight:11px;
+  }
+
+  .layout{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:640px){
+  :root{
+    --iter2-space-page:16px;
+    --iter2-space-stack:14px;
+    --iter2-space-card:14px;
+    --iter2-space-card-tight:10px;
+  }
+
+  .app{
+    padding:10px 10px 20px;
+  }
+
+  .topbar{
+    margin:-10px -10px var(--iter2-space-page);
+    padding:calc(max(8px, env(safe-area-inset-top))) 10px 10px;
+  }
+
+  .topbar-inner{
+    gap:10px;
+  }
+
+  .topbar-main{
+    gap:8px;
+    padding-bottom:16px;
+  }
+
+  .metrics{
+    gap:10px;
+    margin-bottom:var(--iter2-space-page);
+  }
+
+  .layout,
+  .left,
+  .right,
+  .exercise-list,
+  #searchResultsHost{
+    gap:var(--iter2-space-stack);
+  }
+
+  .card,
+  .metric{
+    padding:var(--iter2-space-card);
+    border-radius:18px;
+  }
+
+  .section-title{
+    margin-bottom:var(--iter2-space-card-tight);
+  }
+}
+
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
