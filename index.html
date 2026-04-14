@@ -3854,6 +3854,7 @@ async function initSupabaseApp() {
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
   const signOutBtn = document.getElementById("signOutBtn");
+  const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 
   if(signInBtn) signInBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
@@ -3879,6 +3880,10 @@ async function initSupabaseApp() {
       setAuthMessage("Enter email and password.", "error");
       return;
     }
+    if(password.length < 6) {
+      setAuthMessage("Use at least 6 characters for your password.", "error");
+      return;
+    }
     setAuthMessage("Creating account…");
     try {
       const result = await signUpSupabase(email, password);
@@ -3887,15 +3892,16 @@ async function initSupabaseApp() {
         removeStateForKey(newKey);
         persistStateToKey(newKey, createEmptyState());
       }
-      if(result?.user && !result?.session) setAuthMessage("Account created. Check your email and then sign in.", "ok");
-      else setAuthMessage("Account created. Continue with your training setup.", "ok");
+      if(result?.user && !result?.session) {
+        setAuthMessage("Account created. Check your email and then sign in.", "ok");
+      } else {
+        setAuthMessage("");
+      }
     } catch (e) {
       console.error("SIGN UP ERROR", e);
       setAuthMessage(e.message || "Sign up failed.", "error");
     }
   };
-
-  const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
 
   if(forgotPasswordBtn) forgotPasswordBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
@@ -3956,57 +3962,42 @@ async function initSupabaseApp() {
       startCloudBootstrap();
     } else {
       switchActiveStorageKeyForUser(null);
-      const anonState = getStoredStateByKey(activeStorageKey);
-      state = anonState || createEmptyState();
+      state = createEmptyState();
       ensurePlanMetadata();
-      updateAuthUi();
-      setupLockScreen();
       cloudReady = false;
       initialSyncResolved = true;
       hideBoot();
+      closeLockScreen();
+      updateAuthUi();
       renderApp();
       showAuth();
-      setSyncStatus("Cloud: local only");
+      setAuthMessage("");
+      setSyncStatus("Cloud: sign in required");
     }
   });
 
   try {
-    showBoot("Checking your session…");
-    const { data } = await withTimeout(sb.auth.getSession(), 2500);
-    currentUser = data?.session?.user || null;
-    switchActiveStorageKeyForUser(currentUser);
-    state = getStoredStateByKey(activeStorageKey) || createEmptyState();
-    ensurePlanMetadata();
-    console.log("SESSION USER", currentUser);
+    showBoot("Preparing sign-in…");
+    await withTimeout(sb.auth.signOut(), 2500);
   } catch (e) {
-    console.error("SESSION ERROR", e);
-    currentUser = null;
-    switchActiveStorageKeyForUser(null);
-    state = getStoredStateByKey(activeStorageKey) || createEmptyState();
-    ensurePlanMetadata();
+    console.warn("Initial sign-out skipped", e);
   }
 
-  if(currentUser) {
-    onboardingState.selected = new Set();
-    hideAuth();
-    updateAuthUi();
-    setupLockScreen();
-    cloudReady = true;
-    initialSyncResolved = true;
-    setSyncStatus("Cloud: connecting…");
-    renderApp();
-    startCloudBootstrap();
-  } else {
-    hideBoot();
-    updateAuthUi();
-    setupLockScreen();
-    cloudReady = false;
-    initialSyncResolved = true;
-    renderApp();
-    showAuth();
-    setSyncStatus("Cloud: local only");
-  }
+  currentUser = null;
+  switchActiveStorageKeyForUser(null);
+  state = createEmptyState();
+  ensurePlanMetadata();
+  cloudReady = false;
+  initialSyncResolved = true;
+  hideBoot();
+  closeLockScreen();
+  updateAuthUi();
+  renderApp();
+  showAuth();
+  setAuthMessage("");
+  setSyncStatus("Cloud: sign in required");
 }
+
 
 
 // ===== TIMER =====
