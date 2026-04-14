@@ -2577,7 +2577,8 @@ function weekRangeLabel(week) { const s=weekStartDate(week), e=addDays(s,6); ret
 
 // ===== STATE =====
 function loadState() {
-  const saved = localStorage.getItem(activeStorageKey);
+  let saved = null;
+  try { saved = localStorage.getItem(activeStorageKey); } catch { /* incognito / Safari private — localStorage blocked */ }
   if(!saved) return currentUser ? createEmptyState() : structured(SEED_DATA);
   try { return JSON.parse(saved); } catch { return currentUser ? createEmptyState() : structured(SEED_DATA); }
 }
@@ -2757,7 +2758,9 @@ function dayStatus(week,day) {
   });
   if(regularDone) return "done";
   if(recoveryDone) return "recovery";
-  if(hasRegular || exs.length) return "planned";
+  // Only mark as "planned" if there are real strength exercises, OR the day is explicitly selected as a training day.
+  // Recovery-only days (e.g. wed rec) that aren't selected training days are treated as rest.
+  if(hasRegular || selected.includes(day)) return "planned";
   return "none";
 }
 function dateToProgramDay(date) {
@@ -3529,7 +3532,8 @@ window.addEventListener("beforeunload", () => {
 
 const SUPABASE_URL = "https://krpbqzhttgelrbhkohct.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Ea08srA5UXkyRBx00sIQFw_hEQ8u_7t";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+if(!window.supabase) { console.error("Supabase library failed to load — auth and cloud sync unavailable."); }
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 let currentUser = null;
 let cloudSaveTimer = null;
 let cloudReady = false;
@@ -3830,6 +3834,13 @@ async function forceSignOut() {
   updateAuthEntryUI();
 }
 async function initSupabaseApp() {
+  if(!sb) {
+    // Supabase library blocked (common in incognito with extensions) — run in local-only mode
+    setSyncStatus("Local only");
+    hideBoot();
+    goToday();
+    return;
+  }
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
   const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
