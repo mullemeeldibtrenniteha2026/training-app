@@ -3574,12 +3574,20 @@ function setAuthMessage(text, mode="") {
 }
 function showAuth() {
   const overlay = document.getElementById("authOverlay");
+  const app = document.getElementById("mainApp");
+  if(app) app.style.visibility = "hidden";
   if(overlay) overlay.style.display = "flex";
+  hideOnboarding();
+  const lock = document.getElementById("lockOverlay");
+  if(lock) lock.style.display = "none";
+  hideBoot();
   setSyncStatus("Cloud: sign in required");
 }
 function hideAuth() {
   const overlay = document.getElementById("authOverlay");
+  const app = document.getElementById("mainApp");
   if(overlay) overlay.style.display = "none";
+  if(app) app.style.visibility = "visible";
 }
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
@@ -3721,7 +3729,10 @@ function renderOnboardingDays() {
   if(startBtn) startBtn.disabled = onboardingSelection.length === 0;
 }
 function shouldShowOnboardingForState(targetState) {
-  if(targetState?._userPrefs?.onboardingDone) return false;
+  const prefs = targetState?._userPrefs;
+  const days = Array.isArray(prefs?.trainingDays) ? prefs.trainingDays : null;
+  if(prefs?.onboardingDone === true) return false;
+  if(days && days.length > 0) return false;
   if(hasMeaningfulTrainingData(targetState)) return false;
   return true;
 }
@@ -3888,8 +3899,10 @@ async function initSupabaseApp() {
     if(!currentUser) {
       authGatePassed = false;
       hideOnboarding();
+      showSignOut(false);
       showAuth();
       setSyncStatus("Cloud: sign in required");
+      return;
     }
   });
 
@@ -4280,6 +4293,7 @@ function bootApp() {
   installReleaseReadinessListeners();
   installBackupActions();
   resetTimer();
+  showAuth();
   initSupabaseApp();
   goToday();
   updateConnectivityState();
