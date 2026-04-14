@@ -1869,27 +1869,23 @@ body{
 }
 
 
-/* =========================================
-   FINISH SUMMARY ROBUST FIX
-========================================= */
-.finish-summary-overlay{
-  position:fixed !important;
-  inset:0 !important;
-  z-index:10030 !important;
-  display:none;
-  align-items:center !important;
-  justify-content:center !important;
-  padding:20px !important;
-  background:rgba(3,8,18,.68) !important;
-  backdrop-filter:blur(8px) !important;
-}
-.finish-summary-overlay.is-visible{
-  display:flex !important;
-}
-.finish-summary-card{
-  width:min(420px,100%) !important;
-  position:relative;
-  z-index:10031 !important;
+.finish-summary-overlay{position:fixed;inset:0;z-index:10030;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(3,8,18,.68);backdrop-filter:blur(8px);}
+.finish-summary-card{width:min(420px,100%);background:linear-gradient(180deg,#132A4A,#0F243F);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:24px 22px;text-align:center;}
+.finish-summary-kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.52);margin-bottom:10px;font-weight:700;}
+.finish-summary-title{margin:0;font-size:34px;line-height:1.02;letter-spacing:-.03em;font-weight:800;color:#f7f9fc;}
+.finish-summary-subline{margin-top:10px;color:var(--soft);font-size:14px;line-height:1.4;}
+.finish-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:18px 0 20px;}
+.finish-summary-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:14px 10px;}
+.finish-summary-stat .k{font-size:10px;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.52);margin-bottom:6px;}
+.finish-summary-stat .v{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff;}
+.finish-summary-done{min-height:48px;padding:12px 18px;border-radius:14px;font-size:15px;font-weight:900;letter-spacing:.06em;background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);border:1px solid rgba(255,194,71,.38);color:#1a1204;box-shadow:0 10px 24px rgba(255,159,10,.24), inset 0 1px 0 rgba(255,255,255,.28);min-width:min(100%,220px);}
+.finish-summary-done:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.18), inset 0 1px 0 rgba(255,255,255,.22);}
+@media (max-width:640px){
+  .finish-summary-card{padding:22px 18px;border-radius:24px;}
+  .finish-summary-title{font-size:30px;}
+  .finish-summary-grid{gap:8px;}
+  .finish-summary-stat{padding:12px 8px;border-radius:16px;}
+  .finish-summary-stat .v{font-size:20px;}
 }
 
 </style>
@@ -2884,9 +2880,7 @@ function finishWorkoutNow(){
   const btn = document.getElementById("workoutModeBtn");
   if(btn) btn.textContent = "WORKOUT MODE";
   renderApp();
-  setTimeout(() => {
-    openFinishSummary(stats);
-  }, 0);
+  openFinishSummary(stats);
 }
 
 
@@ -2984,17 +2978,6 @@ function renderExercises() {
   });
   const finishWorkoutBtnInline = document.getElementById("finishWorkoutBtnInline");
   if(finishWorkoutBtnInline) finishWorkoutBtnInline.onclick = () => finishWorkoutNow();
-
-document.addEventListener("click", (e) => {
-  const finishBtn = e.target.closest("#finishWorkoutBtnInline");
-  if(finishBtn){
-    e.preventDefault();
-    e.stopPropagation();
-    finishWorkoutNow();
-    return;
-  }
-});
-
   if(ui.workoutMode && activeGroup && activeGroup.items.length){
     const activeCard = document.querySelector(`[data-exercise-card="${activeGroup.items[0]}"]`);
     if(activeCard) activeCard.scrollIntoView({block:"nearest", behavior:"smooth"});
