@@ -229,7 +229,6 @@ input,textarea,select,button { font:inherit; }
   background:linear-gradient(180deg, rgba(34,29,23,.6), rgba(23,26,32,1));
 }
 .workout-focus-note { color:var(--muted); font-size:12px; margin-top:8px; }
-.workout-progress-row{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;}
 .workout-progress-pill{width:40px;height:40px;display:grid;place-items:center;padding:0;border-radius:12px;border:1px solid rgba(36,58,97,.95);background:linear-gradient(180deg,#132645,#0f213d);color:#b7c7db;font-weight:800;font-size:14px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.03);}
 .workout-progress-pill.active{border-color:rgba(242,201,76,.55);color:#f6df9f;background:linear-gradient(180deg,rgba(242,201,76,.18),rgba(242,201,76,.08));box-shadow:0 8px 18px rgba(242,201,76,.12), inset 0 1px 0 rgba(255,255,255,.06);}
 .workout-progress-pill.done{border-color:rgba(57,181,106,.45);color:#c8ffd9;background:linear-gradient(180deg,rgba(57,181,106,.16),rgba(57,181,106,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
@@ -271,21 +270,6 @@ input,textarea,select,button { font:inherit; }
 .header-actions #workoutModeBtn{min-height:48px;padding:12px 20px;border-radius:14px;font-size:15px;font-weight:900;letter-spacing:.06em;background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);border:1px solid rgba(255,194,71,.38);color:#1a1204;box-shadow:0 10px 24px rgba(255,159,10,.28), inset 0 1px 0 rgba(255,255,255,.28);text-transform:uppercase;}
 .header-actions #workoutModeBtn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.22);}
 
-.finish-workout-row{display:flex;justify-content:center;margin:18px 14px 16px;}
-.finish-workout-btn{
-  min-height:48px;
-  padding:12px 20px;
-  border-radius:14px;
-  font-size:15px;
-  font-weight:900;
-  letter-spacing:.06em;
-  background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%);
-  border:1px solid rgba(255,194,71,.38);
-  color:#1a1204;
-  box-shadow:0 10px 24px rgba(255,159,10,.28), inset 0 1px 0 rgba(255,255,255,.28);
-  text-transform:uppercase;
-  min-width:min(100%,340px);
-}
 .finish-workout-btn:active{transform:scale(.985);box-shadow:0 6px 14px rgba(255,159,10,.20), inset 0 1px 0 rgba(255,255,255,.22);}
 .finish-workout-inline-row{display:flex;justify-content:center;margin:0;padding:0 0 2px;}
 .finish-workout-inline-btn{
@@ -1171,15 +1155,8 @@ input,textarea,select,button { font:inherit; }
   min-height:46px;
   height:46px;
 }
-.finish-workout-row{
-  margin:var(--space-card) 0 0;
-}
 .bottom-action-row,
 .bottom-actions-inline{
-  margin-top:12px;
-}
-.workout-progress-row{
-  gap:10px;
   margin-top:12px;
 }
 .workout-progress-pill{
@@ -1762,14 +1739,6 @@ body{
   margin-bottom:8px;
 }
 
-.workout-progress-row{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:12px;
-}
 
 .workout-progress-pill{
   width:40px;
@@ -1793,21 +1762,7 @@ body{
   min-width:120px;
 }
 
-.finish-workout-row{
-  display:flex;
-  justify-content:center;
-  margin:18px 14px 16px;
-}
 
-.finish-workout-btn{
-  min-width:min(100%,340px);
-  min-height:48px;
-  padding:12px 20px;
-  border-radius:14px;
-  font-size:15px;
-  font-weight:900;
-  letter-spacing:.06em;
-}
 
 @media (max-width:640px){
   .exercise{
@@ -1859,14 +1814,8 @@ body{
     border-radius:10px;
   }
 
-  .workout-progress-row{
-    gap:8px;
+  
   }
-
-  .finish-workout-row{
-    margin:16px 0 14px;
-  }
-}
 
 </style>
 
