@@ -17,7 +17,7 @@ Purpose:
 <head>
 <meta charset="UTF-8" />
 
-<meta name="theme-color" content="#0f1115" />
+<meta name="theme-color" content="#0b1220" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Training" />
@@ -26,10 +26,7 @@ Purpose:
 <link rel="icon" type="image/png" sizes="192x192" href="./icon_192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="./icon_512.png" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0b1220" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Timo Training Logbook v3.6</title>
+<title>Timo Training Logbook v4.1</title>
 <style>
 :root {
   --bg:#08172d; --panel:#0f213d; --panel2:#132a4a; --line:#243a61;
@@ -1048,8 +1045,6 @@ input,textarea,select,button { font:inherit; }
 
 
 /* Patch 2.1 — cleaner headers and hidden helper copy */
-#saveStatus{display:none !important;}
-#historyPreview{display:none !important;}
 .header-meta{justify-content:center;}
 .header-meta .sync-pill{margin:0 auto;}
 
@@ -1602,7 +1597,6 @@ input,textarea,select,button { font:inherit; }
 .header-actions #workoutModeBtn{min-height:40px !important;padding:9px 16px !important;font-size:13px !important;letter-spacing:.05em;}
 .header-meta{position:absolute;right:0;bottom:0;justify-content:flex-end !important;align-items:flex-end;gap:0;pointer-events:none;}
 .header-meta .sync-pill{pointer-events:auto;font-size:11px !important;padding:6px 10px !important;min-height:auto;border-radius:999px;}
-#saveStatus{display:none !important;}
 .metrics{margin:0 0 var(--section-gap) 0 !important;gap:12px !important;}
 .layout{margin-top:0 !important;gap:var(--section-gap) !important;align-items:start;}
 .left,.right{gap:var(--stack-gap) !important;align-content:start;}
@@ -2185,6 +2179,19 @@ body{
 .onboarding-start{margin-top:20px;min-height:56px;width:100%;font-size:18px;font-weight:800;}
 @media (max-width:640px){.auth-actions-secondary{grid-template-columns:1fr;} .onboarding-card{padding:24px 18px;border-radius:24px;} .onboarding-days{grid-template-columns:1fr;} .onboarding-day{min-height:64px;font-size:16px;}}
 
+
+#saveStatus{
+  min-height:18px;
+  text-align:right;
+}
+#historyPreview{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.4;
+  text-align:left;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2266,6 +2273,7 @@ body{
       </div>
       <div class="header-meta">
         <div class="sync-pill" id="syncStatus">Cloud: not connected</div>
+        <div class="help" id="saveStatus"></div>
       </div>
     </div>
   </div>
@@ -2339,7 +2347,7 @@ body{
           </select>
           <button class="btn primary" id="addExerciseBtn">Add</button>
         </div>
-
+        <div class="help" id="historyPreview"></div>
       </div>
 
       <div class="card backup-tools-card">
@@ -2683,7 +2691,7 @@ function blockDoneOf(week,day,ex) { return state[`blockdone_w${week}_${day}_${ex
 function setCountOf(week,day,ex) {
   const sc = state[`sc_w${week}_${day}_${ex}`];
   if(sc != null) return Math.max(1, Number(sc));
-  const keys = Object.keys(state).filter(k => new RegExp(`^w${week}_${day}_${ex}_s\d+$`).test(k));
+  const keys = Object.keys(state).filter(k => new RegExp(`^w${week}_${day}_${ex}_s\\d+$`).test(k));
   if(!keys.length) return 1;
   return Math.max(...keys.map(k => Number(k.match(/_s(\d+)$/)[1]))) + 1;
 }
@@ -2712,7 +2720,7 @@ function getExercisesForWeekDay(week,day) {
   const ids=[], seen=new Set();
   Object.keys(state).forEach(k => {
     let m=k.match(new RegExp(`^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_(.+)$`));
-    if(!m) m=k.match(new RegExp(`^w${week}_${day}_(.+?)_s\d+$`));
+    if(!m) m=k.match(new RegExp(`^w${week}_${day}_(.+?)_s\\d+$`));
     if(m) {
       const ex=m[1];
       if(!seen.has(ex)) { seen.add(ex); ids.push(ex); }
@@ -2856,7 +2864,7 @@ function addExercise(scope,displayName,historyMode) {
 function deleteExercise(week,day,ex) {
   Object.keys(state).forEach(k => {
     if(new RegExp(`^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_${ex}$`).test(k)) delete state[k];
-    if(new RegExp(`^w${week}_${day}_${ex}_s\d+$`).test(k)) delete state[k];
+    if(new RegExp(`^w${week}_${day}_${ex}_s\\d+$`).test(k)) delete state[k];
   });
   saveState();
 }
@@ -3110,15 +3118,16 @@ function renderHistoryPreview() {
   if(!box) return;
   const name = document.getElementById("addExerciseName").value.trim();
   if(!name) {
-    box.innerHTML = ``;
+    box.innerHTML = "";
     return;
   }
   const preview = historyPreview(name);
   if(!preview) {
-    box.innerHTML = ``;
+    box.innerHTML = "";
     return;
   }
-  box.innerHTML = ``;
+  const parts = [preview.dateLabel, preview.summary].filter(Boolean);
+  box.textContent = `Last time: ${parts.join(" · ")}`;
 }
 
 function getWorkoutGroups(exercises){
@@ -3470,9 +3479,13 @@ if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
 const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
 if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
   const exs = getExercisesForWeekDay(ui.week, ui.day);
+  const groups = getWorkoutGroups(exs);
   let active = null;
   if(ui.workoutMode){
-    active = exs[ui.activeExerciseIndex] || null;
+    const activeGroup = groups[ui.activeExerciseIndex] || null;
+    if(activeGroup) {
+      active = activeGroup.items.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || activeGroup.items[0] || null;
+    }
   }
   if(!active || isRecoveryLike(ui.week, ui.day, active)) {
     active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
@@ -3489,7 +3502,7 @@ if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
   const card = document.querySelector(`[data-exercise-card="${active}"]`);
   if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
 };
-const exportBtn = document.getElementById("exportBtn");
+const exportBtn = document.getElementById("exportBackupBtn");
 if(exportBtn) exportBtn.onclick = () => {
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
   const a=document.createElement("a");
@@ -3498,7 +3511,9 @@ if(exportBtn) exportBtn.onclick = () => {
   a.click();
   URL.revokeObjectURL(a.href);
 };
-const importFile = document.getElementById("importFile");
+const importFile = document.getElementById("backupImportFile");
+const importBtnLegacy = document.getElementById("importBackupBtn");
+if(importBtnLegacy && importFile) importBtnLegacy.onclick = () => importFile.click();
 if(importFile) importFile.onchange = async e => {
   const file=e.target.files?.[0];
   if(!file) return;
@@ -3598,7 +3613,6 @@ async function fetchCloudRow() {
 async function loadCloudState() {
   if(!currentUser) return false;
   const data = await fetchCloudRow();
-  console.log("CLOUD DATA", data);
   if(data && data.state_json) {
     const cloudIso = data.updated_at || null;
     const localIso = getLocalUpdatedAt();
