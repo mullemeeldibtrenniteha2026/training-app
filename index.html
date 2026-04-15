@@ -5006,8 +5006,7 @@ function renderApp() {
   renderExercises();
   renderHistoryPreview();
   renderAddScopeLabels();
-  const dl=document.getElementById("exerciseSuggestions");
-  if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
+  updateExerciseSuggestions("");
 }
 
 function render() { return requestRender("app"); }
@@ -5025,6 +5024,11 @@ function scheduleHistoryPreviewRender() {
     requestRender("history");
   }, 90);
 }
+function updateExerciseSuggestions(value) {
+  const dl = document.getElementById("exerciseSuggestions");
+  if(!dl) return;
+  dl.innerHTML = getExerciseSuggestions(value).map(x => `<option value="${x}"></option>`).join("");
+}
 function resolveAddExerciseName(rawName) {
   const raw = String(rawName || "").trim();
   if(!raw) return "";
@@ -5032,6 +5036,26 @@ function resolveAddExerciseName(rawName) {
   if(direct) return direct;
   if(EXERCISE_ALIASES[raw.toLowerCase()]) return EXERCISE_ALIASES[raw.toLowerCase()];
   return normalizeExerciseDisplayName(raw);
+}
+function getAddExerciseInputs() {
+  return {
+    nameInput: document.getElementById("addExerciseName"),
+    scopeInput: document.getElementById("addScope"),
+    historyModeInput: document.getElementById("addHistoryMode")
+  };
+}
+function getAddExercisePayload() {
+  const { nameInput, scopeInput, historyModeInput } = getAddExerciseInputs();
+  const rawName = nameInput ? nameInput.value.trim() : "";
+  const resolvedName = resolveAddExerciseName(rawName);
+  return {
+    nameInput,
+    historyModeInput,
+    rawName,
+    resolvedName,
+    scope: scopeInput ? scopeInput.value : "day",
+    historyMode: historyModeInput ? historyModeInput.value : "empty"
+  };
 }
 function isRapidDuplicateAdd(signature) {
   const now = Date.now();
@@ -5041,17 +5065,44 @@ function markAddSignature(signature) {
   ui.lastAddSignature = signature;
   ui.lastAddAt = Date.now();
 }
+function handleSearchInput(e) {
+  ui.search = e.target.value;
+  ui.activeExerciseIndex = 0;
+  normalizeUiState();
+  scheduleSearchRender();
+}
+function handleAddExerciseNameInput(e) {
+  updateExerciseSuggestions(e.target.value);
+  scheduleHistoryPreviewRender();
+}
+function handleAddExerciseClick() {
+  if(ui.addBusy) return;
+  const payload = getAddExercisePayload();
+  if(!payload.rawName || !payload.resolvedName) return;
+  const signature = [ui.week, ui.day, payload.scope, payload.resolvedName.toLowerCase(), payload.historyMode].join("|");
+  if(isRapidDuplicateAdd(signature)) {
+    showToast("Exercise already added");
+    return;
+  }
+  ui.addBusy = true;
+  try {
+    commitStateUpdate(() => {
+      addExercise(payload.scope, payload.resolvedName, payload.historyMode);
+      markAddSignature(signature);
+      if(payload.nameInput) payload.nameInput.value = "";
+      if(payload.historyModeInput) payload.historyModeInput.value = "empty";
+    }, { renderMode:"app", message:"Exercise saved locally on this device." });
+    scheduleHistoryPreviewRender();
+  } finally {
+    setTimeout(() => { ui.addBusy = false; }, 150);
+  }
+}
 
 // ============================================================
 // PRIMARY UI ACTION WIRING ZONE
 // ============================================================
 const searchInput = document.getElementById("searchInput");
-if(searchInput) searchInput.oninput = e => {
-  ui.search=e.target.value;
-  ui.activeExerciseIndex=0;
-  normalizeUiState();
-  scheduleSearchRender();
-};
+if(searchInput) searchInput.oninput = handleSearchInput;
 document.getElementById("workoutModeBtn").onclick = () => {
   commitUiUpdate(() => {
     ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
@@ -5060,40 +5111,9 @@ document.getElementById("workoutModeBtn").onclick = () => {
 };
 document.getElementById("prevMonthBtn").onclick = () => commitUiUpdate(() => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()-1, 1); }, "calendar");
 document.getElementById("nextMonthBtn").onclick = () => commitUiUpdate(() => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()+1, 1); }, "calendar");
-document.getElementById("addExerciseName").oninput = e => {
-  const dl=document.getElementById("exerciseSuggestions");
-  if(dl) dl.innerHTML = getExerciseSuggestions(e.target.value).map(x=>`<option value="${x}"></option>`).join("");
-  scheduleHistoryPreviewRender();
-};
+document.getElementById("addExerciseName").oninput = handleAddExerciseNameInput;
 document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.onclick = () => commitUiUpdate(() => { ui.radarMode = btn.dataset.radarMode; }, "radar"));
-document.getElementById("addExerciseBtn").onclick = () => {
-  if(ui.addBusy) return;
-  const nameInput = document.getElementById("addExerciseName");
-  const scopeInput = document.getElementById("addScope");
-  const historyModeInput = document.getElementById("addHistoryMode");
-  const rawName = nameInput ? nameInput.value.trim() : "";
-  if(!rawName) return;
-  const resolvedName = resolveAddExerciseName(rawName);
-  const scope = scopeInput ? scopeInput.value : "day";
-  const historyMode = historyModeInput ? historyModeInput.value : "empty";
-  const signature = [ui.week, ui.day, scope, resolvedName.toLowerCase(), historyMode].join("|");
-  if(isRapidDuplicateAdd(signature)) {
-    showToast("Exercise already added");
-    return;
-  }
-  ui.addBusy = true;
-  try {
-    commitStateUpdate(() => {
-      addExercise(scope, resolvedName, historyMode);
-      markAddSignature(signature);
-      if(nameInput) nameInput.value = "";
-      if(historyModeInput) historyModeInput.value = "empty";
-    }, { renderMode:"app", message:"Exercise saved locally on this device." });
-    scheduleHistoryPreviewRender();
-  } finally {
-    setTimeout(() => { ui.addBusy = false; }, 150);
-  }
-};
+document.getElementById("addExerciseBtn").onclick = handleAddExerciseClick;
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
 if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
   const target = document.getElementById("addExerciseName");
