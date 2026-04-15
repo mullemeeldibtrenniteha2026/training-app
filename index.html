@@ -3238,6 +3238,61 @@ body{
   }
 }
 
+
+/* ===== Iteration 3 — Next-Step Guidance (SAFE) =====
+   Scope:
+   - set row guidance only
+   - highlight next logical row after completion
+   - minimal JS + CSS
+===================================================== */
+
+.setrow.is-next{
+  border-color:rgba(242,201,76,.52);
+  background:linear-gradient(180deg, rgba(46,43,23,.94), rgba(18,29,46,.98));
+  box-shadow:
+    0 0 0 1px rgba(242,201,76,.14) inset,
+    0 14px 26px rgba(0,0,0,.12);
+}
+
+.setrow.is-next .setn{
+  border-color:rgba(242,201,76,.40);
+  color:#fff1bf;
+}
+
+.setrow.is-next::before{
+  content:"Next";
+  position:absolute;
+  top:8px;
+  left:8px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:10px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#fff1bf;
+  background:rgba(242,201,76,.12);
+  border:1px solid rgba(242,201,76,.28);
+}
+
+.setrow.is-done ~ .setrow:not(.is-next):not(.is-done){
+  opacity:.94;
+}
+
+.setrow.is-done .setinput{
+  opacity:.92;
+}
+
+@media (max-width:640px){
+  .setrow.is-next::before{
+    top:6px;
+    left:6px;
+    font-size:9px;
+    padding:4px 7px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -4322,6 +4377,7 @@ function renderExercises() {
     return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
   }).join("") : ``) + (groups.length ? `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn" id="bottomTimerBtn">⏱ Timer</button><button class="btn" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``) + emptyMessage;
   bindExerciseEvents(all);
+  applySetRowGuidance();
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
     renderExercises();
@@ -4334,6 +4390,21 @@ function renderExercises() {
   }
 }
 
+
+
+
+function applySetRowGuidance() {
+  document.querySelectorAll(".sets").forEach(container => {
+    const rows = Array.from(container.querySelectorAll(".setrow"));
+    rows.forEach(row => {
+      row.classList.remove("is-done", "is-next");
+      const btn = row.querySelector("[data-role='toggle-set']");
+      if(btn && btn.classList.contains("on")) row.classList.add("is-done");
+    });
+    const nextRow = rows.find(row => !row.classList.contains("is-done"));
+    if(nextRow) nextRow.classList.add("is-next");
+  });
+}
 
 
 // ===== EVENTS: EXERCISE INTERACTIONS =====
@@ -4355,10 +4426,22 @@ function bindExerciseEvents(all) {
     };
   });
   document.querySelectorAll("[data-role='toggle-set']").forEach(el => el.onclick = e => {
-    const s = getSet(ui.week,ui.day,e.target.dataset.ex,Number(e.target.dataset.idx));
+    const ex = e.target.dataset.ex;
+    const idx = Number(e.target.dataset.idx);
+    const s = getSet(ui.week,ui.day,ex,idx);
     s.done = String(s.done||"")==="1" ? "" : "1";
+    const shouldAdvance = String(s.done||"")==="1";
     saveState();
     showToast(String(s.done||"")==="1" ? "Set done" : "Set updated");
+    if(shouldAdvance){
+      requestAnimationFrame(() => {
+        const nextRow = Array.from(document.querySelectorAll(".setrow")).find(row => row.classList.contains("is-next"));
+        if(nextRow){
+          const nextInput = nextRow.querySelector("[data-role='kg'], [data-role='reps']");
+          if(nextInput) nextInput.focus();
+        }
+      });
+    }
   });
   document.querySelectorAll("[data-role='toggle-block']").forEach(el => el.onclick = e => {
     const key = `blockdone_w${ui.week}_${ui.day}_${e.target.dataset.ex}`;
