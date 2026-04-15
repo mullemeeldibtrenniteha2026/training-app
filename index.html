@@ -2900,6 +2900,46 @@ body{
   }
 }
 
+
+/* ===== Iteration 3 — Finish Copy & Hierarchy Polish (SAFE) ===== */
+
+.finish-title::after{
+  content: "Session complete";
+  display:block;
+  font-size:12px;
+  letter-spacing:.18em;
+  color:rgba(255,235,179,.7);
+  margin-top:6px;
+}
+
+.finish-stat .label{
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font-weight:700;
+}
+
+.finish-stat .value{
+  font-size:20px;
+}
+
+.finish-summary{
+  text-align:center;
+}
+
+.finish-actions .btn.primary{
+  font-size:15px;
+  letter-spacing:.04em;
+}
+
+.finish-actions::before{
+  content:"Nice work — keep building momentum.";
+  display:block;
+  width:100%;
+  font-size:13px;
+  color:#9eb1c8;
+  margin-bottom:6px;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
