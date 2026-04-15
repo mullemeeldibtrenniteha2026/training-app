@@ -4348,12 +4348,15 @@ function addExercise(scope,displayName,historyMode) {
   const baseId = suggestedExerciseId(nice);
   const preview = historyPreview(nice);
   const targets = scope==="weekday_all" ? getWeeks().map(w => [w, ui.day]) : [[ui.week, ui.day]];
+  const created = [];
   targets.forEach(([week,day]) => {
     const exId = createUniqueExerciseId(week,day,baseId);
     ensureExerciseExists(week,day,exId,nice);
     if(preview && historyMode!=="empty") copyHistoryTo(week,day,exId,preview,historyMode);
+    created.push({ week, day, exId, name: nice });
   });
   saveState();
+  return created;
 }
 function deleteExercise(week,day,ex) {
   Object.keys(state).forEach(k => {
@@ -4859,6 +4862,46 @@ function applySetRowGuidance() {
 }
 
 
+
+function updateAddExerciseSuggestions() {
+  const input = document.getElementById("addExerciseName");
+  const dl = document.getElementById("exerciseSuggestions");
+  if(!input || !dl) return;
+  const q = input.value.trim();
+  dl.innerHTML = getExerciseSuggestions(q).map(x => `<option value="${esc(x)}"></option>`).join("");
+}
+
+function commitAddExercise() {
+  const input = document.getElementById("addExerciseName");
+  const scopeEl = document.getElementById("addScope");
+  const modeEl = document.getElementById("addHistoryMode");
+  if(!input || !scopeEl || !modeEl) return false;
+
+  const raw = input.value.trim();
+  if(!raw) {
+    input.focus();
+    return false;
+  }
+
+  const created = addExercise(scopeEl.value, raw, modeEl.value);
+  const first = created && created[0] ? created[0] : null;
+
+  input.value = "";
+  modeEl.value = "empty";
+  updateAddExerciseSuggestions();
+  renderHistoryPreview();
+  showToast("Exercise added");
+
+  if(first && first.week === ui.week && first.day === ui.day) {
+    requestAnimationFrame(() => {
+      const card = document.querySelector(`[data-exercise-card="${first.exId}"]`);
+      if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
+    });
+  }
+  return true;
+}
+
+
 // ===== EVENTS: EXERCISE INTERACTIONS =====
 function bindExerciseEvents(all) {
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -4997,8 +5040,7 @@ function renderApp() {
   renderExercises();
   renderHistoryPreview();
   renderAddScopeLabels();
-  const dl=document.getElementById("exerciseSuggestions");
-  if(dl) dl.innerHTML = getExerciseSuggestions("").map(x=>`<option value="${x}"></option>`).join("");
+  updateAddExerciseSuggestions();
 }
 
 function render() { return renderApp(); }
@@ -5017,14 +5059,25 @@ document.getElementById("addExerciseName").oninput = e => {
   renderHistoryPreview();
 };
 document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.onclick = () => { ui.radarMode = btn.dataset.radarMode; renderRadar(); });
-document.getElementById("addExerciseBtn").onclick = () => {
-  const name=document.getElementById("addExerciseName").value.trim();
-  if(!name) return;
-  addExercise(document.getElementById("addScope").value, name, document.getElementById("addHistoryMode").value);
-  document.getElementById("addExerciseName").value="";
-  document.getElementById("addHistoryMode").value="empty";
-  renderHistoryPreview();
+document.getElementById("addExerciseBtn").onclick = e => {
+  e.preventDefault();
+  commitAddExercise();
 };
+
+const addExerciseInput = document.getElementById("addExerciseName");
+if(addExerciseInput){
+  addExerciseInput.addEventListener("input", () => {
+    updateAddExerciseSuggestions();
+    renderHistoryPreview();
+  });
+  addExerciseInput.addEventListener("keydown", e => {
+    if(e.key === "Enter"){
+      e.preventDefault();
+      commitAddExercise();
+    }
+  });
+  addExerciseInput.addEventListener("focus", updateAddExerciseSuggestions);
+}
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
 if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
   const target = document.getElementById("addExerciseName");
