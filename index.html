@@ -4827,11 +4827,9 @@ function renderExercises() {
       showToast("No strength exercise selected");
       return;
     }
-    const c = setCountOf(ui.week,ui.day,active);
-    state[`w${ui.week}_${ui.day}_${active}_s${c}`] = {kg:"",reps:"",done:""};
-    state[`sc_w${ui.week}_${ui.day}_${active}`] = c+1;
-    saveState();
-    showToast("Set added");
+    commitStateUpdate(() => {
+      appendWorkoutSet(active);
+    }, { renderMode:"exercises", toast:"Set added" });
     const card = document.querySelector(`[data-exercise-card="${active}"]`);
     if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
   };
@@ -4864,19 +4862,43 @@ function applySetRowGuidance() {
 
 
 // ===== EVENTS: EXERCISE INTERACTIONS =====
+
+function createEmptyWorkoutSet() {
+  return { kg:"", reps:"", done:"" };
+}
+function updateWorkoutSetFields(ex, idx, patch={}) {
+  const s = getSet(ui.week, ui.day, ex, idx);
+  Object.assign(s, patch || {});
+  return s;
+}
+function appendWorkoutSet(ex) {
+  const c = setCountOf(ui.week, ui.day, ex);
+  state[`w${ui.week}_${ui.day}_${ex}_s${c}`] = createEmptyWorkoutSet();
+  state[`sc_w${ui.week}_${ui.day}_${ex}`] = c + 1;
+  return c;
+}
+function toggleWorkoutSetDoneState(ex, idx) {
+  const s = getSet(ui.week, ui.day, ex, idx);
+  s.done = String(s.done || "") === "1" ? "" : "1";
+  return s;
+}
+function updateWorkoutExerciseField(ex, field, value) {
+  const key = `${field}_w${ui.week}_${ui.day}_${ex}`;
+  state[key] = value;
+  return state[key];
+}
+
 function bindExerciseEvents(all) {
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
     el.oninput = e => {
-      const s = getSet(ui.week,ui.day,e.target.dataset.ex,Number(e.target.dataset.idx));
-      s[e.target.dataset.role] = e.target.value;
+      updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: e.target.value });
       updateSetVolumeForInput(e.target);
       saveStateQuiet("Autosaved draft locally.");
     };
     el.onfocus = e => { const row = e.target.closest(".setrow"); if(row) row.classList.add("input-row-active"); };
     el.onblur = e => { const row = e.target.closest(".setrow"); if(row) row.classList.remove("input-row-active"); };
     el.onchange = e => {
-      const s = getSet(ui.week,ui.day,e.target.dataset.ex,Number(e.target.dataset.idx));
-      s[e.target.dataset.role] = e.target.value;
+      updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: e.target.value });
       updateSetVolumeForInput(e.target);
       commitTextFieldWithoutRender();
     };
@@ -4884,11 +4906,9 @@ function bindExerciseEvents(all) {
   document.querySelectorAll("[data-role='toggle-set']").forEach(el => el.onclick = e => {
     const ex = e.target.dataset.ex;
     const idx = Number(e.target.dataset.idx);
-    const s = getSet(ui.week,ui.day,ex,idx);
-    s.done = String(s.done||"")==="1" ? "" : "1";
-    const shouldAdvance = String(s.done||"")==="1";
-    saveState();
-    showToast(String(s.done||"")==="1" ? "Set done" : "Set updated");
+    const updated = toggleWorkoutSetDoneState(ex, idx);
+    const shouldAdvance = String(updated.done||"")==="1";
+    commitStateUpdate(() => {}, { renderMode:"exercises", toast: String(updated.done||"")==="1" ? "Set done" : "Set updated" });
     if(shouldAdvance){
       requestAnimationFrame(() => {
         const nextRow = Array.from(document.querySelectorAll(".setrow")).find(row => row.classList.contains("is-next"));
@@ -4901,56 +4921,56 @@ function bindExerciseEvents(all) {
   });
   document.querySelectorAll("[data-role='toggle-block']").forEach(el => el.onclick = e => {
     const key = `blockdone_w${ui.week}_${ui.day}_${e.target.dataset.ex}`;
-    state[key] = state[key]==="1" ? "" : "1";
-    saveState();
+    commitStateUpdate(() => {
+      state[key] = state[key]==="1" ? "" : "1";
+    }, { renderMode:"exercises" });
   });
   document.querySelectorAll("[data-role='add-set']").forEach(el => el.onclick = e => {
     const ex = e.target.dataset.ex;
-    const c = setCountOf(ui.week,ui.day,ex);
-    state[`w${ui.week}_${ui.day}_${ex}_s${c}`] = {kg:"",reps:"",done:""};
-    state[`sc_w${ui.week}_${ui.day}_${ex}`] = c+1;
-    saveState();
+    commitStateUpdate(() => {
+      appendWorkoutSet(ex);
+    }, { renderMode:"exercises", toast:"Set added" });
   });
   document.querySelectorAll("[data-role='delete']").forEach(el => el.onclick = e => deleteExercise(ui.week,ui.day,e.target.dataset.ex));
   document.querySelectorAll("[data-role='name']").forEach(el => {
     el.oninput = e => {
-      state[`exname_w${ui.week}_${ui.day}_${e.target.dataset.ex}`] = e.target.value;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'exname', e.target.value);
       saveStateQuiet("Autosaved draft locally.");
     };
     el.onchange = e => {
-      state[`exname_w${ui.week}_${ui.day}_${e.target.dataset.ex}`] = normalizeExerciseDisplayName(e.target.value);
-      e.target.value = state[`exname_w${ui.week}_${ui.day}_${e.target.dataset.ex}`];
+      const normalizedName = normalizeExerciseDisplayName(e.target.value);
+      e.target.value = updateWorkoutExerciseField(e.target.dataset.ex, 'exname', normalizedName);
       commitTextFieldWithoutRender();
     };
   });
   document.querySelectorAll("[data-role='code']").forEach(el => {
     el.oninput = e => {
-      state[`excode_w${ui.week}_${ui.day}_${e.target.dataset.ex}`] = String(e.target.value||"").toUpperCase().trim();
+      updateWorkoutExerciseField(e.target.dataset.ex, 'excode', String(e.target.value||"").toUpperCase().trim());
       saveStateQuiet("Autosaved draft locally.");
     };
     el.onchange = e => {
-      state[`excode_w${ui.week}_${ui.day}_${e.target.dataset.ex}`] = String(e.target.value||"").toUpperCase().trim();
-      e.target.value = state[`excode_w${ui.week}_${ui.day}_${e.target.dataset.ex}`];
+      const normalizedCode = String(e.target.value||"").toUpperCase().trim();
+      e.target.value = updateWorkoutExerciseField(e.target.dataset.ex, 'excode', normalizedCode);
       commitTextFieldWithoutRender();
     };
   });
   document.querySelectorAll("[data-role='rest']").forEach(el => {
     el.oninput = e => {
-      state[`rest_w${ui.week}_${ui.day}_${e.target.dataset.ex}`] = e.target.value;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', e.target.value);
       saveStateQuiet("Autosaved draft locally.");
     };
     el.onchange = e => {
-      state[`rest_w${ui.week}_${ui.day}_${e.target.dataset.ex}`] = e.target.value;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', e.target.value);
       commitTextFieldWithoutRender();
     };
   });
   document.querySelectorAll("[data-role='note']").forEach(el => {
     el.oninput = e => {
-      state[`note_w${ui.week}_${ui.day}_${e.target.dataset.ex}`] = e.target.value;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'note', e.target.value);
       saveStateQuiet("Autosaved draft locally.");
     };
     el.onchange = e => {
-      state[`note_w${ui.week}_${ui.day}_${e.target.dataset.ex}`] = e.target.value;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'note', e.target.value);
       commitTextFieldWithoutRender();
     };
   });
