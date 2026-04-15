@@ -5275,11 +5275,13 @@ function removeWorkoutSet(ex, idx) {
 }
 
 function deleteExercise(week,day,ex) {
-  const metaPattern = new RegExp(`^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_${ex}$`);
-  const setPattern = new RegExp(`^w${week}_${day}_${ex}_s\d+$`);
   let removed = false;
   Object.keys(state).forEach(k => {
-    if (metaPattern.test(k) || setPattern.test(k)) {
+    if(new RegExp(`^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_${ex}$`).test(k)) {
+      delete state[k];
+      removed = true;
+    }
+    if(new RegExp(`^w${week}_${day}_${ex}_s\d+$`).test(k)) {
       delete state[k];
       removed = true;
     }
