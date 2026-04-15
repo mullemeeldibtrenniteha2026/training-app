@@ -57,6 +57,14 @@ Purpose:
 html,body { margin:0; padding:0; background:radial-gradient(circle at top, #10284a 0%, var(--bg) 48%, #06111f 100%); color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,sans-serif; }
 input,textarea,select,button { font:inherit; }
+
+/* ITER36 — Mobile input auto-zoom fix
+   Scope: CSS only
+   Prevent iPhone/Safari auto-zoom on form focus by keeping form controls at 16px. */
+input, select, textarea {
+  font-size: 16px;
+}
+
 .app { max-width:1200px; margin:0 auto; padding:14px 14px 96px; }
 .topbar {
   position:sticky; top:0; z-index:20; margin:-14px -14px 12px;
