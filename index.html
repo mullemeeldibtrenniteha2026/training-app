@@ -4954,6 +4954,86 @@ body{
   box-shadow:0 0 0 1px rgba(127,178,255,.22) inset;
 }
 
+
+
+/* =========================================
+   ITER48 — RADAR FINAL POLISH
+   Base: iter45 confirmed working
+   Scope locked to radar-card zone only
+   CSS only — no JS / data / toggle logic changes
+========================================= */
+.radar-card .section-title{
+  margin-bottom:14px !important;
+}
+
+.radar-card #radarTitle{
+  font-size:21px !important;
+  line-height:1.08 !important;
+  letter-spacing:-.028em !important;
+}
+
+.radar-card .radar-shell{
+  gap:14px !important;
+}
+
+.radar-card .radar-wrap{
+  max-width:328px !important;
+  padding:11px !important;
+}
+
+.radar-card .radar-legend{
+  max-width:580px !important;
+  gap:9px !important;
+  margin-top:2px !important;
+}
+
+.radar-card .radar-legend-item{
+  min-height:40px !important;
+  padding:9px 11px !important;
+  font-size:11.5px !important;
+  line-height:1.2 !important;
+}
+
+.radar-card .radar-footnote{
+  max-width:480px !important;
+  margin-top:2px !important;
+  color:rgba(220,228,239,.74) !important;
+  font-size:11px !important;
+  line-height:1.42 !important;
+}
+
+@media (max-width:640px){
+  .radar-card .section-title{
+    margin-bottom:12px !important;
+  }
+
+  .radar-card #radarTitle{
+    font-size:19px !important;
+  }
+
+  .radar-card .radar-wrap{
+    max-width:300px !important;
+    padding:9px !important;
+  }
+
+  .radar-card .radar-legend{
+    grid-template-columns:repeat(2, minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+
+  .radar-card .radar-legend-item{
+    min-height:34px !important;
+    padding:8px 9px !important;
+    font-size:10.5px !important;
+  }
+
+  .radar-card .radar-footnote{
+    max-width:300px !important;
+    font-size:10px !important;
+    line-height:1.38 !important;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
