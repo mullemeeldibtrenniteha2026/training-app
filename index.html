@@ -4903,6 +4903,36 @@ body{
   }
 }
 
+
+/* =========================================
+   ITER42 — RADAR TOGGLE MOBILE FIT FIX
+   Scope locked to radar toggle on mobile only
+   CSS only — no JS / data / layout changes
+========================================= */
+@media (max-width:640px){
+  .radar-card .radar-header-actions{
+    width:100% !important;
+    padding:0 4px;
+  }
+
+  .radar-card #radarToggle{
+    width:min(100%, 348px) !important;
+    max-width:100% !important;
+    gap:2px !important;
+    padding:4px !important;
+    box-sizing:border-box !important;
+  }
+
+  .radar-card #radarToggle button{
+    flex:1 1 0 !important;
+    min-width:0 !important;
+    padding:8px 8px !important;
+    font-size:10px !important;
+    letter-spacing:0 !important;
+    white-space:nowrap !important;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
