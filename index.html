@@ -3128,6 +3128,116 @@ body{
   }
 }
 
+
+/* ===== Iteration 2 — Set Completion Clarity (SAFE) =====
+   Scope:
+   - set rows only
+   - clearer done / active / pending state
+   CSS only
+======================================================== */
+
+.setrow{
+  position:relative;
+  transition:background-color .18s ease, border-color .18s ease, box-shadow .18s ease, opacity .18s ease, transform .12s ease;
+}
+
+.setrow:focus-within{
+  border-color:rgba(127,178,255,.58);
+  box-shadow:
+    0 0 0 1px rgba(127,178,255,.16) inset,
+    0 10px 24px rgba(0,0,0,.12);
+}
+
+.setrow.is-done,
+.setrow[data-done="1"]{
+  background:linear-gradient(180deg, rgba(23,55,41,.96), rgba(14,36,28,.98));
+  border-color:rgba(57,181,106,.42);
+  box-shadow:
+    0 10px 20px rgba(57,181,106,.08),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.setrow.is-done .setn,
+.setrow[data-done="1"] .setn{
+  background:linear-gradient(180deg, rgba(27,66,48,.98), rgba(19,46,34,.98));
+  border-color:rgba(57,181,106,.38);
+  color:#d9ffe5;
+}
+
+.setrow.is-done .setcol .k,
+.setrow[data-done="1"] .setcol .k{
+  color:#bfe8cf;
+}
+
+.setrow.is-done .setinput,
+.setrow[data-done="1"] .setinput{
+  border-color:rgba(57,181,106,.28);
+  background:linear-gradient(180deg, rgba(15,37,28,.98), rgba(14,31,24,.98));
+  color:#edf8f1;
+}
+
+.setrow.is-done .setinput[data-role="volume"],
+.setrow[data-done="1"] .setinput[data-role="volume"]{
+  color:#ffffff;
+  font-weight:700;
+}
+
+.setrow.is-done .donebtn,
+.setrow[data-done="1"] .donebtn{
+  background:linear-gradient(180deg, rgba(57,181,106,.28), rgba(57,181,106,.14));
+  border-color:rgba(57,181,106,.52);
+  color:#e5ffed;
+  box-shadow:
+    0 10px 20px rgba(57,181,106,.10),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.setrow.is-done::after,
+.setrow[data-done="1"]::after{
+  content:"Done";
+  position:absolute;
+  top:8px;
+  right:56px;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:10px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#dbffe6;
+  background:rgba(57,181,106,.14);
+  border:1px solid rgba(57,181,106,.32);
+}
+
+.setrow.input-row-active{
+  border-color:rgba(242,201,76,.44);
+  background:linear-gradient(180deg, rgba(37,40,23,.92), rgba(18,29,46,.98));
+  box-shadow:
+    0 0 0 1px rgba(242,201,76,.14) inset,
+    0 12px 24px rgba(0,0,0,.14);
+}
+
+.setrow.input-row-active .setn{
+  border-color:rgba(242,201,76,.36);
+  color:#fff1bf;
+}
+
+.setrow:not(.is-done):not([data-done="1"]) .donebtn:hover{
+  border-color:rgba(242,201,76,.34);
+  color:#fff1bf;
+}
+
+@media (max-width:640px){
+  .setrow.is-done::after,
+  .setrow[data-done="1"]::after{
+    top:6px;
+    right:48px;
+    font-size:9px;
+    padding:4px 7px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
