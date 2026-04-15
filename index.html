@@ -4904,60 +4904,41 @@ body{
 }
 
 
-/* =========================================
-   ITER42 — RADAR TOGGLE MOBILE FIT FIX
-   Scope locked to radar toggle on mobile only
-   CSS only — no JS / data / layout changes
-========================================= */
-@media (max-width:640px){
-  .radar-card .radar-header-actions{
-    width:100% !important;
-    padding:0 4px;
-  }
-
-  .radar-card #radarToggle{
-    width:min(100%, 348px) !important;
-    max-width:100% !important;
-    gap:2px !important;
-    padding:4px !important;
-    box-sizing:border-box !important;
-  }
-
-  .radar-card #radarToggle button{
-    flex:1 1 0 !important;
-    min-width:0 !important;
-    padding:8px 8px !important;
-    font-size:10px !important;
-    letter-spacing:0 !important;
-    white-space:nowrap !important;
-  }
-}
-
-
 
 /* =========================================
-   ITER42B — RADAR TOGGLE MOBILE FIT HOTFIX
+   ITER42D — RADAR TOGGLE MOBILE EDGE SPACING FIX
+   Base: iter41 confirmed working file
    Scope locked to radar toggle mobile fit only
-   CSS only — no JS / layout / data changes
+   CSS only — no JS / DOM / data / render changes
 ========================================= */
-@media (max-width: 480px){
-  #radarToggle{
-    width:100% !important;
-    max-width:100% !important;
-    padding:4px 8px 4px 6px !important;
-    gap:4px !important;
-    justify-content:stretch !important;
-    box-sizing:border-box !important;
+@media (max-width: 640px) {
+  .radar-card .radar-header-actions {
+    width: 100% !important;
+    padding: 0 12px !important;
+    box-sizing: border-box !important;
+    justify-content: center !important;
   }
 
-  #radarToggle button{
-    flex:1 1 0 !important;
-    min-width:0 !important;
-    width:auto !important;
-    padding:8px 6px !important;
-    font-size:13px !important;
-    white-space:nowrap !important;
-    letter-spacing:0 !important;
+  .radar-card #radarToggle {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 4px !important;
+    gap: 2px !important;
+    box-sizing: border-box !important;
+  }
+
+  .radar-card #radarToggle button {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    padding: 8px 4px !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap !important;
+    text-align: center !important;
   }
 }
 
