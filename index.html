@@ -2940,6 +2940,194 @@ body{
   margin-bottom:6px;
 }
 
+
+/* ===== Iteration 1 — Workout Mode Action Hierarchy (SAFE) =====
+   Scope:
+   - workout mode only
+   - primary vs secondary action clarity
+   - visual hierarchy and spacing
+   CSS only
+=============================================================== */
+
+.workout-mode-shell{
+  gap:16px;
+}
+
+.workout-focus-card{
+  position:relative;
+  gap:14px;
+  padding:18px;
+  border-radius:22px;
+  border:1px solid rgba(242,201,76,.18);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(242,201,76,.06), rgba(242,201,76,0) 34%),
+    linear-gradient(180deg, rgba(17,30,51,.98), rgba(10,22,40,.98));
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.workout-focus-card .section-title{
+  justify-content:center;
+  gap:8px;
+  margin-bottom:2px !important;
+}
+
+.workout-focus-card .section-title h3{
+  font-size:22px !important;
+  line-height:1.08 !important;
+  letter-spacing:-.03em !important;
+  color:#fff4cf !important;
+}
+
+.workout-date-big{
+  font-size:24px;
+  margin-bottom:4px;
+  color:#f4d98c;
+  text-shadow:0 8px 24px rgba(242,201,76,.08);
+}
+
+.workout-focus-note{
+  max-width:440px;
+  margin:0 auto;
+  color:#b8c9dd;
+  font-size:13px !important;
+  line-height:1.45 !important;
+}
+
+.workout-progress-row{
+  gap:12px;
+  margin-top:14px;
+  margin-bottom:4px;
+}
+
+.workout-progress-pill{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  border:1px solid rgba(36,58,97,.95);
+  background:linear-gradient(180deg,#132645,#0f213d);
+  color:#b7c7db;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.workout-progress-pill.active{
+  border-color:rgba(242,201,76,.58);
+  color:#fff2c7;
+  background:linear-gradient(180deg, rgba(242,201,76,.22), rgba(242,201,76,.10));
+  box-shadow:
+    0 10px 22px rgba(242,201,76,.12),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.workout-progress-pill.done{
+  border-color:rgba(57,181,106,.48);
+  color:#d7ffe5;
+  background:linear-gradient(180deg, rgba(57,181,106,.22), rgba(57,181,106,.10));
+}
+
+.workout-nav-row{
+  gap:10px;
+  margin-top:6px;
+}
+
+.workout-nav-row .btn{
+  min-width:128px;
+  min-height:42px;
+  border-radius:14px;
+  font-weight:700 !important;
+}
+
+.workout-nav-row .btn.primary{
+  border-color:rgba(242,201,76,.34);
+  color:#fff2c7;
+  box-shadow:
+    0 10px 22px rgba(242,201,76,.10),
+    inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.finish-workout-row{
+  margin:20px 0 8px;
+}
+
+.finish-workout-btn{
+  min-height:54px;
+  min-width:min(100%,360px);
+  border-radius:18px;
+  font-size:16px;
+  font-weight:900;
+  letter-spacing:.05em;
+  box-shadow:
+    0 16px 34px rgba(255,159,10,.24),
+    inset 0 1px 0 rgba(255,255,255,.24);
+}
+
+.finish-workout-btn::before{
+  content:"✓";
+  display:inline-block;
+  margin-right:10px;
+  font-weight:900;
+}
+
+.exercise-actions{
+  gap:10px;
+  margin-top:12px;
+}
+
+.exercise-actions .btn{
+  min-height:42px;
+  border-radius:14px;
+}
+
+.exercise-actions .btn.primary{
+  border-color:rgba(242,201,76,.28);
+}
+
+@media (max-width:640px){
+  .workout-mode-shell{
+    gap:14px;
+  }
+
+  .workout-focus-card{
+    padding:16px 14px;
+    border-radius:20px;
+  }
+
+  .workout-focus-card .section-title h3{
+    font-size:20px !important;
+  }
+
+  .workout-date-big{
+    font-size:22px;
+  }
+
+  .workout-progress-row{
+    gap:10px;
+  }
+
+  .workout-progress-pill{
+    width:42px;
+    height:42px;
+  }
+
+  .workout-nav-row{
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+
+  .workout-nav-row .btn{
+    flex:1 1 140px;
+    min-width:0;
+  }
+
+  .finish-workout-btn{
+    width:100%;
+    max-width:340px;
+    min-height:52px;
+    font-size:15px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
