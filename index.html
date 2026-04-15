@@ -5492,8 +5492,8 @@ function normalizeUiState() {
   if (!Number.isFinite(normalizedWeek) || normalizedWeek < 1) ui.week = weeks[weeks.length - 1];
   else ui.week = Math.floor(normalizedWeek);
   const dayOptions = allDaysInWeek(ui.week);
-  if (!DAY_ORDER.includes(ui.day) || (dayOptions.length && !dayOptions.includes(ui.day))) {
-    ui.day = getFirstDay(ui.week);
+  if (!DAY_ORDER.includes(ui.day)) {
+    ui.day = dayOptions.length ? getFirstDay(ui.week) : DAY_ORDER[0];
   }
   if (!(ui.month instanceof Date) || Number.isNaN(ui.month.getTime())) {
     ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
