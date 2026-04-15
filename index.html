@@ -3896,21 +3896,84 @@ function weekStartDate(week) { return addDays(PROGRAM_START, (week-1)*7); }
 function dayDate(week, day) { return addDays(weekStartDate(week), DAY_ORDER.indexOf(day)); }
 function weekRangeLabel(week) { const s=weekStartDate(week), e=addDays(s,6); return `${fmtShortDate(s)} – ${fmtShortDate(e)}`; }
 
+function normalizeScalar(value, fallback="") {
+  if (value === undefined || value === null) return fallback;
+  return typeof value === "string" ? value : String(value);
+}
+function normalizeSetObject(raw) {
+  const src = raw && typeof raw === "object" ? raw : {};
+  return {
+    kg: normalizeScalar(src.kg, ""),
+    reps: normalizeScalar(src.reps, ""),
+    done: src.done === "1" ? "1" : ""
+  };
+}
+function normalizeAppState(rawState) {
+  const base = rawState && typeof rawState === "object" ? structured(rawState) : structured(SEED_DATA);
+  Object.keys(base).forEach(key => {
+    if (/^w\d+_[a-z]{3}_.+_s\d+$/.test(key)) {
+      base[key] = normalizeSetObject(base[key]);
+      return;
+    }
+    if (/^sc_w\d+_[a-z]{3}_.+$/.test(key)) {
+      const n = Number(base[key]);
+      base[key] = Number.isFinite(n) && n > 0 ? Math.max(1, Math.floor(n)) : 1;
+      return;
+    }
+    if (/^blockdone_w\d+_[a-z]{3}_.+$/.test(key)) {
+      base[key] = base[key] === "1" ? "1" : "";
+      return;
+    }
+    if (/^(note|rest|interval|exname|exlabel|exss|excode)_w\d+_[a-z]{3}_.+$/.test(key)) {
+      base[key] = normalizeScalar(base[key], "");
+      return;
+    }
+    if (/^hidden_w\d+_[a-z]{3}_.+$/.test(key)) {
+      base[key] = !!base[key];
+    }
+  });
+  return base;
+}
+function normalizeUiState() {
+  const weeks = getWeeks();
+  if (!weeks.length) return;
+  if (!weeks.includes(ui.week)) ui.week = weeks[weeks.length - 1];
+  const dayOptions = allDaysInWeek(ui.week);
+  if (!DAY_ORDER.includes(ui.day) || (dayOptions.length && !dayOptions.includes(ui.day))) {
+    ui.day = getFirstDay(ui.week);
+  }
+  if (!(ui.month instanceof Date) || Number.isNaN(ui.month.getTime())) {
+    ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+  } else {
+    ui.month = new Date(ui.month.getFullYear(), ui.month.getMonth(), 1);
+  }
+  ui.search = String(ui.search || "");
+  ui.workoutMode = !!ui.workoutMode;
+  ui.radarMode = ["day","week","lifetime"].includes(ui.radarMode) ? ui.radarMode : "day";
+  ui.calendarCollapsed = !!ui.calendarCollapsed;
+  ui.addBusy = !!ui.addBusy;
+  ui.lastAddSignature = String(ui.lastAddSignature || "");
+  ui.lastAddAt = Number.isFinite(Number(ui.lastAddAt)) ? Number(ui.lastAddAt) : 0;
+  clampActiveExerciseIndex();
+}
+
 // ===== STATE =====
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
-  if(!saved) return structured(SEED_DATA);
-  try { return JSON.parse(saved); } catch { return structured(SEED_DATA); }
+  if(!saved) return normalizeAppState(SEED_DATA);
+  try { return normalizeAppState(JSON.parse(saved)); } catch { return normalizeAppState(SEED_DATA); }
 }
 let state = loadState();
 
 function saveState() {
+  state = normalizeAppState(state);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   safeSetText("saveStatus", "Saved locally on this device.");
   scheduleCloudSave();
   requestRender("app");
 }
 function saveStateQuiet(message="Saved locally on this device.") {
+  state = normalizeAppState(state);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   safeSetText("saveStatus", message);
   scheduleCloudSave();
@@ -4017,6 +4080,7 @@ function setCountOf(week,day,ex) {
 function getSet(week,day,ex,i) {
   const key = `w${week}_${day}_${ex}_s${i}`;
   if(!state[key]) state[key] = {kg:"", reps:"", done:""};
+  state[key] = normalizeSetObject(state[key]);
   return state[key];
 }
 function setVolume(s) {
@@ -4111,8 +4175,11 @@ function createUniqueExerciseId(week,day,baseId) {
 }
 function ensureExerciseExists(week,day,exId,name) {
   state[`exname_w${week}_${day}_${exId}`] = normalizeExerciseDisplayName(name);
-  if(!state[`sc_w${week}_${day}_${exId}`]) state[`sc_w${week}_${day}_${exId}`] = 1;
+  const countKey = `sc_w${week}_${day}_${exId}`;
+  const count = Number(state[countKey]);
+  state[countKey] = Number.isFinite(count) && count > 0 ? Math.max(1, Math.floor(count)) : 1;
   if(!state[`w${week}_${day}_${exId}_s0`]) state[`w${week}_${day}_${exId}_s0`] = {kg:"",reps:"",done:""};
+  state[`w${week}_${day}_${exId}_s0`] = normalizeSetObject(state[`w${week}_${day}_${exId}_s0`]);
 }
 function progressionDelta(name) {
   const t=String(name).toLowerCase();
@@ -4855,7 +4922,8 @@ function renderAddScopeLabels() {
 
 // ===== APP RENDER ENTRY =====
 function renderApp() {
-  clampActiveExerciseIndex();
+  state = normalizeAppState(state);
+  normalizeUiState();
   renderMetrics();
   renderCalendar();
   renderDays();
