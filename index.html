@@ -5589,14 +5589,14 @@ function renderRadar() {
   document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.classList.toggle("active", btn.dataset.radarMode===ui.radarMode));
 
   const axes = [
-    ["chest","Chest","#ffb84d"],
-    ["back","Back","#ff7a45"],
-    ["shoulders","Shoulders","#58a6ff"],
     ["arms","Arms","#48c6ff"],
-    ["quads","Quads","#4dd4ac"],
-    ["posterior","Posterior","#6be675"],
+    ["back","Back","#ff7a45"],
+    ["chest","Chest","#ffb84d"],
+    ["conditioning","Conditioning","#ffd24d"],
     ["core","Core","#9de05e"],
-    ["conditioning","Conditioning","#ffd24d"]
+    ["posterior","Posterior","#6be675"],
+    ["quads","Quads","#4dd4ac"],
+    ["shoulders","Shoulders","#58a6ff"]
   ];
   const values = axes.map(([k]) => totals[k] || 0);
   const max = Math.max(1, ...values);
