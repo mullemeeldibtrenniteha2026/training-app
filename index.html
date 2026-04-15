@@ -4906,39 +4906,40 @@ body{
 
 
 /* =========================================
-   ITER42D — RADAR TOGGLE MOBILE EDGE SPACING FIX
-   Base: iter41 confirmed working file
-   Scope locked to radar toggle mobile fit only
-   CSS only — no JS / DOM / data / render changes
+   ITER42E — RADAR TOGGLE MOBILE FORCE FIT
+   Base: iter41 uploaded baseline
+   Scope locked to radar toggle mobile only
+   CSS only
 ========================================= */
-@media (max-width: 640px) {
-  .radar-card .radar-header-actions {
-    width: 100% !important;
-    padding: 0 12px !important;
-    box-sizing: border-box !important;
-    justify-content: center !important;
+@media (max-width:640px){
+  .radar-card .radar-header-actions{
+    width:100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    padding:0 10px !important;
+    box-sizing:border-box !important;
   }
 
-  .radar-card #radarToggle {
-    display: flex !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 auto !important;
-    padding: 4px !important;
-    gap: 2px !important;
-    box-sizing: border-box !important;
+  .radar-card #radarToggle{
+    width:100% !important;
+    max-width:320px !important;
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:3px !important;
+    padding:4px !important;
+    margin:0 auto !important;
+    box-sizing:border-box !important;
   }
 
-  .radar-card #radarToggle button {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-    width: auto !important;
-    padding: 8px 4px !important;
-    font-size: 10px !important;
-    line-height: 1.1 !important;
-    letter-spacing: 0 !important;
-    white-space: nowrap !important;
-    text-align: center !important;
+  .radar-card #radarToggle button{
+    min-width:0 !important;
+    width:100% !important;
+    padding:8px 2px !important;
+    font-size:10px !important;
+    line-height:1.1 !important;
+    letter-spacing:0 !important;
+    white-space:nowrap !important;
+    text-align:center !important;
   }
 }
 
