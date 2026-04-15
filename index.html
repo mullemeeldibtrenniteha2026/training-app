@@ -2734,6 +2734,67 @@ body{
   }
 }
 
+
+/* ===== Iteration 1 — Finish Summary Upgrade (SAFE) ===== */
+
+.finish-summary {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(20,27,39,.98), rgba(14,20,30,.98));
+  border: 1px solid rgba(242,201,76,.25);
+  box-shadow: 0 18px 40px rgba(0,0,0,.25);
+}
+
+.finish-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #f2c94c;
+  text-align: center;
+}
+
+.finish-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.finish-stat {
+  padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(18,27,40,.96), rgba(14,21,33,.98));
+  border: 1px solid rgba(58,78,111,.6);
+  text-align: center;
+}
+
+.finish-stat .value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.finish-stat .label {
+  font-size: 11px;
+  color: #9eb1c8;
+  margin-top: 4px;
+}
+
+.finish-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.finish-actions .btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
