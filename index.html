@@ -5957,7 +5957,12 @@ function bindExerciseEvents(all) {
       removeWorkoutSet(ex, idx);
     }, { renderMode:"exercises", toast:"Set removed" });
   });
-  document.querySelectorAll("[data-role='delete']").forEach(el => el.onclick = e => deleteExercise(ui.week,ui.day,e.target.dataset.ex));
+  document.querySelectorAll("[data-role='delete']").forEach(el => el.onclick = e => {
+    const ex = e.currentTarget.dataset.ex;
+    commitStateUpdate(() => {
+      deleteExercise(ui.week, ui.day, ex);
+    }, { renderMode:"exercises", toast:"Exercise removed" });
+  });
   document.querySelectorAll("[data-role='name']").forEach(el => {
     el.oninput = e => {
       updateWorkoutExerciseField(e.target.dataset.ex, 'exname', e.target.value);
