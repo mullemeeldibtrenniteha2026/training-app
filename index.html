@@ -5075,9 +5075,14 @@ function normalizeSetObject(raw) {
 }
 function normalizeAppState(rawState) {
   const base = rawState && typeof rawState === "object" ? structured(rawState) : structured(SEED_DATA);
+  const maxSetIndexByExercise = new Map();
   Object.keys(base).forEach(key => {
-    if (/^w\d+_[a-z]{3}_.+_s\d+$/.test(key)) {
+    const setMatch = key.match(/^w(\d+)_([a-z]{3})_(.+)_s(\d+)$/);
+    if (setMatch) {
+      const exerciseKey = `w${setMatch[1]}_${setMatch[2]}_${setMatch[3]}`;
+      const setIndex = Number(setMatch[4]);
       base[key] = normalizeSetObject(base[key]);
+      maxSetIndexByExercise.set(exerciseKey, Math.max(maxSetIndexByExercise.get(exerciseKey) ?? -1, setIndex));
       return;
     }
     if (/^sc_w\d+_[a-z]{3}_.+$/.test(key)) {
@@ -5097,7 +5102,60 @@ function normalizeAppState(rawState) {
       base[key] = !!base[key];
     }
   });
+  maxSetIndexByExercise.forEach((maxIndex, exerciseKey) => {
+    const scKey = `sc_${exerciseKey}`;
+    const currentCount = Number(base[scKey]);
+    const minimumCount = Math.max(1, maxIndex + 1);
+    if (!Number.isFinite(currentCount) || currentCount < minimumCount) {
+      base[scKey] = minimumCount;
+    }
+  });
   return base;
+}
+function getStateIntegrityReport(candidateState) {
+  const source = candidateState && typeof candidateState === "object" ? candidateState : {};
+  const report = {
+    totalKeys: Object.keys(source).length,
+    setKeys: 0,
+    countKeys: 0,
+    repairedSetCounts: [],
+    invalidDayKeys: [],
+    empty: !source || Object.keys(source).length === 0
+  };
+  const maxSetIndexByExercise = new Map();
+  Object.keys(source).forEach(key => {
+    const setMatch = key.match(/^w(\d+)_([a-z]{3})_(.+)_s(\d+)$/);
+    if (setMatch) {
+      report.setKeys += 1;
+      const dayToken = setMatch[2];
+      if (!DAY_ORDER.includes(dayToken)) report.invalidDayKeys.push(key);
+      const exerciseKey = `w${setMatch[1]}_${dayToken}_${setMatch[3]}`;
+      const setIndex = Number(setMatch[4]);
+      maxSetIndexByExercise.set(exerciseKey, Math.max(maxSetIndexByExercise.get(exerciseKey) ?? -1, setIndex));
+      return;
+    }
+    if (/^sc_w\d+_[a-z]{3}_.+$/.test(key)) {
+      report.countKeys += 1;
+      const dayToken = key.split('_')[2];
+      if (!DAY_ORDER.includes(dayToken)) report.invalidDayKeys.push(key);
+    }
+  });
+  maxSetIndexByExercise.forEach((maxIndex, exerciseKey) => {
+    const scKey = `sc_${exerciseKey}`;
+    const currentCount = Number(source[scKey]);
+    const minimumCount = Math.max(1, maxIndex + 1);
+    if (!Number.isFinite(currentCount) || currentCount < minimumCount) {
+      report.repairedSetCounts.push({ scKey, from: Number.isFinite(currentCount) ? currentCount : null, to: minimumCount });
+    }
+  });
+  return report;
+}
+function isCandidateStateUsable(candidateState) {
+  const report = getStateIntegrityReport(candidateState);
+  if (report.empty) return false;
+  if (report.invalidDayKeys.length) return false;
+  if (!report.totalKeys) return false;
+  return true;
 }
 function normalizeUiState() {
   const weeks = getWeeks();
@@ -5129,6 +5187,21 @@ function loadState() {
   try { return normalizeAppState(JSON.parse(saved)); } catch { return normalizeAppState(SEED_DATA); }
 }
 let state = loadState();
+const LOCAL_SAFETY_SNAPSHOT_KEY = "timo_training_local_safety_snapshot";
+function writeLocalSafetySnapshot(reason="manual") {
+  try {
+    const payload = {
+      reason,
+      created_at: new Date().toISOString(),
+      state: normalizeAppState(state)
+    };
+    localStorage.setItem(LOCAL_SAFETY_SNAPSHOT_KEY, JSON.stringify(payload));
+    return true;
+  } catch (err) {
+    console.error("Safety snapshot failed", err);
+    return false;
+  }
+}
 
 function saveState() {
   state = normalizeAppState(state);
@@ -6486,8 +6559,15 @@ async function loadCloudState() {
     const localIso = getLocalUpdatedAt();
     const shouldUseCloud = !localIso || (cloudIso && cloudIso >= localIso);
     if(shouldUseCloud) {
+      const incomingState = normalizeAppState(data.state_json);
+      if(!isCandidateStateUsable(incomingState)) {
+        console.warn("Rejected unusable cloud state", getStateIntegrityReport(data.state_json));
+        setSyncStatus("Cloud: unavailable");
+        return false;
+      }
+      writeLocalSafetySnapshot("before_cloud_replace");
       applyingCloudState = true;
-      state = data.state_json;
+      state = incomingState;
       if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
       state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -7029,13 +7109,19 @@ async function importBackupFile(file) {
   try {
     const raw = await file.text();
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object") throw new Error("Invalid backup");
-    state = parsed;
+    const normalized = normalizeAppState(parsed);
+    const report = getStateIntegrityReport(parsed);
+    if (!isCandidateStateUsable(normalized)) {
+      console.warn("Rejected unusable backup", report);
+      throw new Error("Invalid backup");
+    }
+    writeLocalSafetySnapshot("before_backup_import");
+    state = normalized;
     persistLocalStateNow();
-    safeSetText("saveStatus", "Backup restored on this device.");
+    safeSetText("saveStatus", report.repairedSetCounts.length ? "Backup restored and repaired on this device." : "Backup restored on this device.");
     renderApp();
     if (currentUser && navigator.onLine) scheduleCloudSave();
-    showToast("Backup restored");
+    showToast(report.repairedSetCounts.length ? "Backup repaired" : "Backup restored");
   } catch (e) {
     console.error("Backup import failed", e);
     showToast("Import failed");
