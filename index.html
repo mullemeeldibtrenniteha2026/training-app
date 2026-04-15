@@ -5521,6 +5521,51 @@ body{
   }
 }
 
+
+
+/* =========================================
+   ITER55B — ADD CARD LAYOUT FIX ONLY
+   Base: iter54 confirmed working baseline
+   Scope locked to add-card layout only
+   CSS only — no render / data / workout / auth changes
+========================================= */
+.add-card .add-scope-row{
+  width:100%;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  align-items:center;
+  justify-content:stretch !important;
+  margin:6px 0 12px !important;
+}
+
+.add-card .add-scope-row .select{
+  grid-column:2;
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  min-height:48px;
+  height:48px;
+}
+
+.add-card .add-grid{
+  margin-top:0 !important;
+}
+
+@media (max-width:640px){
+  .add-card .add-scope-row{
+    grid-template-columns:1fr;
+    gap:10px;
+    margin:6px 0 10px !important;
+  }
+
+  .add-card .add-scope-row .select{
+    grid-column:auto;
+    min-height:46px;
+    height:46px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
