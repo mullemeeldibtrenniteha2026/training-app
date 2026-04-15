@@ -3293,6 +3293,140 @@ body{
   }
 }
 
+
+/* ===== Iteration 4 — Timer Behavior Refinement (SAFE) =====
+   Scope:
+   - timer overlay only
+   - clearer running / paused / idle states
+   - stronger action hierarchy
+   CSS + very small JS
+============================================================ */
+
+.timer-overlay{
+  background:
+    radial-gradient(circle at 50% 18%, rgba(127,178,255,.10), rgba(127,178,255,0) 32%),
+    rgba(3,8,18,.64);
+  backdrop-filter:blur(10px);
+}
+
+.timer-sheet{
+  position:relative;
+  overflow:hidden;
+  border-radius:28px;
+  border:1px solid rgba(127,178,255,.20);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(127,178,255,.08), rgba(127,178,255,0) 34%),
+    linear-gradient(180deg,#132A4A,#0F243F);
+  box-shadow:
+    0 28px 60px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.timer-head h3{
+  font-size:20px;
+  letter-spacing:-.02em;
+  color:#eef5ff;
+}
+
+#timerCloseBtn{
+  min-height:36px;
+  padding:7px 12px;
+  border-radius:999px;
+  color:#c6d6ea;
+  background:rgba(255,255,255,.04);
+  border-color:rgba(255,255,255,.08);
+}
+
+.timer-display{
+  font-size:58px;
+  font-weight:800;
+  letter-spacing:-.04em;
+  color:#f7fbff;
+  text-shadow:0 10px 28px rgba(0,0,0,.18);
+  transition:color .18s ease, text-shadow .18s ease, transform .12s ease;
+}
+
+.timer-display.is-live{
+  color:#fff3c9;
+  text-shadow:0 14px 32px rgba(242,201,76,.14);
+}
+
+.timer-display.is-paused{
+  color:#dce8f7;
+}
+
+.timer-actions{
+  gap:10px;
+}
+
+#timerStartBtn,
+#timerPauseBtn,
+#timerResetBtn{
+  min-height:46px;
+  border-radius:16px;
+  font-weight:800;
+}
+
+#timerStartBtn{
+  box-shadow:
+    0 12px 24px rgba(242,201,76,.14),
+    inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+#timerPauseBtn{
+  color:#dfeafb;
+}
+
+#timerResetBtn{
+  color:#c7d7ea;
+}
+
+#timerPauseBtn:disabled,
+#timerResetBtn:disabled{
+  opacity:.48;
+  cursor:default;
+  box-shadow:none;
+}
+
+.timer-hint{
+  max-width:290px;
+  margin:12px auto 0;
+  color:#b8cae0;
+  line-height:1.45;
+}
+
+.timer-sheet.is-live::after{
+  content:"Running";
+  position:absolute;
+  top:16px;
+  left:18px;
+  padding:5px 9px;
+  border-radius:999px;
+  font-size:10px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#fff1bf;
+  background:rgba(242,201,76,.12);
+  border:1px solid rgba(242,201,76,.28);
+}
+
+@media (max-width:640px){
+  .timer-sheet{
+    border-radius:24px;
+    padding:16px;
+  }
+
+  .timer-display{
+    font-size:52px;
+  }
+
+  .timer-actions{
+    grid-template-columns:1fr;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -4913,10 +5047,39 @@ function formatTimer(totalSeconds) {
 function renderTimer() {
   const display = document.getElementById("timerDisplay");
   const btn = document.getElementById("bottomTimerBtn");
-  if(display) display.textContent = formatTimer(timerState.elapsed);
+  const startBtn = document.getElementById("timerStartBtn");
+  const pauseBtn = document.getElementById("timerPauseBtn");
+  const resetBtn = document.getElementById("timerResetBtn");
+  const hint = document.querySelector(".timer-hint");
+  const sheet = document.querySelector(".timer-sheet");
+  const elapsed = timerState.elapsed || 0;
+  const hasValue = elapsed > 0;
+
+  if(display) {
+    display.textContent = formatTimer(elapsed);
+    display.classList.toggle("is-live", timerState.running);
+    display.classList.toggle("is-paused", !timerState.running && hasValue);
+  }
+
+  if(sheet) sheet.classList.toggle("is-live", timerState.running);
+
   if(btn) {
-    btn.classList.toggle("timer-live", timerState.running || timerState.elapsed > 0);
-    btn.textContent = timerState.running ? `⏱ ${formatTimer(timerState.elapsed)}` : (timerState.elapsed > 0 ? `⏱ ${formatTimer(timerState.elapsed)}` : "⏱ Timer");
+    btn.classList.toggle("timer-live", timerState.running || hasValue);
+    btn.textContent = timerState.running
+      ? `⏱ ${formatTimer(elapsed)}`
+      : (hasValue ? `⏱ ${formatTimer(elapsed)}` : "⏱ Timer");
+  }
+
+  if(startBtn) startBtn.textContent = timerState.running ? "Running" : (hasValue ? "Resume" : "Start");
+  if(startBtn) startBtn.disabled = !!timerState.running;
+
+  if(pauseBtn) pauseBtn.disabled = !timerState.running;
+  if(resetBtn) resetBtn.disabled = !hasValue && !timerState.running;
+
+  if(hint) {
+    hint.textContent = timerState.running
+      ? "Timer is running while you keep moving."
+      : (hasValue ? "Timer is paused. Resume or reset when you are ready." : "Starts from 00:00 and runs until you stop it.");
   }
 }
 function stopTimerInterval() {
@@ -4948,6 +5111,12 @@ function openTimer() {
   const overlay = document.getElementById("timerOverlay");
   if(overlay) overlay.style.display = "flex";
   renderTimer();
+  requestAnimationFrame(() => {
+    const target = timerState.running
+      ? document.getElementById("timerPauseBtn")
+      : (timerState.elapsed > 0 ? document.getElementById("timerStartBtn") : document.getElementById("timerStartBtn"));
+    target?.focus();
+  });
 }
 function closeTimer() {
   const overlay = document.getElementById("timerOverlay");
@@ -5141,6 +5310,9 @@ if(timerPauseBtn) timerPauseBtn.onclick = () => pauseTimer();
 const timerResetBtn = document.getElementById("timerResetBtn");
 if(timerResetBtn) timerResetBtn.onclick = () => resetTimer();
 document.getElementById("timerOverlay")?.addEventListener("click", e => { if(e.target.id === "timerOverlay") closeTimer(); });
+document.addEventListener("keydown", e => {
+  if(e.key === "Escape" && document.getElementById("timerOverlay")?.style.display === "flex") closeTimer();
+});
 
 const finishSummaryDoneBtn = document.getElementById("finishSummaryDoneBtn");
 if(finishSummaryDoneBtn) finishSummaryDoneBtn.onclick = () => { closeFinishSummary(); showToast("Workout completed"); };
