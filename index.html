@@ -3803,6 +3803,10 @@ const EXERCISE_LIBRARY = [
   { name:"Wide Grip Strict Pull-Up", type:"weighted" }
 ];
 
+
+// ============================================================
+// CORE CONFIG + NORMALIZATION ZONE
+// ============================================================
 const EXERCISE_SUGGESTIONS = EXERCISE_LIBRARY.map(x => x.name).sort((a,b)=>a.localeCompare(b));
 const EXERCISE_ALIASES = Object.fromEntries(
   EXERCISE_LIBRARY.flatMap(x => (x.aliases || []).map(alias => [alias.toLowerCase(), x.name]))
@@ -4015,6 +4019,10 @@ function commitUiUpdate(mutator, renderMode="app") {
   requestRender(renderMode || "app");
   return true;
 }
+
+// ============================================================
+// CORE STATE COMMIT + UI UPDATE ZONE
+// ============================================================
 function updateSetVolumeForInput(input) {
   const row = input.closest(".setrow");
   if(!row) return;
@@ -4053,6 +4061,10 @@ function mapDateToProgramSlot(date) {
   const day = DAY_ORDER[diff % 7];
   return { week, day };
 }
+
+// ============================================================
+// EXERCISE DATA ACCESS + HISTORY ZONE
+// ============================================================
 function normalizeExerciseDisplayName(name) {
   const raw = String(name||"").trim();
   if(!raw) return "New Exercise";
@@ -4281,6 +4293,10 @@ function deleteExercise(week,day,ex) {
   });
   saveState();
 }
+
+// ============================================================
+// DERIVED DATA + FILTERING ZONE
+// ============================================================
 function computeRadar(week, day=null) {
   const totals={chest:0,back:0,shoulders:0,arms:0,quads:0,posterior:0,core:0,conditioning:0};
   const days = day ? [day] : allDaysInWeek(week);
@@ -4319,6 +4335,10 @@ function clampActiveExerciseIndex() {
   const max = Math.max(0, getFilteredWorkoutGroupCount() - 1);
   ui.activeExerciseIndex = Math.min(max, Math.max(0, Number(ui.activeExerciseIndex) || 0));
 }
+
+// ============================================================
+// RENDER SCHEDULING + SAFE DOM ACCESS ZONE
+// ============================================================
 const requestRenderFrame = window.requestAnimationFrame ? cb => window.requestAnimationFrame(cb) : cb => setTimeout(cb, 0);
 let renderQueueMode = "app";
 let renderScheduled = false;
@@ -4399,6 +4419,10 @@ function getWorkoutStatsSafe() {
 }
 
 // ===== RENDER: METRICS =====
+
+// ============================================================
+// CALENDAR / METRICS / RADAR RENDER ZONE
+// ============================================================
 function renderMetrics() {
   const exs = getExercisesForWeekDay(ui.week,ui.day);
   const totalSets = exs.reduce((sum,ex)=>sum+setCountOf(ui.week,ui.day,ex),0);
@@ -4574,6 +4598,10 @@ function refreshScopeLabels() {
 }
 
 // ===== RENDER: ADD EXERCISE PREVIEW =====
+
+// ============================================================
+// ADD / SEARCH / HISTORY PREVIEW RENDER ZONE
+// ============================================================
 function renderHistoryPreview() {
   const box = document.getElementById("historyPreview");
   if(!box) return;
@@ -4590,6 +4618,10 @@ function renderHistoryPreview() {
   box.innerHTML = ``;
 }
 
+
+// ============================================================
+// WORKOUT RENDER + FINISH FLOW ZONE
+// ============================================================
 function getWorkoutGroups(exercises){
   const groups = [];
   let currentKey = null;
@@ -4813,6 +4845,10 @@ function renderExercises() {
 
 
 
+
+// ============================================================
+// WORKOUT EVENT BINDING ZONE
+// ============================================================
 function applySetRowGuidance() {
   document.querySelectorAll(".sets").forEach(container => {
     const rows = Array.from(container.querySelectorAll(".setrow"));
@@ -4945,6 +4981,10 @@ function handleWorkoutModeKeydown(e){
   if(e.key==="ArrowLeft"){ commitUiUpdate(() => { ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); }, "exercises"); }
 }
 document.addEventListener("keydown", handleWorkoutModeKeydown);
+
+// ============================================================
+// APP-LEVEL RENDER COMPOSITION ZONE
+// ============================================================
 function renderAddScopeLabels() {
   const scope = document.getElementById("addScope");
   if(!scope) return;
@@ -5001,6 +5041,10 @@ function markAddSignature(signature) {
   ui.lastAddSignature = signature;
   ui.lastAddAt = Date.now();
 }
+
+// ============================================================
+// PRIMARY UI ACTION WIRING ZONE
+// ============================================================
 const searchInput = document.getElementById("searchInput");
 if(searchInput) searchInput.oninput = e => {
   ui.search=e.target.value;
@@ -5112,6 +5156,10 @@ let cloudReady = false;
 let applyingCloudState = false;
 let initialSyncResolved = false;
 
+
+// ============================================================
+// CLOUD / AUTH / SESSION ZONE
+// ============================================================
 function showBoot(message="Loading your data…") {
   const overlay = document.getElementById("bootOverlay");
   const msg = document.getElementById("bootMessage");
@@ -5382,6 +5430,10 @@ async function initSupabaseApp() {
 
 // ===== TIMER =====
 const timerState = { elapsed: 0, interval: null, running: false };
+
+// ============================================================
+// TIMER ZONE
+// ============================================================
 function formatTimer(totalSeconds) {
   const mins = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
   const secs = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
@@ -5478,6 +5530,10 @@ let pinMode = "unlock";
 let appUnlocked = false;
 let lastActiveAt = Date.now();
 
+
+// ============================================================
+// PIN / LOCK / DEVICE SESSION ZONE
+// ============================================================
 function nowTs() { return Date.now(); }
 function getStoredPin() { return localStorage.getItem(PIN_KEY) || ""; }
 function setStoredPin(pin) { localStorage.setItem(PIN_KEY, pin); }
@@ -5666,6 +5722,10 @@ if(calendarToggleBtn) calendarToggleBtn.onclick = () => { ui.calendarCollapsed =
 
 
 // ===== RELEASE READINESS HELPERS =====
+
+// ============================================================
+// BACKUP / RELEASE READINESS / BOOTSTRAP ZONE
+// ============================================================
 function persistLocalStateNow() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
