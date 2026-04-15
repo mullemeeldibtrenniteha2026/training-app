@@ -3532,58 +3532,6 @@ body{
   }
 }
 
-
-/* ===== Iteration 6 — Light Progress Signal (SAFE) =====
-   Scope:
-   - lightweight progress indicator near last-time block
-   - no data model changes
-   - simple comparison only
-======================================================= */
-
-.progress-signal{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  align-self:flex-start;
-  padding:7px 10px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:.06em;
-  text-transform:uppercase;
-  border:1px solid rgba(255,255,255,.10);
-  line-height:1;
-}
-
-.progress-signal.up{
-  color:#d9ffe5;
-  background:rgba(57,181,106,.12);
-  border-color:rgba(57,181,106,.28);
-}
-
-.progress-signal.flat{
-  color:#e7eef8;
-  background:rgba(127,178,255,.10);
-  border-color:rgba(127,178,255,.22);
-}
-
-.progress-signal.down{
-  color:#ffe4c9;
-  background:rgba(242,201,76,.10);
-  border-color:rgba(242,201,76,.24);
-}
-
-.progress-signal.none{
-  color:#c9d7e8;
-  background:rgba(255,255,255,.05);
-  border-color:rgba(255,255,255,.10);
-}
-
-.progress-signal .arrow{
-  font-size:12px;
-  line-height:1;
-}
-
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -4134,40 +4082,6 @@ function dateToProgramDay(date) {
   if(!slot) return null;
   return { ...slot, status: dayStatus(slot.week, slot.day) };
 }
-
-function exerciseStats(week,day,ex) {
-  const c = setCountOf(week,day,ex);
-  let setsDone = 0, totalReps = 0, totalVolume = 0, hasWeight = false;
-  for(let i=0;i<c;i++){
-    const s = getSet(week,day,ex,i);
-    const reps = num(s.reps);
-    const kg = num(s.kg);
-    if(String(s.done||"")==="1") setsDone++;
-    if(!Number.isNaN(reps)) totalReps += reps;
-    if(!Number.isNaN(reps) && !Number.isNaN(kg)) {
-      totalVolume += Math.round(reps * kg);
-      hasWeight = true;
-    }
-  }
-  return { setsDone, totalReps, totalVolume, hasWeight };
-}
-function getLightProgressSignal(week,day,ex,last) {
-  if(!last) return null;
-  const curr = exerciseStats(week,day,ex);
-  const prev = exerciseStats(last.week,last.day,last.ex);
-  if(curr.totalReps===0 && curr.totalVolume===0) return { cls:"none", arrow:"•", text:"No data yet" };
-
-  if(curr.hasWeight && prev.hasWeight) {
-    if(curr.totalVolume > prev.totalVolume) return { cls:"up", arrow:"↑", text:"Up vs last time" };
-    if(curr.totalVolume < prev.totalVolume) return { cls:"down", arrow:"↓", text:"Below last time" };
-    return { cls:"flat", arrow:"→", text:"Same as last time" };
-  }
-
-  if(curr.totalReps > prev.totalReps) return { cls:"up", arrow:"↑", text:"More reps" };
-  if(curr.totalReps < prev.totalReps) return { cls:"down", arrow:"↓", text:"Fewer reps" };
-  return { cls:"flat", arrow:"→", text:"Same reps" };
-}
-
 function exerciseSetsSummary(week,day,ex) {
   const parts=[], c=setCountOf(week,day,ex);
   for(let i=0;i<c;i++) { const s=getSet(week,day,ex,i); parts.push(`${s.kg||"—"} × ${s.reps||"—"}`); }
@@ -4676,7 +4590,7 @@ function renderExercises() {
             </div>
           </div>
 
-          ${last ? (() => { const signal = getLightProgressSignal(week,day,ex,last); return `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${fmtShortDate(last.date)}</div></div>${signal ? `<div class="progress-signal ${signal.cls}"><span class="arrow">${signal.arrow}</span><span>${esc(signal.text)}</span></div>` : ""}<div class="last-time-summary">${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div><div class="last-time-meta">Use this as your quick reference before the next set.</div></div></div>`; })() : ""}
+          ${last ? `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${fmtShortDate(last.date)}</div></div><div class="last-time-summary">${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div><div class="last-time-meta">Use this as your quick reference before the next set.</div></div></div>` : ""}
 
           <div class="field-grid">
             <div class="label">Rest</div>
