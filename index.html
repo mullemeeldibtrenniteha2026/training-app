@@ -5275,18 +5275,32 @@ function removeWorkoutSet(ex, idx) {
 }
 
 function deleteExercise(week,day,ex) {
-  let removed = false;
+  const exId = String(ex || "").trim();
+  if(!exId) return { removed:false, deletedKeys:[] };
+  const metaPrefixes = [
+    "sc",
+    "note",
+    "interval",
+    "rest",
+    "exname",
+    "exlabel",
+    "exss",
+    "excode",
+    "hidden",
+    "blockdone"
+  ].map(prefix => `${prefix}_w${week}_${day}_${exId}`);
+  const setPrefix = `w${week}_${day}_${exId}_s`;
+  const deletedKeys = [];
   Object.keys(state).forEach(k => {
-    if(new RegExp(`^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_${ex}$`).test(k)) {
+    const isMeta = metaPrefixes.includes(k);
+    const isSet = k.startsWith(setPrefix);
+    if(isMeta || isSet) {
+      deletedKeys.push(k);
       delete state[k];
-      removed = true;
-    }
-    if(new RegExp(`^w${week}_${day}_${ex}_s\d+$`).test(k)) {
-      delete state[k];
-      removed = true;
     }
   });
-  return removed;
+  console.info("[exercise-delete]", { week, day, ex: exId, deletedKeys, deletedCount: deletedKeys.length });
+  return { removed: deletedKeys.length > 0, deletedKeys };
 }
 
 // ============================================================
@@ -5965,9 +5979,24 @@ function bindExerciseEvents(all) {
     }, { renderMode:"exercises", toast:"Set removed" });
   });
   document.querySelectorAll("[data-role='delete']").forEach(el => el.onclick = e => {
-    const ex = e.currentTarget.dataset.ex;
+    const button = e.currentTarget;
+    const card = button.closest("[data-exercise-card]");
+    const ex = String((card && card.dataset.exerciseCard) || button.dataset.ex || "").trim();
+    console.info("[exercise-delete-click]", {
+      week: ui.week,
+      day: ui.day,
+      buttonDatasetEx: button.dataset.ex || "",
+      cardDatasetEx: card ? card.dataset.exerciseCard || "" : "",
+      resolvedEx: ex
+    });
+    if(!ex) {
+      console.warn("[exercise-delete-click] missing exercise id");
+      showToast("Delete failed");
+      return;
+    }
     commitStateUpdate(() => {
-      deleteExercise(ui.week, ui.day, ex);
+      const result = deleteExercise(ui.week, ui.day, ex);
+      console.info("[exercise-delete-result]", result);
     }, { renderMode:"exercises", toast:"Exercise removed" });
   });
   document.querySelectorAll("[data-role='name']").forEach(el => {
