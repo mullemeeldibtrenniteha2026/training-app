@@ -5265,6 +5265,135 @@ body{
   }
 }
 
+
+
+/* =========================================
+   ITER53 — REMOVE RADAR, KEEP BODY INSIGHTS
+   Base: iter52 confirmed working baseline
+   Scope locked to radar-card only
+   HTML + CSS only — render logic untouched
+========================================= */
+.radar-card .section-title{
+  gap:14px !important;
+  margin-bottom:18px !important;
+}
+.radar-card #radarTitle{
+  font-size:0 !important;
+  line-height:0 !important;
+  color:transparent !important;
+  text-shadow:none !important;
+}
+.radar-card #radarTitle::after{
+  content:"Muscle Balance";
+  display:block;
+  font-size:22px;
+  line-height:1.06;
+  letter-spacing:-.03em;
+  font-weight:800;
+  color:#fbfcfe;
+}
+.radar-card .radar-shell{
+  gap:16px !important;
+}
+.radar-card .radar-balance-top{
+  grid-template-columns:1fr !important;
+  justify-items:center;
+  gap:0;
+  max-width:620px;
+  margin:0 auto;
+}
+.radar-card .radar-wrap,
+.radar-card .radar-legend,
+.radar-card .radar-footnote{
+  display:none !important;
+}
+.radar-card .radar-body-card{
+  width:100%;
+  justify-content:center;
+}
+.radar-card .radar-body-figure-svg{
+  max-width:244px;
+  padding:10px;
+  border-radius:32px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255,255,255,.08), rgba(255,255,255,0) 42%),
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.012));
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 22px 42px rgba(0,0,0,.18);
+}
+.radar-card .radar-insights{
+  width:100%;
+  max-width:620px;
+  gap:10px;
+  margin:14px auto 0;
+}
+.radar-card .radar-insight-row{
+  grid-template-columns:112px minmax(0,1fr);
+  align-items:start;
+  gap:12px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.07);
+  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+.radar-card .radar-insight-label{
+  color:#9eb1c8;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+.radar-card .radar-insight-value{
+  min-width:0;
+  color:#f3f6fb;
+  font-size:14px;
+  font-weight:650;
+  line-height:1.4;
+}
+.radar-card .radar-focus-pill{
+  margin-top:4px;
+  padding:14px 16px;
+  border-radius:18px;
+  border:1px solid rgba(242,201,76,.18);
+  background:linear-gradient(180deg, rgba(242,201,76,.11), rgba(242,201,76,.045));
+  color:#f4deb0;
+  font-size:13px;
+  line-height:1.45;
+  font-weight:650;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+@media (max-width:640px){
+  .radar-card #radarTitle::after{
+    font-size:20px;
+  }
+  .radar-card .radar-header-actions{
+    width:100% !important;
+    padding:0 4px;
+  }
+  .radar-card .radar-body-figure-svg{
+    max-width:208px;
+    padding:8px;
+    border-radius:28px;
+  }
+  .radar-card .radar-insights{
+    gap:8px;
+    margin-top:12px;
+  }
+  .radar-card .radar-insight-row{
+    grid-template-columns:1fr;
+    gap:6px;
+    padding:11px 12px;
+  }
+  .radar-card .radar-insight-value{
+    font-size:13px;
+  }
+  .radar-card .radar-focus-pill{
+    padding:12px 13px;
+    font-size:12px;
+  }
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5429,53 +5558,53 @@ body{
                     C89 154, 83 134, 81 114
                     C80 102, 82 93, 88 86 Z"/>
 
-                  <path data-zone="shoulders" class="body-zone" d="M62 82
+                  <path data-zone="shoulders" class="body-zone radar-zone" d="M62 82
                     C73 63, 89 54, 110 54
                     C131 54, 147 63, 158 82
                     C151 89, 144 95, 136 99
                     C128 88, 120 83, 110 83
                     C100 83, 92 88, 84 99
                     C76 95, 69 89, 62 82 Z"/>
-                  <path data-zone="chest" class="body-zone" d="M85 98
+                  <path data-zone="chest" class="body-zone radar-zone" d="M85 98
                     C92 90, 100 86, 110 86
                     C120 86, 128 90, 135 98
                     C132 112, 124 123, 110 128
                     C96 123, 88 112, 85 98 Z"/>
-                  <path data-zone="back" class="body-zone zone-back-svg" d="M85 92
+                  <path data-zone="back" class="body-zone radar-zone zone-back-svg" d="M85 92
                     C93 83, 101 80, 110 80
                     C119 80, 127 83, 135 92
                     C135 116, 127 139, 110 151
                     C93 139, 85 116, 85 92 Z"/>
-                  <path data-zone="arms" class="body-zone" d="M61 90
+                  <path data-zone="arms" class="body-zone radar-zone" d="M61 90
                     C54 102, 51 117, 52 135
                     C53 152, 57 168, 61 183
                     C64 194, 69 204, 76 212
                     C79 198, 80 185, 79 172
                     C76 148, 74 125, 75 105
                     C75 100, 72 94, 67 90 Z"/>
-                  <path data-zone="arms" class="body-zone" d="M159 90
+                  <path data-zone="arms" class="body-zone radar-zone" d="M159 90
                     C166 102, 169 117, 168 135
                     C167 152, 163 168, 159 183
                     C156 194, 151 204, 144 212
                     C141 198, 140 185, 141 172
                     C144 148, 146 125, 145 105
                     C145 100, 148 94, 153 90 Z"/>
-                  <path data-zone="core" class="body-zone" d="M92 128
+                  <path data-zone="core" class="body-zone radar-zone" d="M92 128
                     C98 122, 103 120, 110 120
                     C117 120, 122 122, 128 128
                     C126 148, 122 165, 110 179
                     C98 165, 94 148, 92 128 Z"/>
-                  <path data-zone="posterior" class="body-zone" d="M91 182
+                  <path data-zone="posterior" class="body-zone radar-zone" d="M91 182
                     C97 176, 103 173, 110 173
                     C117 173, 123 176, 129 182
                     C127 193, 122 204, 110 210
                     C98 204, 93 193, 91 182 Z"/>
-                  <path data-zone="quads" class="body-zone" d="M83 212
+                  <path data-zone="quads" class="body-zone radar-zone" d="M83 212
                     C91 213, 97 217, 101 224
                     C102 240, 99 269, 95 304
                     L76 304
                     C79 270, 80 241, 83 212 Z"/>
-                  <path data-zone="quads" class="body-zone" d="M137 212
+                  <path data-zone="quads" class="body-zone radar-zone" d="M137 212
                     C129 213, 123 217, 119 224
                     C118 240, 121 269, 125 304
                     L144 304
