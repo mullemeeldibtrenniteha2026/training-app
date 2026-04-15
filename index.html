@@ -6459,6 +6459,10 @@ let cloudSaveTimer = null;
 let cloudReady = false;
 let applyingCloudState = false;
 let initialSyncResolved = false;
+let cloudBootstrapInFlight = false;
+let cloudBootstrapToken = 0;
+let bootGuardTimer = null;
+let lastAuthStateKey = "__unknown__";
 
 
 // ============================================================
@@ -6470,7 +6474,29 @@ function showBoot(message="Loading your data…") {
   if(msg) msg.textContent = message;
   if(overlay) overlay.style.display = "flex";
 }
+function clearBootGuard() {
+  if(bootGuardTimer) {
+    clearTimeout(bootGuardTimer);
+    bootGuardTimer = null;
+  }
+}
+function armBootGuard(message="Loading your data…", ms=9000) {
+  showBoot(message);
+  clearBootGuard();
+  bootGuardTimer = setTimeout(() => {
+    console.warn("BOOT GUARD TIMEOUT");
+    hideBoot();
+    if(currentUser) {
+      setSyncStatus("Cloud: unavailable");
+      showToast("Cloud timeout — using local data");
+    } else {
+      showAuth();
+      setSyncStatus("Cloud: local only");
+    }
+  }, ms);
+}
 function hideBoot() {
+  clearBootGuard();
   const overlay = document.getElementById("bootOverlay");
   if(overlay) overlay.style.display = "none";
 }
@@ -6508,6 +6534,29 @@ function showAuth() {
 function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   if(overlay) overlay.style.display = "none";
+}
+function resetCloudRuntimeState() {
+  applyingCloudState = false;
+  cloudReady = false;
+  cloudBootstrapInFlight = false;
+  cloudBootstrapToken += 1;
+  if(cloudSaveTimer) {
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer = null;
+  }
+}
+function applySignedOutUiState() {
+  resetCloudRuntimeState();
+  currentUser = null;
+  initialSyncResolved = true;
+  hideBoot();
+  showAuth();
+  updateAuthUi();
+  setAuthMessage("");
+  setSyncStatus("Cloud: local only");
+}
+function getAuthStateKey(user) {
+  return user && user.id ? `user:${user.id}` : "anon";
 }
 function updateAuthUi() {
   const signOutBtn = document.getElementById("signOutBtn");
@@ -6567,14 +6616,17 @@ async function loadCloudState() {
       }
       writeLocalSafetySnapshot("before_cloud_replace");
       applyingCloudState = true;
-      state = incomingState;
-      if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
-      state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      applyingCloudState = false;
-      requestRender("app");
-      setSyncStatus("Cloud: loaded");
-      return true;
+      try {
+        state = incomingState;
+        if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
+        state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        requestRender("app");
+        setSyncStatus("Cloud: loaded");
+        return true;
+      } finally {
+        applyingCloudState = false;
+      }
     } else {
       setSyncStatus("Cloud: local is newer");
       return false;
@@ -6585,25 +6637,27 @@ async function loadCloudState() {
 }
 async function saveCloudStateNow() {
   if(!currentUser || applyingCloudState || !initialSyncResolved) return false;
-  const iso = new Date().toISOString();
-  stampLocalUpdatedAt(iso);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  const payload = {
-    user_id: currentUser.id,
-    state_json: state,
-    updated_at: iso
-  };
-  const { error } = await withTimeout(
-    sb.from("app_state").upsert(payload, { onConflict: "user_id" }),
-    5000
-  );
-  if(error) {
+  try {
+    const iso = new Date().toISOString();
+    stampLocalUpdatedAt(iso);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const payload = {
+      user_id: currentUser.id,
+      state_json: state,
+      updated_at: iso
+    };
+    const { error } = await withTimeout(
+      sb.from("app_state").upsert(payload, { onConflict: "user_id" }),
+      5000
+    );
+    if(error) throw error;
+    setSyncStatus("Cloud: synced");
+    return true;
+  } catch (error) {
     console.error(error);
     setSyncStatus("Cloud: save failed");
     return false;
   }
-  setSyncStatus("Cloud: synced");
-  return true;
 }
 function scheduleCloudSave() {
   if(!cloudReady || !currentUser || applyingCloudState || !initialSyncResolved) return;
@@ -6614,23 +6668,29 @@ function scheduleCloudSave() {
   }, 700);
 }
 
-let cloudBootstrapInFlight = false;
 async function startCloudBootstrap() {
   if(!currentUser || cloudBootstrapInFlight) return;
   cloudBootstrapInFlight = true;
-  showBoot("Loading your cloud data…");
+  const bootstrapToken = ++cloudBootstrapToken;
+  armBootGuard("Loading your cloud data…", 9000);
   setSyncStatus("Cloud: loading…");
   try {
     const loadedFromCloud = await loadCloudState();
+    if(bootstrapToken !== cloudBootstrapToken) return;
     if(!loadedFromCloud) {
       await saveCloudStateNow();
     }
   } catch (e) {
     console.error("CLOUD BOOTSTRAP ERROR", e);
-    setSyncStatus("Cloud: unavailable");
+    if(bootstrapToken === cloudBootstrapToken) {
+      setSyncStatus("Cloud: unavailable");
+      showToast("Using local data");
+    }
   } finally {
-    cloudBootstrapInFlight = false;
-    hideBoot();
+    if(bootstrapToken === cloudBootstrapToken) {
+      cloudBootstrapInFlight = false;
+      hideBoot();
+    }
   }
 }
 
@@ -6680,6 +6740,12 @@ async function initSupabaseApp() {
     try {
       setSyncStatus("Cloud: signing out…");
       await signOutSupabase();
+      setTimeout(() => {
+        if(currentUser) {
+          console.warn("SIGN OUT FALLBACK APPLIED");
+          applySignedOutUiState();
+        }
+      }, 1200);
       showToast("Signed out");
     } catch (e) {
       console.error("SIGN OUT ERROR", e);
@@ -6691,8 +6757,16 @@ async function initSupabaseApp() {
   };
 
   sb.auth.onAuthStateChange((_event, session) => {
-    currentUser = session?.user || null;
+    const nextUser = session?.user || null;
+    const authStateKey = getAuthStateKey(nextUser);
+    currentUser = nextUser;
     console.log("AUTH USER", currentUser);
+
+    if(authStateKey === lastAuthStateKey && initialSyncResolved) {
+      updateAuthUi();
+      return;
+    }
+    lastAuthStateKey = authStateKey;
 
     if(currentUser) {
       hideAuth();
@@ -6702,23 +6776,20 @@ async function initSupabaseApp() {
       setSyncStatus("Cloud: connecting…");
       startCloudBootstrap();
     } else {
-      updateAuthUi();
-      cloudReady = false;
-      initialSyncResolved = true;
-      hideBoot();
-      showAuth();
-      setSyncStatus("Cloud: local only");
+      applySignedOutUiState();
     }
   });
 
   try {
-    showBoot("Checking your session…");
+    armBootGuard("Checking your session…", 7000);
     const { data } = await withTimeout(sb.auth.getSession(), 2500);
     currentUser = data?.session?.user || null;
+    lastAuthStateKey = getAuthStateKey(currentUser);
     console.log("SESSION USER", currentUser);
   } catch (e) {
     console.error("SESSION ERROR", e);
     currentUser = null;
+    lastAuthStateKey = getAuthStateKey(null);
   }
 
   if(currentUser) {
@@ -6729,12 +6800,7 @@ async function initSupabaseApp() {
     setSyncStatus("Cloud: connecting…");
     startCloudBootstrap();
   } else {
-    hideBoot();
-    updateAuthUi();
-    cloudReady = false;
-    initialSyncResolved = true;
-    showAuth();
-    setSyncStatus("Cloud: local only");
+    applySignedOutUiState();
   }
 }
 
