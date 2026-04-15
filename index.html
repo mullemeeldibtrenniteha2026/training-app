@@ -4207,7 +4207,7 @@ function computeRadarLifetime() {
 }
 
 // ===== UI STATE =====
-let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false};
+let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false, addBusy:false, lastAddSignature:"", lastAddAt:0, searchRenderTimer:null, historyRenderTimer:null};
 
 function getFilteredExercisesForCurrentDay() {
   const q = ui.search.trim().toLowerCase();
@@ -4869,8 +4869,38 @@ function renderApp() {
 }
 
 function render() { return requestRender("app"); }
+function scheduleSearchRender() {
+  if(ui.searchRenderTimer) clearTimeout(ui.searchRenderTimer);
+  ui.searchRenderTimer = setTimeout(() => {
+    ui.searchRenderTimer = null;
+    requestRender("exercises");
+  }, 60);
+}
+function scheduleHistoryPreviewRender() {
+  if(ui.historyRenderTimer) clearTimeout(ui.historyRenderTimer);
+  ui.historyRenderTimer = setTimeout(() => {
+    ui.historyRenderTimer = null;
+    requestRender("history");
+  }, 90);
+}
+function resolveAddExerciseName(rawName) {
+  const raw = String(rawName || "").trim();
+  if(!raw) return "";
+  const direct = EXERCISE_SUGGESTIONS.find(x => x.toLowerCase() === raw.toLowerCase());
+  if(direct) return direct;
+  if(EXERCISE_ALIASES[raw.toLowerCase()]) return EXERCISE_ALIASES[raw.toLowerCase()];
+  return normalizeExerciseDisplayName(raw);
+}
+function isRapidDuplicateAdd(signature) {
+  const now = Date.now();
+  return ui.lastAddSignature === signature && (now - ui.lastAddAt) < 900;
+}
+function markAddSignature(signature) {
+  ui.lastAddSignature = signature;
+  ui.lastAddAt = Date.now();
+}
 const searchInput = document.getElementById("searchInput");
-if(searchInput) searchInput.oninput = e => { ui.search=e.target.value; ui.activeExerciseIndex=0; requestRender("exercises"); };
+if(searchInput) searchInput.oninput = e => { ui.search=e.target.value; ui.activeExerciseIndex=0; scheduleSearchRender(); };
 document.getElementById("workoutModeBtn").onclick = () => {
   ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
   document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "EXIT WORKOUT" : "WORKOUT MODE";
@@ -4880,17 +4910,36 @@ document.getElementById("prevMonthBtn").onclick = () => { ui.month=new Date(ui.m
 document.getElementById("nextMonthBtn").onclick = () => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()+1, 1); requestRender("calendar"); };
 document.getElementById("addExerciseName").oninput = e => {
   const dl=document.getElementById("exerciseSuggestions");
-  dl.innerHTML = getExerciseSuggestions(e.target.value).map(x=>`<option value="${x}"></option>`).join("");
-  requestRender("history");
+  if(dl) dl.innerHTML = getExerciseSuggestions(e.target.value).map(x=>`<option value="${x}"></option>`).join("");
+  scheduleHistoryPreviewRender();
 };
 document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.onclick = () => { ui.radarMode = btn.dataset.radarMode; requestRender("radar"); });
 document.getElementById("addExerciseBtn").onclick = () => {
-  const name=document.getElementById("addExerciseName").value.trim();
-  if(!name) return;
-  addExercise(document.getElementById("addScope").value, name, document.getElementById("addHistoryMode").value);
-  document.getElementById("addExerciseName").value="";
-  document.getElementById("addHistoryMode").value="empty";
-  requestRender("app");
+  if(ui.addBusy) return;
+  const nameInput = document.getElementById("addExerciseName");
+  const scopeInput = document.getElementById("addScope");
+  const historyModeInput = document.getElementById("addHistoryMode");
+  const rawName = nameInput ? nameInput.value.trim() : "";
+  if(!rawName) return;
+  const resolvedName = resolveAddExerciseName(rawName);
+  const scope = scopeInput ? scopeInput.value : "day";
+  const historyMode = historyModeInput ? historyModeInput.value : "empty";
+  const signature = [ui.week, ui.day, scope, resolvedName.toLowerCase(), historyMode].join("|");
+  if(isRapidDuplicateAdd(signature)) {
+    showToast("Exercise already added");
+    return;
+  }
+  ui.addBusy = true;
+  try {
+    addExercise(scope, resolvedName, historyMode);
+    markAddSignature(signature);
+    if(nameInput) nameInput.value = "";
+    if(historyModeInput) historyModeInput.value = "empty";
+    scheduleHistoryPreviewRender();
+    requestRender("app");
+  } finally {
+    setTimeout(() => { ui.addBusy = false; }, 150);
+  }
 };
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
 if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
