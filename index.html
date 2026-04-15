@@ -4470,6 +4470,202 @@ body{
   }
 }
 
+
+/* =========================================
+   ITER40 — RADAR VISUAL POLISH ONLY
+   Base: iter39 confirmed working baseline
+   Scope locked to radar-card zone only
+   CSS only — no JS / data / render changes
+========================================= */
+.radar-card{
+  border:1px solid rgba(255,255,255,.07) !important;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(242,201,76,.07), rgba(242,201,76,0) 36%),
+    linear-gradient(180deg, rgba(18,31,53,.985), rgba(10,22,40,.985)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 20px 42px rgba(0,0,0,.24) !important;
+}
+
+.radar-card .section-title{
+  gap:12px !important;
+  margin-bottom:16px !important;
+}
+
+.radar-card #radarTitle{
+  font-size:22px !important;
+  line-height:1.06 !important;
+  letter-spacing:-.03em !important;
+  font-weight:800 !important;
+  color:#fbfcfe !important;
+  text-shadow:0 8px 24px rgba(0,0,0,.14);
+}
+
+.radar-card .radar-header-actions{
+  margin-top:0 !important;
+}
+
+.radar-card #radarToggle{
+  padding:5px !important;
+  gap:4px !important;
+  border:1px solid rgba(255,255,255,.09) !important;
+  background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.02)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 10px 24px rgba(0,0,0,.18) !important;
+}
+
+.radar-card #radarToggle button{
+  min-width:90px !important;
+  min-height:38px !important;
+  padding:8px 15px !important;
+  border-radius:999px !important;
+  font-size:12px !important;
+  font-weight:750 !important;
+  color:rgba(232,239,247,.62) !important;
+}
+
+.radar-card #radarToggle button.active{
+  color:#fff4cf !important;
+  background:linear-gradient(180deg, rgba(242,201,76,.26), rgba(242,201,76,.11)) !important;
+  box-shadow:
+    0 8px 20px rgba(242,201,76,.12),
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
+}
+
+.radar-card .radar-shell{
+  gap:16px !important;
+}
+
+.radar-card .radar-wrap{
+  max-width:336px !important;
+  padding:12px !important;
+  border-radius:26px !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(255,255,255,.08), rgba(255,255,255,0) 58%),
+    linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,.008)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    inset 0 -24px 40px rgba(6,12,22,.16),
+    0 22px 44px rgba(0,0,0,.20) !important;
+}
+
+.radar-card .radar-wrap::after{
+  inset:12px !important;
+  border-radius:22px !important;
+  border-color:rgba(255,255,255,.04) !important;
+}
+
+.radar-card #radarSvg{
+  filter:drop-shadow(0 10px 22px rgba(0,0,0,.12));
+}
+
+.radar-card #radarSvg line{
+  stroke:rgba(255,255,255,.075) !important;
+}
+
+.radar-card #radarSvg polygon[fill="none"]{
+  stroke:rgba(255,255,255,.065) !important;
+}
+
+.radar-card #radarSvg polygon[fill="rgba(242,201,76,.10)"]{
+  fill:rgba(242,201,76,.16) !important;
+  stroke:rgba(255,228,143,.86) !important;
+  stroke-width:2.3 !important;
+}
+
+.radar-card #radarSvg polygon[fill="rgba(255,255,255,.04)"]{
+  fill:rgba(255,255,255,.03) !important;
+  stroke:rgba(255,255,255,.13) !important;
+}
+
+.radar-card #radarSvg circle{
+  r:5.1;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.14));
+}
+
+.radar-card .radar-legend{
+  max-width:600px !important;
+  gap:10px !important;
+}
+
+.radar-card .radar-legend-item{
+  min-height:42px !important;
+  padding:10px 12px !important;
+  border-radius:15px !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.022)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 8px 18px rgba(0,0,0,.10) !important;
+  color:rgba(244,247,251,.94) !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  letter-spacing:-.01em !important;
+}
+
+.radar-card .radar-legend-dot{
+  width:10px !important;
+  height:10px !important;
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,.025),
+    0 4px 10px rgba(0,0,0,.10) !important;
+}
+
+.radar-card .radar-footnote{
+  max-width:500px !important;
+  color:rgba(218,227,238,.70) !important;
+  font-size:11px !important;
+  line-height:1.5 !important;
+}
+
+@media (max-width:640px){
+  .radar-card .section-title{
+    gap:10px !important;
+    margin-bottom:14px !important;
+  }
+
+  .radar-card #radarTitle{
+    font-size:20px !important;
+  }
+
+  .radar-card #radarToggle{
+    width:100% !important;
+    justify-content:center !important;
+  }
+
+  .radar-card #radarToggle button{
+    min-width:0 !important;
+    flex:1 1 0 !important;
+    min-height:36px !important;
+    padding:8px 10px !important;
+    font-size:11px !important;
+  }
+
+  .radar-card .radar-wrap{
+    max-width:304px !important;
+    padding:10px !important;
+    border-radius:24px !important;
+  }
+
+  .radar-card .radar-legend{
+    grid-template-columns:repeat(2, minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+
+  .radar-card .radar-legend-item{
+    min-height:38px !important;
+    padding:9px 10px !important;
+    font-size:11px !important;
+  }
+
+  .radar-card .radar-footnote{
+    font-size:10.5px !important;
+    line-height:1.45 !important;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
