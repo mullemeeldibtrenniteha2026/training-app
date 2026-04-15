@@ -4428,26 +4428,31 @@ function getWorkoutStatsSafe() {
 // ============================================================
 // CALENDAR / METRICS / RADAR RENDER ZONE
 // ============================================================
-function renderMetrics() {
-  const exs = getExercisesForWeekDay(ui.week,ui.day);
-  const totalSets = exs.reduce((sum,ex)=>sum+setCountOf(ui.week,ui.day,ex),0);
-  const doneSets = exs.reduce((sum,ex)=> {
-    let c=0; for(let i=0;i<setCountOf(ui.week,ui.day,ex);i++) if(String(getSet(ui.week,ui.day,ex,i).done||"")==="1") c++;
-    if(blockDoneOf(ui.week,ui.day,ex) && isRecoveryLike(ui.week,ui.day,ex)) c=Math.max(c,1);
-    return sum+c;
-  },0);
-  const totalVol = exs.reduce((sum,ex)=> {
-    let v=0; for(let i=0;i<setCountOf(ui.week,ui.day,ex);i++) { const x=setVolume(getSet(ui.week,ui.day,ex,i)); if(x) v+=x; }
-    return sum+v;
-  },0);
-  const groups = new Set(exs.map(ex => (codeOf(ui.week,ui.day,ex).match(/^([A-Z])/)||["","•"])[1])).size;
-  document.getElementById("metrics").innerHTML = `
+function getMetricsSummary() {
+  const summary = summarizeCurrentDay();
+  const groups = new Set(summary.exs.map(ex => (codeOf(ui.week,ui.day,ex).match(/^([A-Z])/)||["","•"])[1])).size;
+  return {
+    ...summary,
+    groups
+  };
+}
+
+function buildMetricsHtml(summary) {
+  const { exs, totalSets, doneSets, totalVol, groups } = summary;
+  return `
     <div class="metric"><div class="k">Week</div><div class="v">W${ui.week}</div><div class="s">${weekRangeLabel(ui.week)}</div></div>
     <div class="metric"><div class="k">Day</div><div class="v">${DAY_LABEL[ui.day]}</div><div class="s">${fmtFullDate(dayDate(ui.week,ui.day))}</div></div>
     <div class="metric"><div class="k">Blocks</div><div class="v">${groups||0}</div><div class="s">${exs.length} exercises</div></div>
     <div class="metric"><div class="k">Volume</div><div class="v">${totalVol ? totalVol.toLocaleString("en-GB") : 0} kg</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
   `;
-  document.getElementById("weekHeader").textContent = "";
+}
+
+function renderMetrics() {
+  const metricsRoot = document.getElementById("metrics");
+  if(!metricsRoot) return;
+  metricsRoot.innerHTML = buildMetricsHtml(getMetricsSummary());
+  const weekHeader = document.getElementById("weekHeader");
+  if(weekHeader) weekHeader.textContent = "";
 }
 
 
@@ -4530,36 +4535,49 @@ function renderDays() {
 }
 
 // ===== RENDER: RADAR =====
-function renderRadar() {
-  const svg = document.getElementById("radarSvg");
-  const legend = document.getElementById("radarLegend");
-  const footnote = document.getElementById("radarFootnote");
-  const totals = ui.radarMode==="day" ? computeRadar(ui.week, ui.day) : (ui.radarMode==="week" ? computeRadar(ui.week) : computeRadarLifetime());
-  const title = document.getElementById("radarTitle");
-  if(title) title.textContent = "Muscular Radar";
-  document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.classList.toggle("active", btn.dataset.radarMode===ui.radarMode));
+const RADAR_AXES = [
+  ["chest","Chest","#ffb84d"],
+  ["back","Back","#ff7a45"],
+  ["shoulders","Shoulders","#58a6ff"],
+  ["arms","Arms","#48c6ff"],
+  ["quads","Quads","#4dd4ac"],
+  ["posterior","Posterior","#6be675"],
+  ["core","Core","#9de05e"],
+  ["conditioning","Conditioning","#ffd24d"]
+];
 
-  const axes = [
-    ["chest","Chest","#ffb84d"],
-    ["back","Back","#ff7a45"],
-    ["shoulders","Shoulders","#58a6ff"],
-    ["arms","Arms","#48c6ff"],
-    ["quads","Quads","#4dd4ac"],
-    ["posterior","Posterior","#6be675"],
-    ["core","Core","#9de05e"],
-    ["conditioning","Conditioning","#ffd24d"]
-  ];
-  const values = axes.map(([k]) => totals[k] || 0);
-  const max = Math.max(1, ...values);
-  const total = values.reduce((a,b)=>a+b,0);
+function getRadarTotalsForCurrentMode() {
+  if (ui.radarMode === "day") return computeRadar(ui.week, ui.day);
+  if (ui.radarMode === "week") return computeRadar(ui.week);
+  return computeRadarLifetime();
+}
+
+function getRadarStrongestArea(values) {
   const strongestIdx = values.indexOf(Math.max(...values));
-  const strongestLabel = axes[strongestIdx]?.[1] || "Balanced";
-  const strongestValue = values[strongestIdx] || 0;
-  const cx=160, cy=160, r=116, rings=5;
+  return {
+    label: RADAR_AXES[strongestIdx]?.[1] || "Balanced",
+    value: values[strongestIdx] || 0
+  };
+}
+
+function buildRadarLegendHtml() {
+  return RADAR_AXES.map(([k,label,color]) => `<div class="radar-legend-item"><span class="radar-legend-dot" style="background:${color}"></span><span>${label}</span></div>`).join("");
+}
+
+function buildRadarFootnoteText(strongestArea) {
+  return strongestArea.value
+    ? `Strongest area: ${strongestArea.label} · ${strongestArea.value} set${strongestArea.value===1?'':'s'} · scale optimized for low-volume visibility`
+    : `No volume yet for this ${ui.radarMode} view.`;
+}
+
+function buildRadarSvgMarkup(totals) {
+  const values = RADAR_AXES.map(([k]) => totals[k] || 0);
+  const max = Math.max(1, ...values);
+  const cx = 160, cy = 160, r = 116, rings = 5;
   const minVisibleRadius = 26;
 
   const pointFor = (radius, i) => {
-    const a = -Math.PI/2 + i * (Math.PI*2/axes.length);
+    const a = -Math.PI/2 + i * (Math.PI*2/RADAR_AXES.length);
     return {x: cx + Math.cos(a)*radius, y: cy + Math.sin(a)*radius};
   };
 
@@ -4584,19 +4602,19 @@ function renderRadar() {
 
   for(let ring=1; ring<=rings; ring++) {
     const rr = r * ring / rings;
-    const pts = axes.map((_,i) => {
+    const pts = RADAR_AXES.map((_,i) => {
       const p = pointFor(rr, i);
       return `${p.x},${p.y}`;
     }).join(" ");
     out += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,${ring===rings ? '.10' : '.07'})" stroke-width="${ring===rings ? 1.3 : 1}"/>`;
   }
 
-  axes.forEach(([, , ],i) => {
+  RADAR_AXES.forEach((_, i) => {
     const p = pointFor(r, i);
     out += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;
   });
 
-  const pts = axes.map(([k,label,color], i) => {
+  const pts = RADAR_AXES.map(([k,label,color], i) => {
     const rr = scaledRadiusFor(totals[k] || 0);
     const p = pointFor(rr, i);
     return {...p, color, key:k, value:totals[k] || 0};
@@ -4611,14 +4629,23 @@ function renderRadar() {
     out += `<circle cx="${p.x}" cy="${p.y}" r="4.8" fill="${p.color}" stroke="#09182d" stroke-width="1.8"/>`;
   });
 
-  svg.innerHTML = out;
+  return out;
+}
 
-  if(legend){
-    legend.innerHTML = axes.map(([k,label,color]) => `<div class="radar-legend-item"><span class="radar-legend-dot" style="background:${color}"></span><span>${label}</span></div>`).join("");
-  }
-  if(footnote){
-    footnote.textContent = strongestValue ? `Strongest area: ${strongestLabel} · ${strongestValue} set${strongestValue===1?'':'s'} · scale optimized for low-volume visibility` : `No volume yet for this ${ui.radarMode} view.`;
-  }
+function renderRadar() {
+  const svg = document.getElementById("radarSvg");
+  const legend = document.getElementById("radarLegend");
+  const footnote = document.getElementById("radarFootnote");
+  const title = document.getElementById("radarTitle");
+  const totals = getRadarTotalsForCurrentMode();
+  const values = RADAR_AXES.map(([k]) => totals[k] || 0);
+  const strongestArea = getRadarStrongestArea(values);
+
+  if(title) title.textContent = "Muscular Radar";
+  document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.classList.toggle("active", btn.dataset.radarMode===ui.radarMode));
+  if(svg) svg.innerHTML = buildRadarSvgMarkup(totals);
+  if(legend) legend.innerHTML = buildRadarLegendHtml();
+  if(footnote) footnote.textContent = buildRadarFootnoteText(strongestArea);
 }
 
 function refreshScopeLabels() {
