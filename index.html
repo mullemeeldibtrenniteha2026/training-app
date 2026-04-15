@@ -3941,7 +3941,12 @@ function normalizeAppState(rawState) {
 function normalizeUiState() {
   const weeks = getWeeks();
   if (!weeks.length) return;
-  if (!weeks.includes(ui.week)) ui.week = weeks[weeks.length - 1];
+  const weekNum = Number(ui.week);
+  if (!Number.isFinite(weekNum) || weekNum < 1) {
+    ui.week = weeks[weeks.length - 1];
+  } else {
+    ui.week = Math.floor(weekNum);
+  }
   const dayOptions = allDaysInWeek(ui.week);
   if (!DAY_ORDER.includes(ui.day) || (dayOptions.length && !dayOptions.includes(ui.day))) {
     ui.day = getFirstDay(ui.week);
