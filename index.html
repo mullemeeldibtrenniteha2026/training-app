@@ -5021,6 +5021,171 @@ body{
     line-height:1.38 !important;
   }
 }
+
+/* =========================================
+   ITER51 — RADAR BODY + INSIGHT LAYER
+   Base: iter50 confirmed working baseline
+   Scope locked to radar-card zone only
+   Adds body visualization + strongest/weakest/balance insight
+   No auth / overlay / calendar / workout flow changes
+========================================= */
+.radar-card .radar-balance-top{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(148px,176px) minmax(0,328px);
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+}
+.radar-card .radar-body-card{
+  width:100%;
+  display:flex;
+  justify-content:center;
+}
+.radar-card .radar-body-figure{
+  position:relative;
+  width:148px;
+  height:232px;
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(255,255,255,.08), rgba(255,255,255,0) 40%),
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 18px 34px rgba(0,0,0,.14);
+}
+.radar-card .radar-body-head,
+.radar-card .radar-body-outline,
+.radar-card .radar-zone{position:absolute;left:50%;transform:translateX(-50%);}
+.radar-card .radar-body-head{
+  top:14px;
+  width:34px;
+  height:34px;
+  border-radius:999px;
+  background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.08);
+}
+.radar-card .radar-body-outline{
+  top:50px;
+  width:86px;
+  height:162px;
+  border-radius:42px 42px 32px 32px;
+  border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+}
+.radar-card .radar-zone{
+  border-radius:18px;
+  background:rgba(111,139,176,.12);
+  border:1px solid rgba(255,255,255,.04);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+  transition:background-color .18s ease, box-shadow .18s ease, border-color .18s ease, opacity .18s ease;
+}
+.radar-card .radar-zone::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0));
+  opacity:.28;
+}
+.radar-card .zone-shoulders{top:54px;width:92px;height:24px;border-radius:18px;}
+.radar-card .zone-back{top:76px;width:54px;height:32px;border-radius:18px;opacity:.9;}
+.radar-card .zone-chest{top:82px;width:62px;height:30px;border-radius:18px;}
+.radar-card .zone-arms.left{top:82px;left:28px;transform:none;width:18px;height:66px;border-radius:16px;}
+.radar-card .zone-arms.right{top:82px;left:auto;right:28px;transform:none;width:18px;height:66px;border-radius:16px;}
+.radar-card .zone-core{top:116px;width:46px;height:38px;border-radius:16px;}
+.radar-card .zone-posterior{top:158px;width:54px;height:28px;border-radius:18px;opacity:.92;}
+.radar-card .zone-quads.left{top:182px;left:48px;transform:none;width:24px;height:40px;border-radius:16px;}
+.radar-card .zone-quads.right{top:182px;left:auto;right:48px;transform:none;width:24px;height:40px;border-radius:16px;}
+.radar-card .radar-zone.is-low{
+  background:rgba(111,139,176,.12);
+  border-color:rgba(255,255,255,.04);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.radar-card .radar-zone.is-mid{
+  background:rgba(127,178,255,.20);
+  border-color:rgba(127,178,255,.22);
+  box-shadow:0 0 0 1px rgba(127,178,255,.08) inset, 0 10px 18px rgba(62,108,180,.10);
+}
+.radar-card .radar-zone.is-high{
+  background:linear-gradient(180deg, rgba(242,201,76,.42), rgba(242,201,76,.18));
+  border-color:rgba(242,201,76,.36);
+  box-shadow:0 0 0 1px rgba(242,201,76,.14) inset, 0 12px 22px rgba(242,201,76,.12);
+}
+.radar-card .radar-insights{
+  width:100%;
+  max-width:560px;
+  display:grid;
+  gap:9px;
+  margin:2px auto 0;
+}
+.radar-card .radar-insight-row{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  align-items:center;
+  gap:10px;
+  padding:0;
+}
+.radar-card .radar-insight-label{
+  color:rgba(168,186,208,.88);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.radar-card .radar-insight-value{
+  color:#f3f6fb;
+  font-size:14px;
+  font-weight:650;
+  line-height:1.35;
+}
+.radar-card .radar-insight-balance .radar-insight-value{color:#d8e4f4;}
+.radar-card .radar-focus-pill{
+  margin-top:3px;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(242,201,76,.16);
+  background:linear-gradient(180deg, rgba(242,201,76,.10), rgba(242,201,76,.04));
+  color:#f4deb0;
+  font-size:13px;
+  line-height:1.42;
+  font-weight:650;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.radar-card .radar-footnote{
+  max-width:560px !important;
+}
+@media (max-width:840px){
+  .radar-card .radar-balance-top{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .radar-card .radar-body-card{
+    order:1;
+  }
+  .radar-card .radar-wrap{
+    order:2;
+  }
+}
+@media (max-width:640px){
+  .radar-card .radar-body-figure{
+    width:136px;
+    height:218px;
+  }
+  .radar-card .radar-insights{
+    gap:8px;
+  }
+  .radar-card .radar-insight-label{
+    font-size:11px;
+  }
+  .radar-card .radar-insight-value{
+    font-size:13px;
+  }
+  .radar-card .radar-focus-pill{
+    padding:11px 12px;
+    font-size:12px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5135,7 +5300,30 @@ body{
           </div>
         </div>
         <div class="radar-shell">
-          <div class="radar-wrap"><svg id="radarSvg" viewBox="0 0 320 320" width="100%" height="100%"></svg></div>
+          <div class="radar-balance-top">
+            <div class="radar-body-card" aria-hidden="true">
+              <div class="radar-body-figure">
+                <div class="radar-body-head"></div>
+                <div class="radar-zone zone-shoulders" data-zone="shoulders"></div>
+                <div class="radar-zone zone-back" data-zone="back"></div>
+                <div class="radar-zone zone-chest" data-zone="chest"></div>
+                <div class="radar-zone zone-arms left" data-zone="arms"></div>
+                <div class="radar-zone zone-arms right" data-zone="arms"></div>
+                <div class="radar-zone zone-core" data-zone="core"></div>
+                <div class="radar-zone zone-posterior" data-zone="posterior"></div>
+                <div class="radar-zone zone-quads left" data-zone="quads"></div>
+                <div class="radar-zone zone-quads right" data-zone="quads"></div>
+                <div class="radar-body-outline"></div>
+              </div>
+            </div>
+            <div class="radar-wrap"><svg id="radarSvg" viewBox="0 0 320 320" width="100%" height="100%"></svg></div>
+          </div>
+          <div class="radar-insights" id="radarInsights">
+            <div class="radar-insight-row"><span class="radar-insight-label">Strongest</span><span class="radar-insight-value" id="radarStrongest">—</span></div>
+            <div class="radar-insight-row"><span class="radar-insight-label">Weakest</span><span class="radar-insight-value" id="radarWeakest">—</span></div>
+            <div class="radar-insight-row radar-insight-balance"><span class="radar-insight-label">Balance</span><span class="radar-insight-value" id="radarBalance">—</span></div>
+            <div class="radar-focus-pill" id="radarSuggestion">Build volume to unlock insight.</div>
+          </div>
           <div class="radar-legend" id="radarLegend"></div>
           <div class="radar-footnote" id="radarFootnote"></div>
         </div>
@@ -6205,6 +6393,10 @@ function renderRadar() {
   const svg = document.getElementById("radarSvg");
   const legend = document.getElementById("radarLegend");
   const footnote = document.getElementById("radarFootnote");
+  const strongestEl = document.getElementById("radarStrongest");
+  const weakestEl = document.getElementById("radarWeakest");
+  const balanceEl = document.getElementById("radarBalance");
+  const suggestionEl = document.getElementById("radarSuggestion");
   const totals = ui.radarMode==="day" ? computeRadar(ui.week, ui.day) : (ui.radarMode==="week" ? computeRadar(ui.week) : computeRadarLifetime());
   const title = document.getElementById("radarTitle");
   if(title) title.textContent = "Muscular Radar";
@@ -6223,9 +6415,11 @@ function renderRadar() {
   const values = axes.map(([k]) => totals[k] || 0);
   const max = Math.max(1, ...values);
   const total = values.reduce((a,b)=>a+b,0);
-  const strongestIdx = values.indexOf(Math.max(...values));
-  const strongestLabel = axes[strongestIdx]?.[1] || "Balanced";
-  const strongestValue = values[strongestIdx] || 0;
+  const ranked = axes
+    .map(([key, label, color]) => ({ key, label, color, value: totals[key] || 0 }))
+    .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label));
+  const strongest = ranked[0] || { key:"", label:"Balanced", value:0 };
+  const weakest = [...ranked].sort((a, b) => a.value - b.value || a.label.localeCompare(b.label))[0] || { key:"", label:"—", value:0 };
   const cx=160, cy=160, r=116, rings=5;
   const minVisibleRadius = 26;
 
@@ -6238,6 +6432,46 @@ function renderRadar() {
     if(value <= 0) return 0;
     const normalized = value / max;
     return minVisibleRadius + normalized * (r - minVisibleRadius);
+  };
+
+  const zoneTotals = {
+    shoulders: totals.shoulders || 0,
+    back: (totals.back || 0) + Math.round((totals.posterior || 0) * 0.35),
+    chest: totals.chest || 0,
+    arms: totals.arms || 0,
+    core: totals.core || 0,
+    posterior: totals.posterior || 0,
+    quads: totals.quads || 0
+  };
+  const zoneMax = Math.max(1, ...Object.values(zoneTotals));
+  document.querySelectorAll('.radar-zone[data-zone]').forEach(el => {
+    const zoneKey = el.dataset.zone;
+    const value = zoneTotals[zoneKey] || 0;
+    const ratio = value / zoneMax;
+    el.classList.remove('is-low', 'is-mid', 'is-high');
+    if(value <= 0 || ratio < 0.34) el.classList.add('is-low');
+    else if(ratio < 0.68) el.classList.add('is-mid');
+    else el.classList.add('is-high');
+  });
+
+  const upperBody = (totals.arms || 0) + (totals.back || 0) + (totals.chest || 0) + (totals.shoulders || 0);
+  const lowerBody = (totals.quads || 0) + (totals.posterior || 0);
+  let balanceText = 'Build more training history';
+  if(total > 0){
+    if(upperBody > lowerBody * 1.15) balanceText = `Upper body leads · ${upperBody} vs ${lowerBody}`;
+    else if(lowerBody > upperBody * 1.15) balanceText = `Lower body leads · ${lowerBody} vs ${upperBody}`;
+    else balanceText = 'Upper and lower body are relatively balanced';
+  }
+
+  const suggestionByKey = {
+    arms: 'Add 1 direct arm finisher this week.',
+    back: 'Add 1 pull or row movement this week.',
+    chest: 'Add 1 press variation this week.',
+    conditioning: 'Add 1 short conditioning block this week.',
+    core: 'Add 1 focused core block this week.',
+    posterior: 'Add 1 posterior-chain movement this week.',
+    quads: 'Add 1–2 leg movements this week.',
+    shoulders: 'Add 1 shoulder-focused movement this week.'
   };
 
   let out = `<defs>
@@ -6287,8 +6521,20 @@ function renderRadar() {
   if(legend){
     legend.innerHTML = axes.map(([k,label,color]) => `<div class="radar-legend-item"><span class="radar-legend-dot" style="background:${color}"></span><span>${label}</span></div>`).join("");
   }
+  if(strongestEl){
+    strongestEl.textContent = strongest.value ? `${strongest.label} · ${strongest.value} set${strongest.value===1?'':'s'}` : 'No volume yet';
+  }
+  if(weakestEl){
+    weakestEl.textContent = total ? `${weakest.label} · ${weakest.value} set${weakest.value===1?'':'s'}` : 'No volume yet';
+  }
+  if(balanceEl){
+    balanceEl.textContent = balanceText;
+  }
+  if(suggestionEl){
+    suggestionEl.textContent = total ? (suggestionByKey[weakest.key] || 'Add volume where you want more balance.') : `Log work in this ${ui.radarMode} view to unlock balance insight.`;
+  }
   if(footnote){
-    footnote.textContent = strongestValue ? `Strongest area: ${strongestLabel} · ${strongestValue} set${strongestValue===1?'':'s'} · scale optimized for low-volume visibility` : `No volume yet for this ${ui.radarMode} view.`;
+    footnote.textContent = strongest.value ? `This view highlights current load distribution across muscle groups.` : `No volume yet for this ${ui.radarMode} view.`;
   }
 }
 
