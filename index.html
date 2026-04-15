@@ -4666,6 +4666,243 @@ body{
   }
 }
 
+
+
+/* =========================================
+   ITER41 — MOBILE SPACING NORMALIZATION ONLY
+   Scope locked to mobile/tablet spacing rhythm
+   CSS only — no JS / DOM / font-size changes
+   Protected: auto-zoom fix, auth, overlays, render flow
+========================================= */
+@media (max-width: 980px) {
+  .app {
+    padding-bottom: 28px !important;
+  }
+
+  .left,
+  .right,
+  .exercise-list,
+  #searchResultsHost {
+    gap: 18px !important;
+  }
+
+  .card,
+  .metric,
+  .block-group {
+    border-radius: 20px !important;
+  }
+
+  .card,
+  .metric {
+    padding: 15px 14px !important;
+  }
+
+  .section-title {
+    margin-bottom: 12px !important;
+  }
+
+  .exercise {
+    padding: 15px 13px !important;
+  }
+
+  .exercise-main,
+  .left-main {
+    gap: 12px !important;
+  }
+
+  .compare.compact-last,
+  .field-grid,
+  .sets,
+  .exercise-actions,
+  .finish-workout-row {
+    margin-top: 14px !important;
+  }
+
+  .setrow {
+    margin: 0 !important;
+    padding: 9px !important;
+    gap: 8px !important;
+  }
+
+  .setcol .k {
+    margin-bottom: 6px !important;
+  }
+
+  .setinput,
+  .field,
+  .select,
+  .textarea,
+  .donebtn,
+  .setdeletebtn,
+  .setn,
+  .exercise-actions .btn,
+  .finish-workout-btn,
+  .finish-workout-inline-btn,
+  .workout-nav-row .btn,
+  .workout-progress-pill,
+  .add-grid > .btn,
+  .add-grid > .field,
+  .add-grid > .select {
+    min-height: 44px !important;
+  }
+
+  .exercise-actions {
+    gap: 10px !important;
+  }
+
+  .exercise-actions .btn {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app {
+    padding: 10px 10px 22px !important;
+  }
+
+  .topbar {
+    margin: -10px -10px 16px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .topbar-inner,
+  .topbar-main {
+    gap: 10px !important;
+  }
+
+  .metrics {
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .layout,
+  .left,
+  .right,
+  .exercise-list,
+  #searchResultsHost {
+    gap: 16px !important;
+  }
+
+  .card,
+  .metric {
+    padding: 14px 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .days-card,
+  .compact-search-card,
+  .radar-card,
+  .add-card,
+  .backup-tools-card,
+  .block-group,
+  .workout-focus-card,
+  .search-results-card {
+    margin: 0 !important;
+  }
+
+  .section-title {
+    margin-bottom: 10px !important;
+  }
+
+  .calendar-head,
+  .legend,
+  .add-grid,
+  .backup-tools-card .backup-actions,
+  .backup-tools-card .account-actions,
+  .workout-progress-row,
+  .workout-nav-row {
+    gap: 8px !important;
+  }
+
+  .add-grid {
+    margin-top: 8px !important;
+  }
+
+  .exercise {
+    padding: 14px 12px !important;
+  }
+
+  .exercise-main,
+  .left-main {
+    gap: 10px !important;
+  }
+
+  .compare.compact-last {
+    margin-top: 12px !important;
+  }
+
+  .field-grid {
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  .exercise .field,
+  .exercise .textarea,
+  .field-grid .field,
+  .field-grid .textarea,
+  .add-grid > .field,
+  .add-grid > .select,
+  .add-grid > .btn,
+  .compact-search-card .field,
+  .search-row .field {
+    min-height: 46px !important;
+  }
+
+  .sets {
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  .setrow {
+    grid-template-columns: 44px 1fr 1fr 72px 42px 42px !important;
+    gap: 7px !important;
+    padding: 8px !important;
+    border-radius: 16px !important;
+    min-height: 72px !important;
+  }
+
+  .setn,
+  .setinput,
+  .donebtn,
+  .setdeletebtn {
+    height: 42px !important;
+    min-height: 42px !important;
+  }
+
+  .setinput {
+    padding: 9px 9px !important;
+  }
+
+  .setcol .k {
+    margin-bottom: 5px !important;
+  }
+
+  .exercise-actions {
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  .exercise-actions .btn {
+    min-height: 42px !important;
+    border-radius: 13px !important;
+  }
+
+  .finish-workout-row {
+    margin: 16px 0 0 !important;
+  }
+
+  .finish-workout-btn {
+    min-height: 50px !important;
+    max-width: 340px !important;
+  }
+
+  .workout-focus-card {
+    padding: 16px 14px !important;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
