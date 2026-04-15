@@ -5410,6 +5410,117 @@ body{
   transform:none !important;
 }
 
+
+
+/* =========================================
+   ITER54 — BODY VISUAL ENHANCEMENT ONLY
+   Base: iter54 baseline uploaded by user
+   Scope locked to radar-card body visual only
+   HTML + CSS only — no render / data / workout changes
+========================================= */
+.radar-card .radar-body-card{
+  position:relative;
+}
+.radar-card .radar-body-card::before{
+  content:"";
+  position:absolute;
+  inset:auto 18% 8% 18%;
+  height:26%;
+  border-radius:999px;
+  background:radial-gradient(circle, rgba(242,201,76,.16), rgba(242,201,76,0) 68%);
+  filter:blur(16px);
+  opacity:.65;
+  pointer-events:none;
+}
+.radar-card .radar-body-figure-svg{
+  max-width:272px;
+  padding:12px;
+  border-radius:34px;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(255,255,255,.10), rgba(255,255,255,0) 44%),
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.012));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    inset 0 -28px 42px rgba(6,12,22,.14),
+    0 26px 48px rgba(0,0,0,.18);
+}
+.radar-card .radar-body-svg{
+  overflow:visible;
+}
+.radar-card .radar-body-svg .body-shell{
+  fill:url(#iter54ShellGrad);
+  stroke:rgba(255,255,255,.09);
+  stroke-width:1.1;
+}
+.radar-card .radar-body-svg .body-core-shell{
+  fill:url(#iter54InnerGrad);
+  stroke:rgba(255,255,255,.06);
+  stroke-width:1;
+}
+.radar-card .radar-body-svg .limb{
+  fill:url(#iter54LimbGrad);
+}
+.radar-card .radar-body-svg .body-head{
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.16));
+}
+.radar-card .radar-body-svg .body-neck,
+.radar-card .radar-body-svg .body-torso,
+.radar-card .radar-body-svg .body-hip-shell,
+.radar-card .radar-body-svg .left-leg,
+.radar-card .radar-body-svg .right-leg{
+  filter:drop-shadow(0 10px 16px rgba(0,0,0,.14));
+}
+.radar-card .radar-body-svg .left-arm,
+.radar-card .radar-body-svg .right-arm{
+  opacity:.95;
+}
+.radar-card .radar-body-svg .body-zone{
+  fill:rgba(111,139,176,.15);
+  stroke:rgba(255,255,255,.05);
+  stroke-width:1;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.12));
+  transition:fill .18s ease, stroke .18s ease, opacity .18s ease, filter .18s ease;
+}
+.radar-card .radar-body-svg [data-zone].is-low{
+  fill:rgba(111,139,176,.15);
+  stroke:rgba(255,255,255,.05);
+}
+.radar-card .radar-body-svg [data-zone].is-mid{
+  fill:rgba(127,178,255,.30);
+  stroke:rgba(127,178,255,.30);
+  filter:drop-shadow(0 10px 16px rgba(63,108,180,.18));
+}
+.radar-card .radar-body-svg [data-zone].is-high{
+  fill:rgba(242,201,76,.50);
+  stroke:rgba(242,201,76,.36);
+  filter:url(#iter54BodyGlow);
+}
+.radar-card .radar-body-svg .zone-back-svg{
+  opacity:.84;
+}
+.radar-card .radar-body-svg .zone-shoulders-svg{
+  opacity:.96;
+}
+@media (max-width:840px){
+  .radar-card .radar-body-figure-svg{
+    max-width:246px;
+    padding:10px;
+    border-radius:30px;
+  }
+}
+@media (max-width:640px){
+  .radar-card .radar-body-card::before{
+    inset:auto 14% 10% 14%;
+    height:22%;
+  }
+  .radar-card .radar-body-figure-svg{
+    max-width:218px;
+    padding:9px;
+    border-radius:28px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5527,18 +5638,28 @@ body{
           <div class="radar-balance-top">
             <div class="radar-body-card" aria-hidden="true">
               <div class="radar-body-figure radar-body-figure-svg">
-                <svg class="radar-body-svg male" viewBox="0 0 220 320" width="220" height="320" role="img" aria-label="Muscle balance body">
+                <svg class="radar-body-svg male" viewBox="0 0 260 360" width="260" height="360" role="img" aria-label="Muscle balance body">
                   <defs>
-                    <linearGradient id="iter52BodyShell" x1="0" y1="0" x2="0" y2="1">
+                    <linearGradient id="iter54ShellGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stop-color="rgba(255,255,255,0.14)"/>
-                      <stop offset="100%" stop-color="rgba(255,255,255,0.03)"/>
+                      <stop offset="55%" stop-color="rgba(255,255,255,0.07)"/>
+                      <stop offset="100%" stop-color="rgba(255,255,255,0.025)"/>
                     </linearGradient>
-                    <linearGradient id="iter52BodyInner" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+                    <linearGradient id="iter54InnerGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="rgba(255,255,255,0.11)"/>
                       <stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>
                     </linearGradient>
-                    <filter id="iter52SoftGlow" x="-40%" y="-40%" width="180%" height="180%">
-                      <feGaussianBlur stdDeviation="8" result="blur"/>
+                    <linearGradient id="iter54LimbGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="rgba(255,255,255,0.09)"/>
+                      <stop offset="100%" stop-color="rgba(255,255,255,0.03)"/>
+                    </linearGradient>
+                    <radialGradient id="iter54Aura" cx="50%" cy="18%" r="68%">
+                      <stop offset="0%" stop-color="rgba(255,255,255,0.16)"/>
+                      <stop offset="55%" stop-color="rgba(255,255,255,0.05)"/>
+                      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                    </radialGradient>
+                    <filter id="iter54BodyGlow" x="-40%" y="-40%" width="180%" height="180%">
+                      <feGaussianBlur stdDeviation="9" result="blur"/>
                       <feMerge>
                         <feMergeNode in="blur"/>
                         <feMergeNode in="SourceGraphic"/>
@@ -5546,86 +5667,122 @@ body{
                     </filter>
                   </defs>
 
-                  <ellipse cx="110" cy="34" rx="24" ry="25" class="body-shell"/>
-                  <path class="body-shell" d="M70 78
-                    C78 60, 94 52, 110 52
-                    C126 52, 142 60, 150 78
-                    C156 92, 159 106, 158 124
-                    C156 151, 148 177, 142 198
-                    C139 208, 138 220, 139 234
-                    C140 250, 144 275, 147 304
-                    L128 304
-                    C124 278, 121 257, 118 238
-                    C116 223, 114 208, 110 196
-                    C106 208, 104 223, 102 238
-                    C99 257, 96 278, 92 304
-                    L73 304
-                    C76 275, 80 250, 81 234
-                    C82 220, 81 208, 78 198
-                    C72 177, 64 151, 62 124
-                    C61 106, 64 92, 70 78 Z"/>
-                  <path class="body-core-shell" d="M88 86
-                    C94 80, 101 77, 110 77
-                    C119 77, 126 80, 132 86
-                    C138 93, 140 102, 139 114
-                    C137 134, 131 154, 127 172
-                    C124 184, 121 194, 110 201
-                    C99 194, 96 184, 93 172
-                    C89 154, 83 134, 81 114
-                    C80 102, 82 93, 88 86 Z"/>
+                  <ellipse cx="130" cy="180" rx="88" ry="144" fill="url(#iter54Aura)" opacity=".8"/>
 
-                  <path data-zone="shoulders" class="body-zone radar-zone" d="M62 82
-                    C73 63, 89 54, 110 54
-                    C131 54, 147 63, 158 82
-                    C151 89, 144 95, 136 99
-                    C128 88, 120 83, 110 83
-                    C100 83, 92 88, 84 99
-                    C76 95, 69 89, 62 82 Z"/>
-                  <path data-zone="chest" class="body-zone radar-zone" d="M85 98
-                    C92 90, 100 86, 110 86
-                    C120 86, 128 90, 135 98
-                    C132 112, 124 123, 110 128
-                    C96 123, 88 112, 85 98 Z"/>
-                  <path data-zone="back" class="body-zone radar-zone zone-back-svg" d="M85 92
-                    C93 83, 101 80, 110 80
-                    C119 80, 127 83, 135 92
-                    C135 116, 127 139, 110 151
-                    C93 139, 85 116, 85 92 Z"/>
-                  <path data-zone="arms" class="body-zone radar-zone" d="M61 90
-                    C54 102, 51 117, 52 135
-                    C53 152, 57 168, 61 183
-                    C64 194, 69 204, 76 212
-                    C79 198, 80 185, 79 172
-                    C76 148, 74 125, 75 105
-                    C75 100, 72 94, 67 90 Z"/>
-                  <path data-zone="arms" class="body-zone radar-zone" d="M159 90
-                    C166 102, 169 117, 168 135
-                    C167 152, 163 168, 159 183
-                    C156 194, 151 204, 144 212
-                    C141 198, 140 185, 141 172
-                    C144 148, 146 125, 145 105
-                    C145 100, 148 94, 153 90 Z"/>
-                  <path data-zone="core" class="body-zone radar-zone" d="M92 128
-                    C98 122, 103 120, 110 120
-                    C117 120, 122 122, 128 128
-                    C126 148, 122 165, 110 179
-                    C98 165, 94 148, 92 128 Z"/>
-                  <path data-zone="posterior" class="body-zone radar-zone" d="M91 182
-                    C97 176, 103 173, 110 173
-                    C117 173, 123 176, 129 182
-                    C127 193, 122 204, 110 210
-                    C98 204, 93 193, 91 182 Z"/>
-                  <path data-zone="quads" class="body-zone radar-zone" d="M83 212
-                    C91 213, 97 217, 101 224
-                    C102 240, 99 269, 95 304
-                    L76 304
-                    C79 270, 80 241, 83 212 Z"/>
-                  <path data-zone="quads" class="body-zone radar-zone" d="M137 212
-                    C129 213, 123 217, 119 224
-                    C118 240, 121 269, 125 304
-                    L144 304
-                    C141 270, 140 241, 137 212 Z"/>
+                  <g class="body-base">
+                    <ellipse cx="130" cy="40" rx="28" ry="30" class="body-shell body-head"/>
+                    <path class="body-shell body-neck" d="M117 63 C118 59, 122 56, 130 56 C138 56, 142 59, 143 63 L146 80 C141 84, 136 86, 130 86 C124 86, 119 84, 114 80 Z"/>
+                    <path class="body-shell body-torso" d="M89 88
+                      C100 71, 114 64, 130 64
+                      C146 64, 160 71, 171 88
+                      C182 105, 188 126, 187 150
+                      C186 170, 180 193, 174 214
+                      C169 231, 165 246, 165 261
+                      L95 261
+                      C95 246, 91 231, 86 214
+                      C80 193, 74 170, 73 150
+                      C72 126, 78 105, 89 88 Z"/>
+                    <path class="body-core-shell" d="M103 98
+                      C111 90, 119 86, 130 86
+                      C141 86, 149 90, 157 98
+                      C165 108, 167 122, 165 139
+                      C162 164, 154 188, 147 208
+                      C143 221, 139 232, 130 241
+                      C121 232, 117 221, 113 208
+                      C106 188, 98 164, 95 139
+                      C93 122, 95 108, 103 98 Z"/>
+                    <path class="body-shell body-hip-shell" d="M101 241
+                      C109 235, 119 232, 130 232
+                      C141 232, 151 235, 159 241
+                      C160 252, 157 262, 151 272
+                      C145 283, 139 294, 130 303
+                      C121 294, 115 283, 109 272
+                      C103 262, 100 252, 101 241 Z"/>
+                    <path class="body-shell limb left-arm" d="M87 95
+                      C74 105, 67 121, 66 141
+                      C65 165, 69 186, 76 205
+                      C81 219, 89 230, 99 238
+                      C101 225, 101 212, 98 196
+                      C94 176, 92 155, 92 137
+                      C92 121, 94 107, 87 95 Z"/>
+                    <path class="body-shell limb right-arm" d="M173 95
+                      C186 105, 193 121, 194 141
+                      C195 165, 191 186, 184 205
+                      C179 219, 171 230, 161 238
+                      C159 225, 159 212, 162 196
+                      C166 176, 168 155, 168 137
+                      C168 121, 166 107, 173 95 Z"/>
+                    <path class="body-shell limb left-leg" d="M109 272
+                      C115 285, 118 300, 119 316
+                      C120 328, 118 341, 114 350
+                      L95 350
+                      C96 337, 98 323, 100 309
+                      C102 294, 104 282, 109 272 Z"/>
+                    <path class="body-shell limb right-leg" d="M151 272
+                      C145 285, 142 300, 141 316
+                      C140 328, 142 341, 146 350
+                      L165 350
+                      C164 337, 162 323, 160 309
+                      C158 294, 156 282, 151 272 Z"/>
+                  </g>
+
+                  <g class="body-zones">
+                    <path data-zone="shoulders" class="body-zone radar-zone zone-shoulders-svg" d="M86 90
+                      C98 73, 112 66, 130 66
+                      C148 66, 162 73, 174 90
+                      C168 100, 160 108, 150 114
+                      C143 102, 137 96, 130 96
+                      C123 96, 117 102, 110 114
+                      C100 108, 92 100, 86 90 Z"/>
+                    <path data-zone="chest" class="body-zone radar-zone zone-chest-svg" d="M104 106
+                      C111 98, 120 94, 130 94
+                      C140 94, 149 98, 156 106
+                      C154 121, 145 133, 130 139
+                      C115 133, 106 121, 104 106 Z"/>
+                    <path data-zone="back" class="body-zone radar-zone zone-back-svg" d="M103 102
+                      C111 92, 120 88, 130 88
+                      C140 88, 149 92, 157 102
+                      C157 128, 148 150, 130 165
+                      C112 150, 103 128, 103 102 Z"/>
+                    <path data-zone="arms" class="body-zone radar-zone zone-arms-svg" d="M80 103
+                      C72 114, 69 128, 70 145
+                      C71 163, 75 181, 81 197
+                      C85 209, 91 219, 99 226
+                      C101 214, 100 201, 98 186
+                      C95 168, 94 151, 94 136
+                      C94 123, 92 112, 80 103 Z"/>
+                    <path data-zone="arms" class="body-zone radar-zone zone-arms-svg" d="M180 103
+                      C188 114, 191 128, 190 145
+                      C189 163, 185 181, 179 197
+                      C175 209, 169 219, 161 226
+                      C159 214, 160 201, 162 186
+                      C165 168, 166 151, 166 136
+                      C166 123, 168 112, 180 103 Z"/>
+                    <path data-zone="core" class="body-zone radar-zone zone-core-svg" d="M109 141
+                      C115 134, 122 131, 130 131
+                      C138 131, 145 134, 151 141
+                      C148 165, 142 187, 130 205
+                      C118 187, 112 165, 109 141 Z"/>
+                    <path data-zone="posterior" class="body-zone radar-zone zone-posterior-svg" d="M107 214
+                      C114 208, 121 205, 130 205
+                      C139 205, 146 208, 153 214
+                      C151 226, 145 236, 130 245
+                      C115 236, 109 226, 107 214 Z"/>
+                    <path data-zone="quads" class="body-zone radar-zone zone-quads-svg" d="M111 246
+                      C118 250, 122 258, 123 270
+                      C123 291, 121 320, 117 350
+                      L97 350
+                      C98 319, 101 289, 104 267
+                      C105 258, 107 251, 111 246 Z"/>
+                    <path data-zone="quads" class="body-zone radar-zone zone-quads-svg" d="M149 246
+                      C142 250, 138 258, 137 270
+                      C137 291, 139 320, 143 350
+                      L163 350
+                      C162 319, 159 289, 156 267
+                      C155 258, 153 251, 149 246 Z"/>
+                  </g>
                 </svg>
+              </div>
               </div>
             </div>
             <div class="radar-wrap"><svg id="radarSvg" viewBox="0 0 320 320" width="100%" height="100%"></svg></div>
