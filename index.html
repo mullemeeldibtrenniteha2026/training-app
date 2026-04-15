@@ -27,8 +27,6 @@ Purpose:
 <link rel="icon" type="image/png" sizes="512x512" href="./icon_512.png" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#0b1220" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <title>Timo Training Logbook v3.6</title>
 <style>
 :root {
@@ -259,7 +257,7 @@ input,textarea,select,button { font:inherit; }
 }
 @media (min-width:841px){
   .workout-end-panel{max-width:420px;margin:14px auto 0;}
-  .workout-end-actions{display:grid;}
+
 }
 .end-panel-shell{padding:0;background:transparent;border:none;box-shadow:none;}
 
@@ -984,7 +982,7 @@ input,textarea,select,button { font:inherit; }
 .topbar-inner{position:relative;gap:12px;max-width:1200px;}
 .topbar-main{gap:8px;padding-bottom:22px;}
 .title{width:100%;}
-.brand-lockup{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+
 .brand-copy{display:flex;align-items:baseline;justify-content:center;gap:8px;flex-wrap:wrap;}
 .brand-title{font-size:32px !important;line-height:1;letter-spacing:-.03em;}
 .brand-subtitle{font-size:16px !important;line-height:1;opacity:.78;letter-spacing:.04em;}
@@ -1012,7 +1010,7 @@ input,textarea,select,button { font:inherit; }
 @media (max-width:640px){
   :root{--section-gap:16px;--stack-gap:16px;}
   .app{padding-top:10px;}
-  .topbar{margin:-10px -10px var(--section-gap);}
+
   .topbar-inner{gap:10px;}
   .topbar-main{padding-bottom:18px;}
   .brand-copy{gap:6px;}
@@ -1425,14 +1423,6 @@ body{
   margin-bottom:var(--space-section, 20px);
 }
 
-.calendar-collapsible .section-title{
-  display:grid;
-  grid-template-columns:1fr auto;
-  align-items:center;
-  gap:10px;
-  margin-bottom:14px;
-}
-
 .calendar-head{
   display:flex;
   justify-content:center;
@@ -1760,9 +1750,6 @@ body{
 }
 
 @media (max-width:640px){
-  .exercise{
-    padding:14px 12px;
-  }
 
   .left-main{
     gap:10px;
@@ -1818,7 +1805,6 @@ body{
   }
 }
 
-
 .finish-summary-overlay{position:fixed;inset:0;z-index:10030;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(3,8,18,.68);backdrop-filter:blur(8px);}
 .finish-summary-card{width:min(420px,100%);background:linear-gradient(180deg,#132A4A,#0F243F);border:1px solid var(--line);border-radius:26px;box-shadow:var(--shadow);padding:24px 22px;text-align:center;}
 .finish-summary-kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.52);margin-bottom:10px;font-weight:700;}
@@ -1838,7 +1824,6 @@ body{
   .finish-summary-stat .v{font-size:20px;}
 }
 
-
 /* =========================================
    ITERATION 2 AUTHORITATIVE LAYER
    Scope: layout / spacing / visual rhythm
@@ -1851,10 +1836,6 @@ body{
   --iter2-space-stack:18px;
   --iter2-space-card:16px;
   --iter2-space-card-tight:12px;
-}
-
-.app{
-  padding:14px 14px 32px;
 }
 
 .topbar{
@@ -1991,9 +1972,6 @@ body{
   }
 }
 
-
-
-
 /* =========================================
    ITERATION 3 AUTHORITATIVE LAYER
    Scope: micro UX polish for workout interaction
@@ -2117,7 +2095,6 @@ body{
   }
 }
 
-
 /* =========================================
    ITERATION 3 HOTFIX
    Restore dark input surfaces inside workout cards
@@ -2174,7 +2151,6 @@ body{
 .exercise .field::placeholder{
   color:#7f95b1 !important;
 }
-
 
 /* =========================================
    ITERATION 4 AUTHORITATIVE LAYER
@@ -2246,7 +2222,6 @@ body{
   }
 }
 
-
 /* =========================================
    SAFE REFACTOR PACK 1 — CANONICAL LAYER
    Source of truth for safe zones:
@@ -2268,10 +2243,6 @@ body{
   --space-section:20px;
   --space-card:16px;
   --space-card-compact:12px;
-}
-
-.app{
-  padding:14px 14px 32px;
 }
 
 .topbar{
@@ -2304,11 +2275,6 @@ body{
   margin:0;
 }
 
-.metric,
-.card{
-  border-radius:20px;
-}
-
 .metric{
   padding:var(--space-card);
 }
@@ -2328,60 +2294,10 @@ body{
   overflow:hidden;
 }
 
-.block-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  padding:10px 12px;
-  background:#14181f;
-  border-bottom:1px solid var(--line);
-}
-
-.block-title{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-weight:700;
-  letter-spacing:-.01em;
-}
-
-.block-chip{
-  min-width:44px;
-  height:32px;
-  border-radius:11px;
-  display:grid;
-  place-items:center;
-  font-size:13px;
-}
-
-.exercise{
-  padding:14px 12px;
-  border-top:1px solid rgba(36,51,75,.55);
-}
-
-.exercise:first-child{
-  border-top:none;
-}
-
 .exercise.superset{
   border-left:5px solid rgba(242,201,76,.88);
   padding-left:10px;
   background-image:linear-gradient(90deg, rgba(242,201,76,.06), rgba(242,201,76,0) 22%);
-}
-
-.exercise-main{
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-  justify-content:space-between;
-}
-
-.left-main{
-  display:flex;
-  gap:10px;
-  min-width:0;
-  align-items:flex-start;
 }
 
 .codebox{
@@ -2412,52 +2328,10 @@ body{
   outline:none;
 }
 
-.exercise-meta{
-  margin-top:5px;
-  font-size:11px;
-  line-height:1.4;
-  color:#96abc4;
-}
-
-.compare{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:10px;
-  margin-top:10px;
-}
-
 .exercise.active-workout{
   border:1px solid rgba(242,201,76,.58);
   box-shadow:0 0 0 1px rgba(242,201,76,.18) inset, 0 14px 28px rgba(0,0,0,.18);
   background:linear-gradient(180deg, rgba(44,36,24,.78), rgba(20,27,39,.98));
-}
-
-.exercise.active-workout .exercise-name{
-  color:#fff3c9;
-}
-
-.workout-focus-card{
-  display:grid;
-  gap:12px;
-  text-align:center;
-}
-
-.workout-date-big{
-  text-align:center;
-  font-size:22px;
-  font-weight:800;
-  letter-spacing:-.02em;
-  color:#f2c94c;
-  margin-bottom:8px;
-}
-
-.workout-progress-row{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:12px;
 }
 
 .workout-progress-pill{
@@ -2471,34 +2345,12 @@ body{
   font-weight:800;
 }
 
-.workout-nav-row{
-  display:flex;
-  justify-content:center;
-  gap:8px;
-  margin-top:10px;
-}
-
-.workout-nav-row .btn{
-  min-width:120px;
-}
-
 /* --- Set rows / inputs --- */
 .field-grid{
   grid-template-columns:110px 1fr;
   gap:12px;
   align-items:start;
   margin-top:12px;
-}
-
-.label{
-  font-size:11px;
-  padding-top:9px;
-}
-
-.sets{
-  display:grid;
-  gap:8px;
-  margin-top:11px;
 }
 
 .setrow{
@@ -2525,11 +2377,6 @@ body{
   font-weight:800;
 }
 
-.setcol .k{
-  margin-bottom:6px;
-  color:#9eb1c8;
-}
-
 .setinput{
   width:100%;
   min-height:44px;
@@ -2541,10 +2388,6 @@ body{
   font-weight:600;
 }
 
-.setinput::placeholder{
-  color:#7f95b1;
-}
-
 .donebtn{
   width:44px;
   height:44px;
@@ -2554,13 +2397,6 @@ body{
   color:#9eb1c8;
   font-weight:800;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
-}
-
-.donebtn.on{
-  background:linear-gradient(180deg, rgba(57,181,106,.24), rgba(57,181,106,.12));
-  border-color:rgba(57,181,106,.58);
-  color:#d9ffe5;
-  box-shadow:0 10px 18px rgba(57,181,106,.12), inset 0 1px 0 rgba(255,255,255,.06);
 }
 
 /* --- Bottom action area --- */
@@ -2579,18 +2415,6 @@ body{
   border-radius:14px;
   font-weight:600;
   touch-action:manipulation;
-}
-
-.exercise-actions .btn.primary{
-  box-shadow:
-    0 10px 22px rgba(242,201,76,.18),
-    inset 0 1px 0 rgba(255,255,255,.12);
-}
-
-.finish-workout-row{
-  display:flex;
-  justify-content:center;
-  margin:18px 14px 16px;
 }
 
 .finish-workout-btn,
@@ -2629,15 +2453,6 @@ body{
 }
 
 @media (max-width:640px){
-  :root{
-    --space-section:16px;
-    --space-card:14px;
-    --space-card-compact:10px;
-  }
-
-  .app{
-    padding:10px 10px 20px;
-  }
 
   .topbar{
     margin:-10px -10px var(--space-section);
@@ -2663,59 +2478,12 @@ body{
     padding:14px 12px;
   }
 
-  .left-main{
-    gap:10px;
-  }
-
-  .codebox{
-    width:54px;
-    min-width:54px;
-    height:40px;
-    font-size:14px;
-    border-radius:12px;
-  }
-
-  .exercise-name{
-    font-size:17px;
-  }
-
-  .field-grid{
-    grid-template-columns:1fr;
-    gap:7px;
-    margin-top:10px;
-  }
-
-  .label{
-    padding-top:0;
-    text-align:center;
-  }
-
   .setrow{
     grid-template-columns:44px 1fr 1fr 70px 40px;
     min-height:70px;
     gap:7px;
     padding:8px;
     border-radius:16px;
-  }
-
-  .setinput,
-  .donebtn,
-  .setn{
-    min-height:42px;
-    height:42px;
-  }
-
-  .donebtn{
-    width:42px;
-  }
-
-  .finish-workout-row{
-    margin:16px 0 14px;
-  }
-
-  .finish-workout-btn{
-    width:100%;
-    max-width:320px;
   }
 
   .exercise-actions{
@@ -2729,11 +2497,7 @@ body{
     min-height:42px;
   }
 
-  .exercise.superset{
-    border-left-width:4px;
-  }
 }
-
 
 /* ===== Iteration 1 — Finish Summary Upgrade (SAFE) ===== */
 
@@ -2794,7 +2558,6 @@ body{
   border-radius: 14px;
   font-weight: 700;
 }
-
 
 /* ===== Iteration 2 — Finish Completion Feeling (SAFE) ===== */
 
@@ -2900,7 +2663,6 @@ body{
   }
 }
 
-
 /* ===== Iteration 3 — Finish Copy & Hierarchy Polish (SAFE) ===== */
 
 .finish-title::after{
@@ -2939,7 +2701,6 @@ body{
   color:#9eb1c8;
   margin-bottom:6px;
 }
-
 
 /* ===== Iteration 1 — Workout Mode Action Hierarchy (SAFE) =====
    Scope:
@@ -3128,7 +2889,6 @@ body{
   }
 }
 
-
 /* ===== Iteration 2 — Set Completion Clarity (SAFE) =====
    Scope:
    - set rows only
@@ -3238,7 +2998,6 @@ body{
   }
 }
 
-
 /* ===== Iteration 3 — Next-Step Guidance (SAFE) =====
    Scope:
    - set row guidance only
@@ -3292,7 +3051,6 @@ body{
     padding:4px 7px;
   }
 }
-
 
 /* ===== Iteration 4 — Timer Behavior Refinement (SAFE) =====
    Scope:
@@ -3427,7 +3185,6 @@ body{
   }
 }
 
-
 /* ===== Iteration 5 — Last Time Block Upgrade (SAFE) =====
    Scope:
    - last time compare block only
@@ -3531,8 +3288,6 @@ body{
     font-size:10px;
   }
 }
-
-
 
 /* =========================================
    ITER22 — RADAR LOCAL POLISH ONLY
@@ -3722,7 +3477,6 @@ body{
     font-size:11px;
   }
 }
-
 
 /* =========================================
    ITER23 — RADAR STRONG POLISH PACK
@@ -3918,11 +3672,6 @@ body{
     border-radius:24px;
   }
 
-  .radar-card .radar-legend{
-    grid-template-columns:repeat(2, minmax(0,1fr));
-    gap:8px;
-  }
-
   .radar-card .radar-legend-item{
     min-height:38px;
     padding:9px 10px;
@@ -3934,8 +3683,6 @@ body{
     line-height:1.45;
   }
 }
-
-
 
 /* =========================================
    ITER24 — EXERCISE CARD STRONG POLISH
@@ -3995,10 +3742,6 @@ body{
 
 .exercise:hover{
   border-top-color:rgba(88,114,156,.56);
-}
-
-.exercise:first-child{
-  border-top:none;
 }
 
 .exercise::after{
@@ -4247,10 +3990,6 @@ body{
     font-size:12px;
   }
 
-  .exercise{
-    padding:14px 12px;
-  }
-
   .exercise-name{
     font-size:18px !important;
   }
@@ -4338,8 +4077,6 @@ body{
     min-height:42px;
   }
 }
-
-
 
 /* =========================================
    ITER25 — WORKOUT MODE + FINISH FLOW POLISH
@@ -4643,11 +4380,6 @@ body{
     border-radius:13px !important;
   }
 
-  .workout-nav-row{
-    flex-wrap:wrap;
-    justify-content:center;
-  }
-
   .workout-nav-row .btn{
     flex:1 1 140px;
     min-width:0 !important;
@@ -4687,10 +4419,6 @@ body{
     font-size:20px !important;
   }
 
-  .finish-summary-done{
-    width:100%;
-    max-width:260px;
-  }
 }
 
 </style>
