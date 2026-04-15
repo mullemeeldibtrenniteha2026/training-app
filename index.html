@@ -4943,6 +4943,17 @@ body{
   }
 }
 
+
+
+/* =========================================
+   ITER43-45 — CORE WORKOUT CONTROL + TIMER RELIABILITY + WAKE LOCK
+   Base: iter42e
+   Scope: workout mode context lock, timer timestamp recovery, screen awake support
+========================================= */
+.exercise[data-anchor-match="1"]{
+  box-shadow:0 0 0 1px rgba(127,178,255,.22) inset;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5479,10 +5490,13 @@ function showToast(message="Saved") {
 
 function commitStateUpdate(mutator, options={}) {
   const opts = options || {};
+  const renderMode = opts.renderMode || "app";
+  if(renderMode === "exercises") queueExerciseViewportRestore();
   try {
     if (typeof mutator === "function") mutator();
   } catch (err) {
     console.error("State update failed:", err);
+    pendingExerciseViewportRestore = null;
     return false;
   }
   state = normalizeAppState(state);
@@ -5491,18 +5505,23 @@ function commitStateUpdate(mutator, options={}) {
   safeSetText("saveStatus", opts.message || "Saved locally on this device.");
   scheduleCloudSave();
   if (opts.toast) showToast(opts.toast);
-  requestRender(opts.renderMode || "app");
+  requestRender(renderMode);
+  syncWorkoutWakeLockSoon();
   return true;
 }
 function commitUiUpdate(mutator, renderMode="app") {
+  const nextRenderMode = renderMode || "app";
+  if(nextRenderMode === "exercises") queueExerciseViewportRestore();
   try {
     if (typeof mutator === "function") mutator();
   } catch (err) {
     console.error("UI update failed:", err);
+    pendingExerciseViewportRestore = null;
     return false;
   }
   normalizeUiState();
-  requestRender(renderMode || "app");
+  requestRender(nextRenderMode);
+  syncWorkoutWakeLockSoon();
   return true;
 }
 
@@ -5847,6 +5866,8 @@ function computeRadarLifetime() {
 
 // ===== UI STATE =====
 let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false, addBusy:false, lastAddSignature:"", lastAddAt:0, searchRenderTimer:null, historyRenderTimer:null};
+let pendingExerciseViewportRestore = null;
+let workoutWakeLock = null;
 
 function getFilteredExercisesForCurrentDay() {
   const q = ui.search.trim().toLowerCase();
@@ -5861,6 +5882,67 @@ function getFilteredWorkoutGroupCount() {
 function clampActiveExerciseIndex() {
   const max = Math.max(0, getFilteredWorkoutGroupCount() - 1);
   ui.activeExerciseIndex = Math.min(max, Math.max(0, Number(ui.activeExerciseIndex) || 0));
+}
+
+function buildFocusRestoreSelector(el) {
+  if(!el || !el.dataset) return "";
+  const role = el.dataset.role;
+  const ex = el.dataset.ex;
+  if(!role || !ex) return "";
+  const idx = el.dataset.idx;
+  const parts = [`[data-role="${role}"]`, `[data-ex="${ex}"]`];
+  if(typeof idx !== "undefined") parts.push(`[data-idx="${idx}"]`);
+  return parts.join("");
+}
+function captureExerciseViewportContext() {
+  const list = document.getElementById("exerciseList");
+  if(!list) return null;
+  const activeEl = document.activeElement;
+  const focusedCard = activeEl?.closest?.("[data-exercise-card]");
+  let anchorCard = focusedCard || document.querySelector("[data-exercise-card].active-workout") || list.querySelector("[data-exercise-card]");
+  if(!anchorCard) return null;
+  const rect = anchorCard.getBoundingClientRect();
+  let selectionStart = null, selectionEnd = null;
+  try {
+    if(activeEl && typeof activeEl.selectionStart === "number") {
+      selectionStart = activeEl.selectionStart;
+      selectionEnd = activeEl.selectionEnd;
+    }
+  } catch {}
+  return {
+    ex: anchorCard.getAttribute("data-exercise-card") || "",
+    top: rect.top,
+    selector: buildFocusRestoreSelector(activeEl),
+    selectionStart,
+    selectionEnd
+  };
+}
+function queueExerciseViewportRestore() {
+  pendingExerciseViewportRestore = captureExerciseViewportContext();
+}
+function restoreExerciseViewportContext() {
+  const ctx = pendingExerciseViewportRestore;
+  pendingExerciseViewportRestore = null;
+  if(!ctx || !ctx.ex) return;
+  const anchorCard = document.querySelector(`[data-exercise-card="${ctx.ex}"]`);
+  if(anchorCard) {
+    const delta = anchorCard.getBoundingClientRect().top - Number(ctx.top || 0);
+    if(Number.isFinite(delta) && Math.abs(delta) > 1) window.scrollBy(0, delta);
+  }
+  if(ctx.selector) {
+    const target = document.querySelector(ctx.selector);
+    if(target) {
+      try { target.focus({ preventScroll: true }); } catch { try { target.focus(); } catch {} }
+      try {
+        if(typeof ctx.selectionStart === "number" && typeof target.setSelectionRange === "function") {
+          target.setSelectionRange(ctx.selectionStart, typeof ctx.selectionEnd === "number" ? ctx.selectionEnd : ctx.selectionStart);
+        }
+      } catch {}
+    }
+  }
+}
+function syncWorkoutWakeLockSoon() {
+  setTimeout(() => { syncWorkoutWakeLock(); }, 0);
 }
 
 // ============================================================
@@ -6374,9 +6456,11 @@ function renderExercises() {
   const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
   if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
     const exs = getExercisesForWeekDay(ui.week, ui.day);
+    const groupsForDay = getWorkoutGroups(getFilteredExercisesForCurrentDay());
     let active = null;
     if(ui.workoutMode){
-      active = exs[ui.activeExerciseIndex] || null;
+      const activeGroupForDay = groupsForDay[ui.activeExerciseIndex] || null;
+      active = activeGroupForDay?.items?.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || activeGroupForDay?.items?.[0] || null;
     }
     if(!active || isRecoveryLike(ui.week, ui.day, active)) {
       active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
@@ -6388,14 +6472,9 @@ function renderExercises() {
     commitStateUpdate(() => {
       appendWorkoutSet(active);
     }, { renderMode:"exercises", toast:"Set added" });
-    const card = document.querySelector(`[data-exercise-card="${active}"]`);
-    if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
   };
 
-  if(ui.workoutMode && activeGroup && activeGroup.items.length){
-    const activeCard = document.querySelector(`[data-exercise-card="${activeGroup.items[0]}"]`);
-    if(activeCard) activeCard.scrollIntoView({block:"nearest", behavior:"smooth"});
-  }
+  requestAnimationFrame(() => restoreExerciseViewportContext());
 }
 
 
@@ -7112,11 +7191,17 @@ async function initSupabaseApp() {
 
 
 // ===== TIMER =====
-const timerState = { elapsed: 0, interval: null, running: false };
+const timerState = { elapsedMs: 0, startedAt: null, interval: null, running: false };
 
 // ============================================================
 // TIMER ZONE
 // ============================================================
+function getTimerElapsedMs() {
+  if(timerState.running && timerState.startedAt) {
+    return Math.max(0, timerState.elapsedMs + (Date.now() - timerState.startedAt));
+  }
+  return Math.max(0, timerState.elapsedMs || 0);
+}
 function formatTimer(totalSeconds) {
   const mins = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
   const secs = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
@@ -7130,11 +7215,11 @@ function renderTimer() {
   const resetBtn = document.getElementById("timerResetBtn");
   const hint = document.querySelector(".timer-hint");
   const sheet = document.querySelector(".timer-sheet");
-  const elapsed = timerState.elapsed || 0;
-  const hasValue = elapsed > 0;
+  const elapsedSeconds = Math.floor(getTimerElapsedMs() / 1000);
+  const hasValue = elapsedSeconds > 0;
 
   if(display) {
-    display.textContent = formatTimer(elapsed);
+    display.textContent = formatTimer(elapsedSeconds);
     display.classList.toggle("is-live", timerState.running);
     display.classList.toggle("is-paused", !timerState.running && hasValue);
   }
@@ -7144,8 +7229,8 @@ function renderTimer() {
   if(btn) {
     btn.classList.toggle("timer-live", timerState.running || hasValue);
     btn.textContent = timerState.running
-      ? `⏱ ${formatTimer(elapsed)}`
-      : (hasValue ? `⏱ ${formatTimer(elapsed)}` : "⏱ Timer");
+      ? `⏱ ${formatTimer(elapsedSeconds)}`
+      : (hasValue ? `⏱ ${formatTimer(elapsedSeconds)}` : "⏱ Timer");
   }
 
   if(startBtn) startBtn.textContent = timerState.running ? "Running" : (hasValue ? "Resume" : "Start");
@@ -7164,35 +7249,48 @@ function stopTimerInterval() {
   if(timerState.interval) clearInterval(timerState.interval);
   timerState.interval = null;
 }
+function ensureTimerInterval() {
+  stopTimerInterval();
+  if(!timerState.running) return;
+  timerState.interval = setInterval(() => {
+    renderTimer();
+  }, 250);
+}
 function startTimer() {
   if(timerState.running) return;
-  stopTimerInterval();
+  timerState.startedAt = Date.now();
   timerState.running = true;
+  ensureTimerInterval();
   renderTimer();
-  timerState.interval = setInterval(() => {
-    timerState.elapsed += 1;
-    renderTimer();
-  }, 1000);
+  syncWorkoutWakeLockSoon();
 }
 function pauseTimer() {
+  if(timerState.running && timerState.startedAt) {
+    timerState.elapsedMs = getTimerElapsedMs();
+  }
+  timerState.startedAt = null;
   timerState.running = false;
   stopTimerInterval();
   renderTimer();
+  syncWorkoutWakeLockSoon();
 }
 function resetTimer() {
-  timerState.elapsed = 0;
+  timerState.elapsedMs = 0;
+  timerState.startedAt = null;
   timerState.running = false;
   stopTimerInterval();
   renderTimer();
+  syncWorkoutWakeLockSoon();
 }
 function openTimer() {
   const overlay = document.getElementById("timerOverlay");
   if(overlay) overlay.style.display = "flex";
   renderTimer();
   requestAnimationFrame(() => {
+    const hasValue = Math.floor(getTimerElapsedMs() / 1000) > 0;
     const target = timerState.running
       ? document.getElementById("timerPauseBtn")
-      : (timerState.elapsed > 0 ? document.getElementById("timerStartBtn") : document.getElementById("timerStartBtn"));
+      : (hasValue ? document.getElementById("timerStartBtn") : document.getElementById("timerStartBtn"));
     target?.focus();
   });
 }
@@ -7202,6 +7300,46 @@ function closeTimer() {
 }
 
 
+
+async function requestWorkoutWakeLock() {
+  try {
+    if(!("wakeLock" in navigator)) return;
+    if(workoutWakeLock) return;
+    workoutWakeLock = await navigator.wakeLock.request("screen");
+    workoutWakeLock?.addEventListener?.("release", () => {
+      workoutWakeLock = null;
+    });
+  } catch (err) {
+    console.warn("Wake lock unavailable", err);
+    workoutWakeLock = null;
+  }
+}
+async function releaseWorkoutWakeLock() {
+  try {
+    if(workoutWakeLock) await workoutWakeLock.release();
+  } catch {}
+  workoutWakeLock = null;
+}
+function shouldHoldWorkoutWakeLock() {
+  return !!(ui.workoutMode || timerState.running);
+}
+function syncWorkoutWakeLock() {
+  if(document.visibilityState === "hidden") return;
+  if(shouldHoldWorkoutWakeLock()) requestWorkoutWakeLock();
+  else releaseWorkoutWakeLock();
+}
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "visible") {
+    renderTimer();
+    ensureTimerInterval();
+    syncWorkoutWakeLock();
+  }
+});
+window.addEventListener("focus", () => {
+  renderTimer();
+  ensureTimerInterval();
+  syncWorkoutWakeLock();
+});
 // ===== DEVICE LOCK / PIN =====
 const PIN_KEY = "timo_training_pin_v1";
 const PIN_SESSION_KEY = "timo_training_pin_session_v1";
