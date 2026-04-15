@@ -3986,6 +3986,35 @@ function showToast(message="Saved") {
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => el.classList.remove("show"), 1200);
 }
+
+function commitStateUpdate(mutator, options={}) {
+  const opts = options || {};
+  try {
+    if (typeof mutator === "function") mutator();
+  } catch (err) {
+    console.error("State update failed:", err);
+    return false;
+  }
+  state = normalizeAppState(state);
+  normalizeUiState();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  safeSetText("saveStatus", opts.message || "Saved locally on this device.");
+  scheduleCloudSave();
+  if (opts.toast) showToast(opts.toast);
+  requestRender(opts.renderMode || "app");
+  return true;
+}
+function commitUiUpdate(mutator, renderMode="app") {
+  try {
+    if (typeof mutator === "function") mutator();
+  } catch (err) {
+    console.error("UI update failed:", err);
+    return false;
+  }
+  normalizeUiState();
+  requestRender(renderMode || "app");
+  return true;
+}
 function updateSetVolumeForInput(input) {
   const row = input.closest(".setrow");
   if(!row) return;
@@ -4322,11 +4351,13 @@ function requestRender(mode="app") {
   requestRenderFrame(flushRenderQueue);
 }
 function goToday() {
-  const info = dateToProgramDay(TODAY);
-  ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
-  if(info) { ui.week=info.week; ui.day=info.day; }
-  else { ui.week=getInitialWeek(); ui.day=getFirstDay(ui.week); }
-  requestRender("app");
+  commitUiUpdate(() => {
+    const info = dateToProgramDay(TODAY);
+    ui.month = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+    if(info) { ui.week=info.week; ui.day=info.day; }
+    else { ui.week=getInitialWeek(); ui.day=getFirstDay(ui.week); }
+    ui.activeExerciseIndex = 0;
+  }, "app");
 }
 
 // ===== STABILITY HELPERS =====
@@ -4436,7 +4467,7 @@ function renderDays() {
   const pills = DAY_ORDER.map(day => `<div class="pill ${day===ui.day?'active':''}" data-day="${day}">${DAY_LABEL[day]}</div>`).join("");
   document.getElementById("dayPills").innerHTML = pills;
   const mobile=document.getElementById("mobileDayPills"); if(mobile) mobile.innerHTML = pills;
-  document.querySelectorAll("[data-day]").forEach(el => el.onclick = () => { ui.day=el.dataset.day; ui.activeExerciseIndex=0; requestRender("app"); });
+  document.querySelectorAll("[data-day]").forEach(el => el.onclick = () => commitUiUpdate(() => { ui.day=el.dataset.day; ui.activeExerciseIndex=0; }, "app"));
 }
 
 // ===== RENDER: RADAR =====
@@ -4628,15 +4659,15 @@ function markEntireWorkoutDone(){
       }
     }
   });
-  saveState();
 }
 function finishWorkoutNow(){
   const stats = getWorkoutSummaryStats(ui.week, ui.day);
-  markEntireWorkoutDone();
-  ui.workoutMode = false;
+  commitStateUpdate(() => {
+    markEntireWorkoutDone();
+    ui.workoutMode = false;
+  }, { renderMode:"app", message:"Workout saved locally on this device." });
   const btn = document.getElementById("workoutModeBtn");
   if(btn) btn.textContent = "WORKOUT MODE";
-  renderApp();
   openFinishSummary(stats);
 }
 
@@ -4888,27 +4919,30 @@ function bindExerciseEvents(all) {
     };
   });
   document.querySelectorAll("[data-jump-week][data-jump-day][data-jump-ex]").forEach(el => el.onclick = e => {
-    ui.week = Number(e.currentTarget.dataset.jumpWeek);
-    ui.day = e.currentTarget.dataset.jumpDay;
-    ui.search = "";
-    const input = document.getElementById("searchInput");
-    if(input) input.value = "";
-    const currentDayExercises = getExercisesForWeekDay(ui.week, ui.day);
     const targetEx = e.currentTarget.dataset.jumpEx;
-    ui.activeExerciseIndex = Math.max(0, currentDayExercises.indexOf(targetEx));
-    renderApp();
-    const targetCard = document.querySelector(`[data-exercise-card="${targetEx}"]`);
-    if(targetCard) targetCard.scrollIntoView({block:"center", behavior:"smooth"});
+    commitUiUpdate(() => {
+      ui.week = Number(e.currentTarget.dataset.jumpWeek);
+      ui.day = e.currentTarget.dataset.jumpDay;
+      ui.search = "";
+      const input = document.getElementById("searchInput");
+      if(input) input.value = "";
+      const currentDayExercises = getExercisesForWeekDay(ui.week, ui.day);
+      ui.activeExerciseIndex = Math.max(0, currentDayExercises.indexOf(targetEx));
+    }, "app");
+    requestAnimationFrame(() => {
+      const targetCard = document.querySelector(`[data-exercise-card="${targetEx}"]`);
+      if(targetCard) targetCard.scrollIntoView({block:"center", behavior:"smooth"});
+    });
   });
   const prev=document.getElementById("prevExerciseBtn"), next=document.getElementById("nextExerciseBtn");
-  if(prev) prev.onclick=()=>{ ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); requestRender("exercises"); };
-  if(next) next.onclick=()=>{ const count=getFilteredWorkoutGroupCount(); ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); requestRender("exercises"); };
+  if(prev) prev.onclick=()=> commitUiUpdate(() => { ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); }, "exercises");
+  if(next) next.onclick=()=> commitUiUpdate(() => { const count=getFilteredWorkoutGroupCount(); ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); }, "exercises");
 }
 function handleWorkoutModeKeydown(e){
   if(!ui.workoutMode) return;
   const count = getFilteredWorkoutGroupCount();
-  if(e.key==="ArrowRight"){ ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); requestRender("exercises"); }
-  if(e.key==="ArrowLeft"){ ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); requestRender("exercises"); }
+  if(e.key==="ArrowRight"){ commitUiUpdate(() => { ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); }, "exercises"); }
+  if(e.key==="ArrowLeft"){ commitUiUpdate(() => { ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); }, "exercises"); }
 }
 document.addEventListener("keydown", handleWorkoutModeKeydown);
 function renderAddScopeLabels() {
@@ -4968,20 +5002,26 @@ function markAddSignature(signature) {
   ui.lastAddAt = Date.now();
 }
 const searchInput = document.getElementById("searchInput");
-if(searchInput) searchInput.oninput = e => { ui.search=e.target.value; ui.activeExerciseIndex=0; scheduleSearchRender(); };
-document.getElementById("workoutModeBtn").onclick = () => {
-  ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
-  document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "EXIT WORKOUT" : "WORKOUT MODE";
-  requestRender("exercises");
+if(searchInput) searchInput.oninput = e => {
+  ui.search=e.target.value;
+  ui.activeExerciseIndex=0;
+  normalizeUiState();
+  scheduleSearchRender();
 };
-document.getElementById("prevMonthBtn").onclick = () => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()-1, 1); requestRender("calendar"); };
-document.getElementById("nextMonthBtn").onclick = () => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()+1, 1); requestRender("calendar"); };
+document.getElementById("workoutModeBtn").onclick = () => {
+  commitUiUpdate(() => {
+    ui.workoutMode=!ui.workoutMode; ui.activeExerciseIndex=0;
+    document.getElementById("workoutModeBtn").textContent = ui.workoutMode ? "EXIT WORKOUT" : "WORKOUT MODE";
+  }, "exercises");
+};
+document.getElementById("prevMonthBtn").onclick = () => commitUiUpdate(() => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()-1, 1); }, "calendar");
+document.getElementById("nextMonthBtn").onclick = () => commitUiUpdate(() => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()+1, 1); }, "calendar");
 document.getElementById("addExerciseName").oninput = e => {
   const dl=document.getElementById("exerciseSuggestions");
   if(dl) dl.innerHTML = getExerciseSuggestions(e.target.value).map(x=>`<option value="${x}"></option>`).join("");
   scheduleHistoryPreviewRender();
 };
-document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.onclick = () => { ui.radarMode = btn.dataset.radarMode; requestRender("radar"); });
+document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.onclick = () => commitUiUpdate(() => { ui.radarMode = btn.dataset.radarMode; }, "radar"));
 document.getElementById("addExerciseBtn").onclick = () => {
   if(ui.addBusy) return;
   const nameInput = document.getElementById("addExerciseName");
@@ -4999,12 +5039,13 @@ document.getElementById("addExerciseBtn").onclick = () => {
   }
   ui.addBusy = true;
   try {
-    addExercise(scope, resolvedName, historyMode);
-    markAddSignature(signature);
-    if(nameInput) nameInput.value = "";
-    if(historyModeInput) historyModeInput.value = "empty";
+    commitStateUpdate(() => {
+      addExercise(scope, resolvedName, historyMode);
+      markAddSignature(signature);
+      if(nameInput) nameInput.value = "";
+      if(historyModeInput) historyModeInput.value = "empty";
+    }, { renderMode:"app", message:"Exercise saved locally on this device." });
     scheduleHistoryPreviewRender();
-    requestRender("app");
   } finally {
     setTimeout(() => { ui.addBusy = false; }, 150);
   }
@@ -5032,10 +5073,10 @@ if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
     return;
   }
   const c = setCountOf(ui.week,ui.day,active);
-  state[`w${ui.week}_${ui.day}_${active}_s${c}`] = {kg:"",reps:"",done:""};
-  state[`sc_w${ui.week}_${ui.day}_${active}`] = c+1;
-  saveState();
-  showToast("Set added");
+  commitStateUpdate(() => {
+    state[`w${ui.week}_${ui.day}_${active}_s${c}`] = {kg:"",reps:"",done:""};
+    state[`sc_w${ui.week}_${ui.day}_${active}`] = c+1;
+  }, { renderMode:"app", toast:"Set added", message:"Set saved locally on this device." });
   const card = document.querySelector(`[data-exercise-card="${active}"]`);
   if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
 };
