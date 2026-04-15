@@ -152,6 +152,8 @@ input,textarea,select,button { font:inherit; }
 .field-grid .field,.field-grid .textarea{min-height:52px;}
 .setcol .k { color:var(--muted); font-size:11px; margin-bottom:4px; }
 .donebtn.on { background:rgba(79,192,141,.13); border-color:rgba(79,192,141,.45); color:var(--green); font-weight:700; }
+.setdeletebtn { width:44px; height:44px; border-radius:13px; border:1px solid rgba(58,78,111,.88); background:linear-gradient(180deg, rgba(30,20,24,.98), rgba(20,14,18,.98)); color:#d7b8bf; font-weight:800; cursor:pointer; box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+.setdeletebtn:active { transform:scale(.97); }
 .radar-wrap { aspect-ratio:1 / 1; max-width:300px; margin:0 auto; }
 .hidden-desktop { display:none; }
 
@@ -485,7 +487,7 @@ input,textarea,select,button { font:inherit; }
   .codebox { width:54px; min-width:54px; height:40px; font-size:14px; border-radius:12px; }
   .exercise-name { font-size:17px; }
   .exercise-meta { font-size:11px; }
-  .setrow { grid-template-columns:44px 1fr 1fr 70px 40px; gap:6px; padding:6px; border-radius:14px; }
+  .setrow { grid-template-columns:44px 1fr 1fr 70px 40px 40px; gap:6px; padding:6px; border-radius:14px; }
   .setn,.donebtn { height:40px; border-radius:10px; }
   .textarea { min-height:34px; padding:7px 9px; }
 }
@@ -1659,7 +1661,7 @@ body{
 
 .setrow{
   display:grid;
-  grid-template-columns:54px minmax(0,1fr) minmax(0,1fr) 94px 44px;
+  grid-template-columns:54px minmax(0,1fr) minmax(0,1fr) 94px 44px 44px;
   gap:8px;
   align-items:end;
   padding:8px;
@@ -1784,7 +1786,7 @@ body{
   }
 
   .setrow{
-    grid-template-columns:44px 1fr 1fr 70px 40px;
+    grid-template-columns:44px 1fr 1fr 70px 40px 40px;
     gap:6px;
     padding:7px;
     border-radius:14px;
@@ -2085,6 +2087,10 @@ body{
   .donebtn{
     width:42px;
   }
+  .setdeletebtn{
+    width:42px;
+    height:42px;
+  }
 
   .exercise.superset{
     border-left-width:4px;
@@ -2355,7 +2361,7 @@ body{
 
 .setrow{
   display:grid;
-  grid-template-columns:54px minmax(0,1fr) minmax(0,1fr) 94px 44px;
+  grid-template-columns:54px minmax(0,1fr) minmax(0,1fr) 94px 44px 44px;
   gap:10px;
   align-items:end;
   min-height:74px;
@@ -2479,7 +2485,7 @@ body{
   }
 
   .setrow{
-    grid-template-columns:44px 1fr 1fr 70px 40px;
+    grid-template-columns:44px 1fr 1fr 70px 40px 40px;
     min-height:70px;
     gap:7px;
     padding:8px;
@@ -4888,7 +4894,9 @@ function isCandidateStateUsable(candidateState) {
 function normalizeUiState() {
   const weeks = getWeeks();
   if (!weeks.length) return;
-  if (!weeks.includes(ui.week)) ui.week = weeks[weeks.length - 1];
+  const normalizedWeek = Number(ui.week);
+  if (!Number.isFinite(normalizedWeek) || normalizedWeek < 1) ui.week = weeks[weeks.length - 1];
+  else ui.week = Math.floor(normalizedWeek);
   const dayOptions = allDaysInWeek(ui.week);
   if (!DAY_ORDER.includes(ui.day) || (dayOptions.length && !dayOptions.includes(ui.day))) {
     ui.day = getFirstDay(ui.week);
@@ -5248,6 +5256,24 @@ function addExercise(scope,displayName,historyMode) {
   });
   saveState();
 }
+function removeWorkoutSet(ex, idx) {
+  const week = ui.week;
+  const day = ui.day;
+  const count = Math.max(1, Number(setCountOf(week, day, ex) || 1));
+  const targetIdx = Math.max(0, Math.min(count - 1, Number(idx) || 0));
+  if (count <= 1) {
+    state[`w${week}_${day}_${ex}_s0`] = { kg:"", reps:"", done:"" };
+    state[`sc_w${week}_${day}_${ex}`] = 1;
+    return { mode: "cleared_last", count: 1 };
+  }
+  for (let i = targetIdx; i < count - 1; i++) {
+    state[`w${week}_${day}_${ex}_s${i}`] = normalizeSetObject(state[`w${week}_${day}_${ex}_s${i + 1}`]);
+  }
+  delete state[`w${week}_${day}_${ex}_s${count - 1}`];
+  state[`sc_w${week}_${day}_${ex}`] = count - 1;
+  return { mode: "removed", count: count - 1 };
+}
+
 function deleteExercise(week,day,ex) {
   Object.keys(state).forEach(k => {
     if(new RegExp(`^(?:sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_${ex}$`).test(k)) delete state[k];
@@ -5745,6 +5771,7 @@ function renderExercises() {
             <div class="setcol"><div class="k">kg</div><input class="setinput" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
             <div class="setcol"><div class="k">reps</div><input class="setinput" inputmode="numeric" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
             <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setVolume(s)}" disabled /></div>
+            <button class="setdeletebtn" type="button" data-role="delete-set" data-ex="${ex}" data-idx="${i}" aria-label="Delete set">✕</button>
             <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
           </div>`;
         }).join("");
@@ -5775,7 +5802,7 @@ function renderExercises() {
 
           <div class="exercise-actions">
             ${recovery ? `<button class="btn gold" data-role="toggle-block" data-ex="${ex}">${done ? "Set as not done" : "Set as done"}</button>` : `<button class="btn" data-role="add-set" data-ex="${ex}">+ Set</button>`}
-            <button class="btn" data-role="delete" data-ex="${ex}">Delete</button>
+            <button class="btn" data-role="delete" data-ex="${ex}">Delete exercise</button>
           </div>
         </div>`;
       }).join("");
@@ -5922,6 +5949,13 @@ function bindExerciseEvents(all) {
     commitStateUpdate(() => {
       appendWorkoutSet(ex);
     }, { renderMode:"exercises", toast:"Set added" });
+  });
+  document.querySelectorAll("[data-role='delete-set']").forEach(el => el.onclick = e => {
+    const ex = e.currentTarget.dataset.ex;
+    const idx = Number(e.currentTarget.dataset.idx);
+    commitStateUpdate(() => {
+      removeWorkoutSet(ex, idx);
+    }, { renderMode:"exercises", toast:"Set removed" });
   });
   document.querySelectorAll("[data-role='delete']").forEach(el => el.onclick = e => deleteExercise(ui.week,ui.day,e.target.dataset.ex));
   document.querySelectorAll("[data-role='name']").forEach(el => {
