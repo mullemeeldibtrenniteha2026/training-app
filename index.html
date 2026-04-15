@@ -5396,6 +5396,100 @@ body{
 }
 
 
+
+/* =========================================
+   ITER55 — BODY CLARITY BOOST ONLY
+   Base: iter54 confirmed working baseline
+   Scope locked to radar-card body visual only
+   HTML + CSS only — no render / data / flow changes
+========================================= */
+.radar-card .radar-body-figure-svg{
+  position:relative;
+  overflow:visible;
+}
+.radar-card .radar-body-chip-layer{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.radar-card .radar-body-chip{
+  position:absolute;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:28px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(14,25,42,.94), rgba(10,20,35,.98));
+  color:rgba(219,228,240,.58);
+  font-size:11px;
+  font-weight:750;
+  letter-spacing:.01em;
+  line-height:1;
+  box-shadow:0 8px 18px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.04);
+  backdrop-filter:blur(6px);
+  transform:translateZ(0);
+  transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease,opacity .18s ease,transform .18s ease;
+}
+.radar-card .radar-body-chip::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0));
+  opacity:.5;
+  pointer-events:none;
+}
+.radar-card .radar-body-chip.is-low{opacity:.7;}
+.radar-card .radar-body-chip.is-mid{
+  color:#e8f1fc;
+  border-color:rgba(127,178,255,.26);
+  background:linear-gradient(180deg, rgba(33,59,94,.92), rgba(16,31,53,.98));
+  box-shadow:0 10px 22px rgba(63,108,180,.14), inset 0 1px 0 rgba(255,255,255,.06);
+  transform:translateY(-1px);
+}
+.radar-card .radar-body-chip.is-high{
+  color:#fff3cd;
+  border-color:rgba(242,201,76,.30);
+  background:linear-gradient(180deg, rgba(83,64,22,.94), rgba(43,34,14,.98));
+  box-shadow:0 12px 24px rgba(242,201,76,.14), 0 0 0 1px rgba(242,201,76,.08) inset, inset 0 1px 0 rgba(255,255,255,.08);
+  transform:translateY(-1px) scale(1.02);
+}
+.radar-card .radar-body-chip.chip-shoulders{top:34px; left:50%; transform:translateX(-50%);}
+.radar-card .radar-body-chip.chip-chest{top:104px; right:-28px;}
+.radar-card .radar-body-chip.chip-back{top:104px; left:-18px;}
+.radar-card .radar-body-chip.chip-arms{top:156px; right:-34px;}
+.radar-card .radar-body-chip.chip-core{top:168px; left:-26px;}
+.radar-card .radar-body-chip.chip-posterior{bottom:92px; left:-34px;}
+.radar-card .radar-body-chip.chip-quads{bottom:38px; right:-24px;}
+.radar-card .radar-body-svg [data-zone].is-low{opacity:.72;}
+.radar-card .radar-body-svg [data-zone].is-mid{opacity:.96;}
+.radar-card .radar-body-svg [data-zone].is-high{opacity:1;}
+.radar-card .radar-body-svg [data-zone].is-high,
+.radar-card .radar-body-chip.is-high{animation:iter55ZonePulse 2.2s ease-in-out infinite;}
+@keyframes iter55ZonePulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.08);}}
+@media (max-width:840px){
+  .radar-card .radar-body-chip{font-size:10.5px; min-height:26px; padding:6px 9px;}
+  .radar-card .radar-body-chip.chip-chest{right:-18px;}
+  .radar-card .radar-body-chip.chip-back{left:-12px;}
+  .radar-card .radar-body-chip.chip-arms{right:-22px;}
+  .radar-card .radar-body-chip.chip-core{left:-18px;}
+  .radar-card .radar-body-chip.chip-posterior{left:-22px;}
+  .radar-card .radar-body-chip.chip-quads{right:-16px;}
+}
+@media (max-width:640px){
+  .radar-card .radar-body-chip{font-size:10px; min-height:24px; padding:5px 8px;}
+  .radar-card .radar-body-chip.chip-shoulders{top:26px;}
+  .radar-card .radar-body-chip.chip-chest{top:92px; right:-12px;}
+  .radar-card .radar-body-chip.chip-back{top:92px; left:-10px;}
+  .radar-card .radar-body-chip.chip-arms{top:138px; right:-16px;}
+  .radar-card .radar-body-chip.chip-core{top:150px; left:-12px;}
+  .radar-card .radar-body-chip.chip-posterior{bottom:80px; left:-18px;}
+  .radar-card .radar-body-chip.chip-quads{bottom:34px; right:-10px;}
+}
+
+
 /* =========================================
    ITER54 — BODY SVG ALIGNMENT FIX ONLY
    Base: iter53 confirmed working baseline
@@ -5782,6 +5876,15 @@ body{
                       C155 258, 153 251, 149 246 Z"/>
                   </g>
                 </svg>
+                <div class="radar-body-chip-layer" aria-hidden="true">
+                  <span class="radar-body-chip radar-zone chip-shoulders" data-zone="shoulders">Shoulders</span>
+                  <span class="radar-body-chip radar-zone chip-back" data-zone="back">Back</span>
+                  <span class="radar-body-chip radar-zone chip-chest" data-zone="chest">Chest</span>
+                  <span class="radar-body-chip radar-zone chip-arms" data-zone="arms">Arms</span>
+                  <span class="radar-body-chip radar-zone chip-core" data-zone="core">Core</span>
+                  <span class="radar-body-chip radar-zone chip-posterior" data-zone="posterior">Posterior</span>
+                  <span class="radar-body-chip radar-zone chip-quads" data-zone="quads">Quads</span>
+                </div>
               </div>
               </div>
             </div>
