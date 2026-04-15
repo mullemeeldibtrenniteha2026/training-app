@@ -5274,9 +5274,8 @@ function removeWorkoutSet(ex, idx) {
   const count = Math.max(1, Number(setCountOf(week, day, ex) || 1));
   const targetIdx = Math.max(0, Math.min(count - 1, Number(idx) || 0));
   if (count <= 1) {
-    state[`w${week}_${day}_${ex}_s0`] = { kg:"", reps:"", done:"" };
-    state[`sc_w${week}_${day}_${ex}`] = 1;
-    return { mode: "cleared_last", count: 1 };
+    deleteExercise(week, day, ex);
+    return { mode: "deleted_exercise", count: 0 };
   }
   for (let i = targetIdx; i < count - 1; i++) {
     state[`w${week}_${day}_${ex}_s${i}`] = normalizeSetObject(state[`w${week}_${day}_${ex}_s${i + 1}`]);
