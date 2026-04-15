@@ -2904,7 +2904,7 @@ body{
 /* ===== Iteration 3 — Finish Copy & Hierarchy Polish (SAFE) ===== */
 
 .finish-title::after{
-  content: "Session complete";
+  content: "Workout summary";
   display:block;
   font-size:12px;
   letter-spacing:.18em;
@@ -3584,6 +3584,97 @@ body{
   line-height:1;
 }
 
+
+/* ===== Iteration 7 — Workout Summary Polish (SAFE) =====
+   Scope:
+   - finish summary overlay only
+   - clearer summary hierarchy and stat readability
+   CSS + tiny copy update
+======================================================== */
+
+.finish-summary-card{
+  max-width:440px;
+}
+
+.finish-summary-kicker{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin:0 auto 12px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(242,201,76,.10);
+  border:1px solid rgba(242,201,76,.20);
+}
+
+.finish-summary-kicker::before{
+  content:"●";
+  font-size:9px;
+  line-height:1;
+  color:#f2c94c;
+}
+
+.finish-summary-title{
+  margin-top:2px;
+}
+
+.finish-summary-subline{
+  max-width:320px;
+  margin-left:auto;
+  margin-right:auto;
+  color:#cfddee;
+}
+
+.finish-summary-grid{
+  margin:22px 0 20px;
+}
+
+.finish-summary-stat{
+  padding:15px 10px;
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,.05), rgba(255,255,255,0) 45%),
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));
+}
+
+.finish-summary-stat .k{
+  margin-bottom:8px;
+}
+
+.finish-summary-stat .v{
+  font-size:24px;
+  line-height:1.05;
+}
+
+.finish-summary-done{
+  min-width:min(100%,240px);
+}
+
+.finish-summary-card::after{
+  content:"Logged and ready for the next session.";
+  display:block;
+  margin-top:12px;
+  font-size:12px;
+  line-height:1.4;
+  color:#9fb4cd;
+}
+
+@media (max-width:640px){
+  .finish-summary-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+  .finish-summary-stat{
+    padding:13px 8px;
+    border-radius:18px;
+  }
+
+  .finish-summary-stat .v{
+    font-size:21px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3772,14 +3863,14 @@ body{
 <div class="finish-summary-overlay" id="finishSummaryOverlay">
   <div class="finish-summary-card">
     <div class="finish-summary-kicker">Session complete</div>
-    <h2 class="finish-summary-title">Workout complete</h2>
-    <div class="finish-summary-subline" id="finishSummarySubline">Saved for this day.</div>
+    <h2 class="finish-summary-title">Session complete</h2>
+    <div class="finish-summary-subline" id="finishSummarySubline">Your workout has been logged for today.</div>
     <div class="finish-summary-grid">
       <div class="finish-summary-stat"><div class="k">Exercises</div><div class="v" id="finishExercisesValue">0</div></div>
       <div class="finish-summary-stat"><div class="k">Sets</div><div class="v" id="finishSetsValue">0</div></div>
       <div class="finish-summary-stat"><div class="k">Volume</div><div class="v" id="finishVolumeValue">0</div></div>
     </div>
-    <button class="finish-summary-done" id="finishSummaryDoneBtn" type="button">Done</button>
+    <button class="finish-summary-done" id="finishSummaryDoneBtn" type="button">Back to workout</button>
   </div>
 </div>
 
