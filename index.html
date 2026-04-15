@@ -4518,6 +4518,42 @@ function renderExercises() {
   });
   const finishWorkoutBtnInline = document.getElementById("finishWorkoutBtnInline");
   if(finishWorkoutBtnInline) finishWorkoutBtnInline.onclick = () => finishWorkoutNow();
+
+  const bottomTimerBtn = document.getElementById("bottomTimerBtn");
+  if(bottomTimerBtn) bottomTimerBtn.onclick = () => openTimer();
+
+  const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
+  if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
+    const target = document.getElementById("addExerciseName");
+    if(target) {
+      target.scrollIntoView({block:"center", behavior:"smooth"});
+      setTimeout(() => target.focus(), 250);
+    }
+  };
+
+  const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
+  if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
+    const exs = getExercisesForWeekDay(ui.week, ui.day);
+    let active = null;
+    if(ui.workoutMode){
+      active = exs[ui.activeExerciseIndex] || null;
+    }
+    if(!active || isRecoveryLike(ui.week, ui.day, active)) {
+      active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
+    }
+    if(!active) {
+      showToast("No strength exercise selected");
+      return;
+    }
+    const c = setCountOf(ui.week,ui.day,active);
+    state[`w${ui.week}_${ui.day}_${active}_s${c}`] = {kg:"",reps:"",done:""};
+    state[`sc_w${ui.week}_${ui.day}_${active}`] = c+1;
+    saveState();
+    showToast("Set added");
+    const card = document.querySelector(`[data-exercise-card="${active}"]`);
+    if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
+  };
+
   if(ui.workoutMode && activeGroup && activeGroup.items.length){
     const activeCard = document.querySelector(`[data-exercise-card="${activeGroup.items[0]}"]`);
     if(activeCard) activeCard.scrollIntoView({block:"nearest", behavior:"smooth"});
