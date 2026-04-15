@@ -4445,50 +4445,80 @@ function renderMetrics() {
   document.getElementById("weekHeader").textContent = "";
 }
 
+
+// ===== CALENDAR HELPERS =====
+const CALENDAR_WEEKDAY_LABELS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+function buildCalendarMonthLabel(monthDate) {
+  return `<span class="month-pill">${monthDate.toLocaleDateString("en-GB", {month:"long",year:"numeric"})}</span>`;
+}
+
+function buildCalendarCells(monthDate) {
+  const y = monthDate.getFullYear();
+  const m = monthDate.getMonth();
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m + 1, 0);
+  const startOffset = (first.getDay() + 6) % 7;
+  const cells = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= last.getDate(); d++) cells.push(new Date(y, m, d));
+  while (cells.length % 7 !== 0) cells.push(null);
+  return cells;
+}
+
+function getCalendarCellInfo(date) {
+  const info = dateToProgramDay(date);
+  const status = info ? info.status : "";
+  const dot = status==="done" ? "var(--green)" : (status==="recovery" || status==="rest") ? "var(--yellow)" : info ? "var(--blue)" : "transparent";
+  const check = status==="done" || status==="recovery";
+  const active = info && info.week===ui.week && info.day===ui.day;
+  const isToday = date.getFullYear()===TODAY.getFullYear() && date.getMonth()===TODAY.getMonth() && date.getDate()===TODAY.getDate();
+  return { info, status, dot, check, active, isToday };
+}
+
+function buildCalendarCellHtml(date) {
+  if(!date) return `<div class="daycell inactive"></div>`;
+  const { info, dot, check, active, isToday } = getCalendarCellInfo(date);
+  return `<div class="daycell ${active?'active':''} ${isToday?'today':''}" data-date="${date.toISOString()}">
+      <div class="d">${date.getDate()}</div>
+      ${check ? `<div class="daycheck" style="color:${dot}">✓</div>` : ""}
+      <div class="w">${info ? DAY_LABEL[info.day].slice(0,3)+`<br>W${info.week}` : ""}</div>
+      <div class="daydot" style="background:${dot}"></div>
+    </div>`;
+}
+
+function selectCalendarDate(isoDate) {
+  const clickedDate = new Date(isoDate);
+  const info = dateToProgramDay(clickedDate);
+  if(!info) return;
+  commitUiUpdate(() => {
+    ui.week = info.week;
+    ui.day = info.day;
+    ui.month = new Date(clickedDate.getFullYear(), clickedDate.getMonth(), 1);
+    ui.activeExerciseIndex = 0;
+  }, "app");
+}
+
+function buildDayPillsHtml() {
+  return DAY_ORDER.map(day => `<div class="pill ${day===ui.day?'active':''}" data-day="${day}">${DAY_LABEL[day]}</div>`).join("");
+}
+
 // ===== RENDER: CALENDAR =====
 function renderCalendar() {
-  document.getElementById("monthTitle").innerHTML = `<span class="month-pill">${ui.month.toLocaleDateString("en-GB", {month:"long",year:"numeric"})}</span>`;
+  document.getElementById("monthTitle").innerHTML = buildCalendarMonthLabel(ui.month);
   document.getElementById("monthSubtitle").textContent = `Month view`;
   const calendarCard = document.getElementById("calendarCard");
   const toggleBtn = document.getElementById("calendarToggleBtn");
   if(calendarCard) calendarCard.classList.toggle("is-collapsed", !!ui.calendarCollapsed);
   if(toggleBtn) toggleBtn.textContent = ui.calendarCollapsed ? "Show" : "Hide";
-  document.getElementById("weekdayRow").innerHTML = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(x=>`<div>${x}</div>`).join("");
-  const y=ui.month.getFullYear(), m=ui.month.getMonth(), first=new Date(y,m,1), last=new Date(y,m+1,0);
-  const startOffset=(first.getDay()+6)%7, cells=[];
-  for(let i=0;i<startOffset;i++) cells.push(null);
-  for(let d=1;d<=last.getDate();d++) cells.push(new Date(y,m,d));
-  while(cells.length%7!==0) cells.push(null);
-  document.getElementById("calendarGrid").innerHTML = cells.map(d => {
-    if(!d) return `<div class="daycell inactive"></div>`;
-    const info = dateToProgramDay(d);
-    const status = info ? info.status : "";
-    const dot = status==="done" ? "var(--green)" : (status==="recovery" || status==="rest") ? "var(--yellow)" : info ? "var(--blue)" : "transparent";
-    const check = status==="done" || status==="recovery";
-    const active = info && info.week===ui.week && info.day===ui.day;
-    const isToday = d.getFullYear()===TODAY.getFullYear() && d.getMonth()===TODAY.getMonth() && d.getDate()===TODAY.getDate();
-    return `<div class="daycell ${active?'active':''} ${isToday?'today':''}" data-date="${d.toISOString()}">
-      <div class="d">${d.getDate()}</div>
-      ${check ? `<div class="daycheck" style="color:${dot}">✓</div>` : ""}
-      <div class="w">${info ? DAY_LABEL[info.day].slice(0,3)+`<br>W${info.week}` : ""}</div>
-      <div class="daydot" style="background:${dot}"></div>
-    </div>`;
-  }).join("");
-  document.querySelectorAll(".daycell[data-date]").forEach(el => el.onclick = () => {
-    const info = dateToProgramDay(new Date(el.dataset.date));
-    if(info) {
-      ui.week = info.week;
-      ui.day = info.day;
-      ui.month = new Date(new Date(el.dataset.date).getFullYear(), new Date(el.dataset.date).getMonth(), 1);
-      ui.activeExerciseIndex = 0;
-      requestRender("app");
-    }
-  });
+  document.getElementById("weekdayRow").innerHTML = CALENDAR_WEEKDAY_LABELS.map(x=>`<div>${x}</div>`).join("");
+  document.getElementById("calendarGrid").innerHTML = buildCalendarCells(ui.month).map(buildCalendarCellHtml).join("");
+  document.querySelectorAll(".daycell[data-date]").forEach(el => el.onclick = () => selectCalendarDate(el.dataset.date));
 }
 
 // ===== RENDER: DAY PILLS =====
 function renderDays() {
-  const pills = DAY_ORDER.map(day => `<div class="pill ${day===ui.day?'active':''}" data-day="${day}">${DAY_LABEL[day]}</div>`).join("");
+  const pills = buildDayPillsHtml();
   document.getElementById("dayPills").innerHTML = pills;
   const mobile=document.getElementById("mobileDayPills"); if(mobile) mobile.innerHTML = pills;
   document.querySelectorAll("[data-day]").forEach(el => el.onclick = () => commitUiUpdate(() => { ui.day=el.dataset.day; ui.activeExerciseIndex=0; }, "app"));
