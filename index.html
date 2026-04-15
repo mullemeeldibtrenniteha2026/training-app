@@ -5524,45 +5524,36 @@ body{
 
 
 /* =========================================
-   ITER55B — ADD CARD LAYOUT FIX ONLY
+   ITER55C — ADD CARD SCOPE ALIGNMENT ONLY
    Base: iter54 confirmed working baseline
-   Scope locked to add-card layout only
+   Scope locked to add-card scope row only
    CSS only — no render / data / workout / auth changes
 ========================================= */
 .add-card .add-scope-row{
-  width:100%;
-  display:grid !important;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
-  align-items:center;
-  justify-content:stretch !important;
-  margin:6px 0 12px !important;
+  justify-content:flex-start !important;
+  margin:4px 0 12px !important;
 }
 
 .add-card .add-scope-row .select{
-  grid-column:2;
-  width:100% !important;
-  min-width:0 !important;
+  width:calc((100% - 24px) / 3) !important;
+  min-width:220px !important;
   max-width:none !important;
-  min-height:48px;
-  height:48px;
-}
-
-.add-card .add-grid{
-  margin-top:0 !important;
+  min-height:48px !important;
+  height:48px !important;
+  margin:0 !important;
 }
 
 @media (max-width:640px){
   .add-card .add-scope-row{
-    grid-template-columns:1fr;
-    gap:10px;
-    margin:6px 0 10px !important;
+    justify-content:center !important;
+    margin:4px 0 10px !important;
   }
 
   .add-card .add-scope-row .select{
-    grid-column:auto;
-    min-height:46px;
-    height:46px;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:46px !important;
+    height:46px !important;
   }
 }
 
