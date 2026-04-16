@@ -6963,10 +6963,8 @@ function historyPreview(displayName) {
 function matchesExerciseSearchQuery(name, exId, code, query) {
   const q = String(query || "").trim().toLowerCase();
   if(!q) return true;
-  const nameLower = String(name || "").toLowerCase();
-  const exLower = String(exId || "").toLowerCase();
-  const codeLower = String(code || "").toLowerCase();
-  return nameLower.startsWith(q) || exLower.startsWith(q) || codeLower.startsWith(q);
+  const nameLower = String(name || "").trim().toLowerCase();
+  return nameLower.startsWith(q);
 }
 
 function searchExercisesGlobal(query) {
