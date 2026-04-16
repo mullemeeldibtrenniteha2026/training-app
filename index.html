@@ -7340,7 +7340,7 @@ function renderMetrics() {
 const CALENDAR_WEEKDAY_LABELS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 function buildCalendarMonthLabel(monthDate) {
-  return `<span class="month-pill">${monthDate.getFullYear()}</span>`;
+  return `<div class="calendar-year-nav"><button class="btn calendar-year-btn" id="prevYearBtn" type="button">←</button><span class="month-pill">${monthDate.getFullYear()}</span><button class="btn calendar-year-btn" id="nextYearBtn" type="button">→</button></div>`;
 }
 
 function buildCalendarCells(monthDate) {
@@ -7359,7 +7359,16 @@ function buildCalendarCells(monthDate) {
 function getCalendarCellInfo(date) {
   const info = dateToProgramDay(date);
   const status = info ? info.status : "";
-  const dot = status==="done" ? "var(--green)" : (status==="recovery" || status==="rest") ? "var(--yellow)" : info ? "var(--blue)" : "transparent";
+  const weekday = date.getDay();
+  const dot = status === "done"
+    ? "var(--green)"
+    : weekday === 3
+      ? "var(--yellow)"
+      : (status === "recovery" || status === "rest" || weekday === 0 || weekday === 6)
+        ? "var(--red)"
+        : info
+          ? "var(--blue)"
+          : "transparent";
   const check = status==="done" || status==="recovery";
   const active = info && info.week===ui.week && info.day===ui.day;
   const isToday = date.getFullYear()===TODAY.getFullYear() && date.getMonth()===TODAY.getMonth() && date.getDate()===TODAY.getDate();
@@ -7412,6 +7421,10 @@ function renderCalendar() {
   document.getElementById("weekdayRow").innerHTML = CALENDAR_WEEKDAY_LABELS.map(x=>`<div>${x}</div>`).join("");
   document.getElementById("calendarGrid").innerHTML = buildCalendarCells(ui.month).map(buildCalendarCellHtml).join("");
   document.querySelectorAll(".daycell[data-date]").forEach(el => el.onclick = () => selectCalendarDate(el.dataset.date));
+  const prevYearBtn = document.getElementById("prevYearBtn");
+  const nextYearBtn = document.getElementById("nextYearBtn");
+  if(prevYearBtn) prevYearBtn.onclick = () => commitUiUpdate(() => { ui.month = new Date(ui.month.getFullYear() - 1, ui.month.getMonth(), 1); }, "calendar");
+  if(nextYearBtn) nextYearBtn.onclick = () => commitUiUpdate(() => { ui.month = new Date(ui.month.getFullYear() + 1, ui.month.getMonth(), 1); }, "calendar");
 }
 
 // ===== RENDER: DAY PILLS =====
@@ -9022,3 +9035,11 @@ bootApp();
 </script>
 </body>
 </html>
+
+
+.calendar-year-nav{display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+.calendar-year-btn{min-width:34px;min-height:34px;padding:0 10px;border-radius:999px;display:grid;place-items:center;}
+@media (max-width:640px){
+  .calendar-year-nav{gap:6px;}
+  .calendar-year-btn{min-width:30px;min-height:30px;padding:0 8px;}
+}
