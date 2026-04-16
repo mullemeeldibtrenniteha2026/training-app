@@ -17,7 +17,6 @@ Purpose:
 <head>
 <meta charset="UTF-8" />
 
-<meta name="theme-color" content="#0f1115" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Training" />
@@ -32,7 +31,7 @@ Purpose:
 :root {
   --bg:#08172d; --panel:#0f213d; --panel2:#132a4a; --line:#243a61;
   --text:#f7f9fc; --muted:#a8bad0; --soft:#d9e4f1;
-  --gold:#f2c94c; --green:#39b56a; --yellow:#f2c94c; --blue:#7fb2ff; --red:#eb5757;
+  --gold:#f2c94c; --green:#39b56a; --blue:#7fb2ff; --red:#eb5757;
   --radius:18px; --shadow:0 16px 36px rgba(0,0,0,.28);
   --accent-soft:#ffd76a;
 
@@ -54,7 +53,7 @@ Purpose:
 }
 * { box-sizing:border-box; }
 html,body { margin:0; padding:0; background:radial-gradient(circle at top, #10284a 0%, var(--bg) 48%, #06111f 100%); color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,sans-serif; }
+  font-family:var(--font-ui); }
 input,textarea,select,button { font:inherit; }
 
 /* ITER36 — Mobile input auto-zoom fix
@@ -6210,7 +6209,7 @@ body{
         <div class="calendar-grid" id="calendarGrid"></div>
         <div class="legend">
           <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Workout done</div>
-          <div class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Active recovery (Wed)</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--gold)"></span>Active recovery (Wed)</div>
           <div class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>Recovery (weekend)</div>
           <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Planned</div>
         </div>
@@ -7413,7 +7412,7 @@ function getCalendarCellInfo(date) {
   const dot = status === "done"
     ? "var(--green)"
     : weekday === 3
-      ? "var(--yellow)"
+      ? "var(--gold)"
       : (status === "recovery" || status === "rest" || weekday === 0 || weekday === 6)
         ? "var(--red)"
         : info
