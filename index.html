@@ -113,13 +113,13 @@ input, select, textarea {
 }
 .daycell.inactive { opacity:.25; cursor:default; }
 .daycell.active { outline:2px solid rgba(201,168,106,.28); border-color:#7a6239; }
-.daycell.today { box-shadow: inset 0 0 0 1px rgba(201,168,106,.45); }
-.daycell.today .d { color:var(--gold); }
-.daycell.day-active-recovery { background:linear-gradient(180deg, rgba(242,201,76,.16), rgba(242,201,76,.08)); border-color:rgba(242,201,76,.34); }
-.daycell.day-recovery { background:linear-gradient(180deg, rgba(235,87,87,.18), rgba(235,87,87,.08)); border-color:rgba(235,87,87,.34); }
-.daycell.day-active-recovery .d { color:#f7e2a3; }
-.daycell.day-recovery .d { color:#ffd0d0; }
-.daycell.active.day-active-recovery, .daycell.active.day-recovery { outline:2px solid rgba(201,168,106,.28); }
+.daycell.today { box-shadow: inset 0 0 0 1px rgba(57,181,106,.42), 0 0 0 1px rgba(57,181,106,.18); border-color:rgba(57,181,106,.38); }
+.daycell.today .d { color:#d8ffe4; }
+.daycell.day-active-recovery { background:linear-gradient(180deg, rgba(242,201,76,.10), rgba(242,201,76,.04)); border-color:rgba(242,201,76,.24); }
+.daycell.day-recovery { background:linear-gradient(180deg, rgba(185,84,96,.12), rgba(185,84,96,.05)); border-color:rgba(185,84,96,.24); }
+.daycell.day-active-recovery .d { color:#f2dfaa; }
+.daycell.day-recovery .d { color:#efc8cf; }
+.daycell.active.day-active-recovery, .daycell.active.day-recovery { outline:2px solid rgba(201,168,106,.24); }
 .daycell .d { font-size:13px; font-weight:650; }
 .daycell .w { color:var(--muted); font-size:10px; margin-top:3px; line-height:1.25; }
 .daydot { width:9px; height:9px; border-radius:50%; position:absolute; right:8px; bottom:8px; }
@@ -6052,6 +6052,27 @@ body{
   box-shadow:0 0 0 3px rgba(255,194,71,.18), 0 10px 24px rgba(255,159,10,.22), inset 0 1px 0 rgba(255,255,255,.22) !important;
 }
 
+
+
+/* =========================================
+   ITER66 — CALENDAR HIERARCHY + SOFTER COLOR PASS
+   Scope: calendar visual layer only
+   - remove week number from day cells
+   - year in top pill
+   - month name in navigation subtitle
+   - soften day-type colors
+   - subtle green today state
+========================================= */
+#monthSubtitle{
+  color:rgba(255,255,255,.62) !important;
+  font-size:18px !important;
+  text-transform:none !important;
+  letter-spacing:-.01em !important;
+  font-weight:650 !important;
+}
+#monthTitle .month-pill{
+  min-width:140px;
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -7319,7 +7340,7 @@ function renderMetrics() {
 const CALENDAR_WEEKDAY_LABELS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 
 function buildCalendarMonthLabel(monthDate) {
-  return `<span class="month-pill">${monthDate.toLocaleDateString("en-GB", {month:"long",year:"numeric"})}</span>`;
+  return `<span class="month-pill">${monthDate.getFullYear()}</span>`;
 }
 
 function buildCalendarCells(monthDate) {
@@ -7359,7 +7380,7 @@ function buildCalendarCellHtml(date) {
   return `<div class="daycell ${dayTypeClass} ${active?'active':''} ${isToday?'today':''}" data-date="${date.toISOString()}">
       <div class="d">${date.getDate()}</div>
       ${check ? `<div class="daycheck" style="color:${dot}">✓</div>` : ""}
-      <div class="w">${info ? DAY_LABEL[info.day].slice(0,3)+`<br>W${info.week}` : ""}</div>
+      <div class="w">${info ? DAY_LABEL[info.day].slice(0,3) : ""}</div>
       <div class="daydot" style="background:${dot}"></div>
     </div>`;
 }
@@ -7383,7 +7404,7 @@ function buildDayPillsHtml() {
 // ===== RENDER: CALENDAR =====
 function renderCalendar() {
   document.getElementById("monthTitle").innerHTML = buildCalendarMonthLabel(ui.month);
-  document.getElementById("monthSubtitle").textContent = `Month view`;
+  document.getElementById("monthSubtitle").textContent = ui.month.toLocaleDateString("en-GB", { month:"long" });
   const calendarCard = document.getElementById("calendarCard");
   const toggleBtn = document.getElementById("calendarToggleBtn");
   if(calendarCard) calendarCard.classList.toggle("is-collapsed", !!ui.calendarCollapsed);
