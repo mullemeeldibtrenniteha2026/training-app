@@ -6026,6 +6026,27 @@ body{
   }
 }
 
+
+
+/* =========================================
+   ITER60b HOTFIX
+   Scope: backup card sign out contrast only
+   Restore strong gold primary appearance
+========================================= */
+.backup-tools-card .account-actions .signout-btn{
+  background:linear-gradient(180deg,#ffc247 0%,#ff9f0a 100%) !important;
+  border:1px solid rgba(255,194,71,.42) !important;
+  color:#1a1204 !important;
+  box-shadow:0 10px 24px rgba(255,159,10,.22), inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+.backup-tools-card .account-actions .signout-btn:hover{
+  filter:brightness(1.02);
+}
+.backup-tools-card .account-actions .signout-btn:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(255,194,71,.18), 0 10px 24px rgba(255,159,10,.22), inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
