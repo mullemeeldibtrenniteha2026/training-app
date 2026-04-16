@@ -5847,6 +5847,185 @@ body{
   }
 }
 
+
+
+/* =========================================
+   ITER60 — FINAL UI CONSISTENCY PASS
+   Scope: CSS only
+   Purpose: unify rhythm, hierarchy, and control feel
+   No DOM / JS / render / auth / overlay logic changes
+========================================= */
+:root{
+  --iter60-radius-card:20px;
+  --iter60-radius-control:14px;
+  --iter60-radius-pill:999px;
+  --iter60-shadow-card:0 16px 36px rgba(0,0,0,.24);
+  --iter60-text-soft:#c9d5e4;
+  --iter60-text-meta:#9db0c8;
+}
+
+.card,
+.metric,
+.block-group,
+.search-item,
+.finish-summary-card,
+.workout-focus-card,
+.empty-state,
+.info-box{
+  border-radius:var(--iter60-radius-card);
+}
+
+.btn,
+.field,
+.select,
+.textarea,
+.setinput,
+.codebox,
+.donebtn,
+.setdeletebtn,
+.calendar-title-nav,
+.calendar-hide-btn,
+.search-open,
+.workout-progress-pill,
+.finish-summary-done,
+.finish-workout-btn,
+.finish-workout-inline-btn{
+  border-radius:var(--iter60-radius-control);
+}
+
+.pill,
+.badge,
+.sync-pill,
+.month-pill,
+.segmented,
+.segmented button{
+  border-radius:var(--iter60-radius-pill);
+}
+
+.card,
+.metric,
+.block-group,
+.search-item,
+.workout-focus-card,
+.finish-summary-card{
+  box-shadow:var(--iter60-shadow-card);
+}
+
+.section-title{
+  margin:0 0 12px !important;
+  align-items:center;
+}
+.section-title h2,
+.section-title h3{
+  line-height:1.16 !important;
+}
+.section-title .meta,
+.help,
+.legend-item,
+.exercise-meta,
+.search-item .meta,
+.daycell .w,
+.sync-pill,
+#syncStatus,
+.workout-focus-note,
+.timer-hint,
+.empty-state{
+  color:var(--iter60-text-meta) !important;
+}
+.info-box .v,
+.metric .s,
+.finish-summary-subline{
+  color:var(--iter60-text-soft);
+}
+
+.metric .k,
+.info-box .k,
+.setcol .k,
+.label,
+.finish-summary-stat .k{
+  letter-spacing:.08em !important;
+}
+
+.btn{
+  font-weight:700 !important;
+}
+.btn:not(.primary):not(.gold):not(#workoutModeBtn):not(.finish-workout-btn):not(.finish-workout-inline-btn):not(.finish-summary-done){
+  background:linear-gradient(180deg, rgba(19,35,60,.96), rgba(12,25,44,.98));
+}
+
+.field,
+.select,
+.textarea,
+.setinput{
+  border-color:rgba(58,78,111,.82);
+}
+.field::placeholder,
+.textarea::placeholder,
+.setinput::placeholder{
+  color:#8297b2;
+}
+
+.metric,
+.info-box,
+.finish-summary-stat,
+.search-item,
+.empty-state{
+  border-color:rgba(255,255,255,.08);
+}
+
+.search-item .name,
+.exercise-name,
+.finish-summary-title,
+.workout-date-big{
+  letter-spacing:-.02em;
+}
+
+.finish-summary-grid,
+.radar-legend,
+.metrics,
+.add-grid{
+  gap:12px;
+}
+.exercise-actions,
+.workout-nav-row,
+.workout-progress-row,
+.legend,
+.pills{
+  gap:10px;
+}
+
+@media (max-width:640px){
+  .card,
+  .metric,
+  .block-group,
+  .search-item,
+  .finish-summary-card,
+  .workout-focus-card,
+  .empty-state,
+  .info-box{
+    border-radius:18px;
+  }
+  .btn,
+  .field,
+  .select,
+  .textarea,
+  .setinput,
+  .codebox,
+  .donebtn,
+  .setdeletebtn,
+  .calendar-title-nav,
+  .search-open,
+  .workout-progress-pill,
+  .finish-summary-done,
+  .finish-workout-btn,
+  .finish-workout-inline-btn{
+    border-radius:12px;
+  }
+  .section-title{
+    margin-bottom:10px !important;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
