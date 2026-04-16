@@ -6451,7 +6451,17 @@ function historyPreview(displayName) {
     note: noteOf(hist.week,hist.day,hist.ex)
   };
 }
+function matchesExerciseSearchQuery(name, exId, code, query) {
+  const q = String(query || "").trim().toLowerCase();
+  if(!q) return true;
+  const nameLower = String(name || "").toLowerCase();
+  const exLower = String(exId || "").toLowerCase();
+  const codeLower = String(code || "").toLowerCase();
+  return nameLower.startsWith(q) || exLower.startsWith(q) || codeLower.startsWith(q);
+}
+
 function searchExercisesGlobal(query) {
+
   const q = String(query || "").trim().toLowerCase();
   if(!q) return [];
   const out = [];
@@ -6459,8 +6469,7 @@ function searchExercisesGlobal(query) {
     for(const ex of getExercisesForWeekDay(week,day)) {
       const name = exerciseName(week,day,ex);
       const code = codeOf(week,day,ex);
-      const hay = `${name} ${ex} ${code}`.toLowerCase();
-      if(!hay.includes(q)) continue;
+      if(!matchesExerciseSearchQuery(name, ex, code, q)) continue;
       out.push({
         week, day, ex, name, code,
         date: dayDate(week,day),
@@ -6568,7 +6577,7 @@ function getFilteredExercisesForCurrentDay() {
   const q = ui.search.trim().toLowerCase();
   return getExercisesForWeekDay(ui.week,ui.day).filter(ex => {
     if(!q) return true;
-    return exerciseName(ui.week,ui.day,ex).toLowerCase().includes(q) || ex.toLowerCase().includes(q) || codeOf(ui.week,ui.day,ex).toLowerCase().includes(q);
+    return matchesExerciseSearchQuery(exerciseName(ui.week,ui.day,ex), ex, codeOf(ui.week,ui.day,ex), q);
   });
 }
 function getFilteredWorkoutGroupCount() {
@@ -7103,7 +7112,7 @@ function renderExercises() {
   const dayExercises = getExercisesForWeekDay(ui.week,ui.day);
   const filteredDayExercises = dayExercises.filter(ex => {
     if(!q) return true;
-    return exerciseName(ui.week,ui.day,ex).toLowerCase().includes(q) || ex.toLowerCase().includes(q) || codeOf(ui.week,ui.day,ex).toLowerCase().includes(q);
+    return matchesExerciseSearchQuery(exerciseName(ui.week,ui.day,ex), ex, codeOf(ui.week,ui.day,ex), q);
   });
   const searchMatches = q ? searchExercisesGlobal(q) : [];
   const all = filteredDayExercises;
