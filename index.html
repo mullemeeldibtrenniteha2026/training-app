@@ -6850,16 +6850,10 @@ function getExerciseSuggestions(input) {
     const main = EXERCISE_ALIASES[q];
     return [main, ...EXERCISE_SUGGESTIONS.filter(x => x !== main)].slice(0,12);
   }
-  const terms = q.split(/\s+/).filter(Boolean);
-  return EXERCISE_SUGGESTIONS.map(name => {
-    const lower=name.toLowerCase();
-    let score=0;
-    if(lower===q) score=100;
-    else if(lower.startsWith(q)) score=80;
-    else if(lower.includes(q)) score=60;
-    else if(terms.length && terms.every(t => lower.includes(t))) score=40;
-    return {name,score};
-  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score || a.name.localeCompare(b.name)).map(x=>x.name).slice(0,12);
+  return EXERCISE_SUGGESTIONS
+    .filter(name => name.toLowerCase().startsWith(q))
+    .sort((a,b) => a.localeCompare(b))
+    .slice(0,12);
 }
 function suggestedExerciseId(name) {
   const n = normalizeExerciseDisplayName(name);
