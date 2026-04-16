@@ -6073,6 +6073,56 @@ body{
 #monthTitle .month-pill{
   min-width:140px;
 }
+
+/* =========================================
+   ITER67b — calendar visual correction
+   Scope: year nav alignment + Wednesday dot cleanup + compact collapse button
+========================================= */
+.calendar-year-nav{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  width:100%;
+}
+.calendar-year-btn{
+  width:44px;
+  height:44px;
+  min-height:44px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  flex:0 0 44px;
+}
+#monthTitle .month-pill{
+  min-width:140px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.calendar-toggle{
+  min-width:44px !important;
+  width:44px;
+  height:44px;
+  min-height:44px !important;
+  padding:0 !important;
+  display:grid;
+  place-items:center;
+  font-size:18px;
+  font-weight:900;
+  line-height:1;
+}
+@media (max-width:640px){
+  .calendar-year-nav{gap:8px;}
+  .calendar-year-btn,.calendar-toggle{
+    width:42px;
+    height:42px;
+    min-height:42px !important;
+    flex-basis:42px;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -6149,7 +6199,7 @@ body{
   <div class="layout">
     <div class="left">
       <div class="card calendar-collapsible" id="calendarCard">
-        <div class="section-title"><h2>Calendar</h2><div class="row" style="gap:8px"><div class="meta" id="monthTitle"></div><button class="btn calendar-toggle" id="calendarToggleBtn">Hide</button></div></div>
+        <div class="section-title"><h2>Calendar</h2><div class="row" style="gap:8px"><div class="meta" id="monthTitle"></div><button class="btn calendar-toggle" id="calendarToggleBtn" aria-label="Hide calendar" title="Hide calendar">▴</button></div></div>
         <div class="calendar-body">
         <div class="calendar-head">
           <button class="btn" id="prevMonthBtn">←</button>
@@ -7369,7 +7419,7 @@ function getCalendarCellInfo(date) {
         : info
           ? "var(--blue)"
           : "transparent";
-  const check = status==="done" || status==="recovery";
+  const check = status==="done";
   const active = info && info.week===ui.week && info.day===ui.day;
   const isToday = date.getFullYear()===TODAY.getFullYear() && date.getMonth()===TODAY.getMonth() && date.getDate()===TODAY.getDate();
   return { info, status, dot, check, active, isToday };
@@ -7417,7 +7467,11 @@ function renderCalendar() {
   const calendarCard = document.getElementById("calendarCard");
   const toggleBtn = document.getElementById("calendarToggleBtn");
   if(calendarCard) calendarCard.classList.toggle("is-collapsed", !!ui.calendarCollapsed);
-  if(toggleBtn) toggleBtn.textContent = ui.calendarCollapsed ? "Show" : "Hide";
+  if(toggleBtn) {
+    toggleBtn.textContent = ui.calendarCollapsed ? "▾" : "▴";
+    toggleBtn.setAttribute("aria-label", ui.calendarCollapsed ? "Show calendar" : "Hide calendar");
+    toggleBtn.setAttribute("title", ui.calendarCollapsed ? "Show calendar" : "Hide calendar");
+  }
   document.getElementById("weekdayRow").innerHTML = CALENDAR_WEEKDAY_LABELS.map(x=>`<div>${x}</div>`).join("");
   document.getElementById("calendarGrid").innerHTML = buildCalendarCells(ui.month).map(buildCalendarCellHtml).join("");
   document.querySelectorAll(".daycell[data-date]").forEach(el => el.onclick = () => selectCalendarDate(el.dataset.date));
