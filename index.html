@@ -6844,16 +6844,28 @@ function normalizeExerciseDisplayName(name) {
 }
 function normalizeExerciseKey(name) { return normalizeExerciseDisplayName(name).toLowerCase(); }
 function getExerciseSuggestions(input) {
-  const q = String(input||"").toLowerCase().trim();
-  if(!q) return EXERCISE_SUGGESTIONS.slice(0,18);
-  if(EXERCISE_ALIASES[q]) {
-    const main = EXERCISE_ALIASES[q];
-    return [main, ...EXERCISE_SUGGESTIONS.filter(x => x !== main)].slice(0,12);
+  const q = String(input || "").toLowerCase().trim();
+  if (!q) return EXERCISE_SUGGESTIONS.slice(0, 18);
+
+  const exactAlias = EXERCISE_ALIASES[q];
+  const aliasMatches = Object.entries(EXERCISE_ALIASES)
+    .filter(([alias]) => alias.startsWith(q))
+    .map(([, canonical]) => canonical);
+
+  const prefixMatches = EXERCISE_SUGGESTIONS.filter(name =>
+    name.toLowerCase().startsWith(q)
+  );
+
+  const ordered = [];
+  if (exactAlias) ordered.push(exactAlias);
+  for (const name of aliasMatches) {
+    if (!ordered.includes(name)) ordered.push(name);
   }
-  return EXERCISE_SUGGESTIONS
-    .filter(name => name.toLowerCase().startsWith(q))
-    .sort((a,b) => a.localeCompare(b))
-    .slice(0,12);
+  for (const name of prefixMatches) {
+    if (!ordered.includes(name)) ordered.push(name);
+  }
+
+  return ordered.slice(0, 12);
 }
 function suggestedExerciseId(name) {
   const n = normalizeExerciseDisplayName(name);
