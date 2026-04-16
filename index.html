@@ -8400,7 +8400,6 @@ async function fetchCloudRow() {
 async function loadCloudState() {
   if(!currentUser) return false;
   const data = await fetchCloudRow();
-  console.log("CLOUD DATA", data);
   if(data && data.state_json) {
     const cloudIso = data.updated_at || null;
     const localIso = getLocalUpdatedAt();
@@ -8558,7 +8557,6 @@ async function initSupabaseApp() {
     const nextUser = session?.user || null;
     const authStateKey = getAuthStateKey(nextUser);
     currentUser = nextUser;
-    console.log("AUTH USER", currentUser);
 
     if(authStateKey === lastAuthStateKey && initialSyncResolved) {
       updateAuthUi();
@@ -8583,7 +8581,6 @@ async function initSupabaseApp() {
     const { data } = await withTimeout(sb.auth.getSession(), 2500);
     currentUser = data?.session?.user || null;
     lastAuthStateKey = getAuthStateKey(currentUser);
-    console.log("SESSION USER", currentUser);
   } catch (e) {
     console.error("SESSION ERROR", e);
     currentUser = null;
