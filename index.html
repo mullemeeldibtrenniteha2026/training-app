@@ -115,6 +115,11 @@ input, select, textarea {
 .daycell.active { outline:2px solid rgba(201,168,106,.28); border-color:#7a6239; }
 .daycell.today { box-shadow: inset 0 0 0 1px rgba(201,168,106,.45); }
 .daycell.today .d { color:var(--gold); }
+.daycell.day-active-recovery { background:linear-gradient(180deg, rgba(242,201,76,.16), rgba(242,201,76,.08)); border-color:rgba(242,201,76,.34); }
+.daycell.day-recovery { background:linear-gradient(180deg, rgba(235,87,87,.18), rgba(235,87,87,.08)); border-color:rgba(235,87,87,.34); }
+.daycell.day-active-recovery .d { color:#f7e2a3; }
+.daycell.day-recovery .d { color:#ffd0d0; }
+.daycell.active.day-active-recovery, .daycell.active.day-recovery { outline:2px solid rgba(201,168,106,.28); }
 .daycell .d { font-size:13px; font-weight:650; }
 .daycell .w { color:var(--muted); font-size:10px; margin-top:3px; line-height:1.25; }
 .daydot { width:9px; height:9px; border-radius:50%; position:absolute; right:8px; bottom:8px; }
@@ -6134,7 +6139,8 @@ body{
         <div class="calendar-grid" id="calendarGrid"></div>
         <div class="legend">
           <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span>Workout done</div>
-          <div class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Recovery / rest</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--yellow)"></span>Active recovery (Wed)</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--red)"></span>Recovery (weekend)</div>
           <div class="legend-item"><span class="legend-dot" style="background:var(--blue)"></span>Planned</div>
         </div>
         </div>
@@ -7295,10 +7301,18 @@ function getCalendarCellInfo(date) {
   return { info, status, dot, check, active, isToday };
 }
 
+function getCalendarDefaultDayType(date) {
+  const weekday = date.getDay();
+  if(weekday === 3) return "day-active-recovery";
+  if(weekday === 0 || weekday === 6) return "day-recovery";
+  return "";
+}
+
 function buildCalendarCellHtml(date) {
   if(!date) return `<div class="daycell inactive"></div>`;
   const { info, dot, check, active, isToday } = getCalendarCellInfo(date);
-  return `<div class="daycell ${active?'active':''} ${isToday?'today':''}" data-date="${date.toISOString()}">
+  const dayTypeClass = getCalendarDefaultDayType(date);
+  return `<div class="daycell ${dayTypeClass} ${active?'active':''} ${isToday?'today':''}" data-date="${date.toISOString()}">
       <div class="d">${date.getDate()}</div>
       ${check ? `<div class="daycheck" style="color:${dot}">✓</div>` : ""}
       <div class="w">${info ? DAY_LABEL[info.day].slice(0,3)+`<br>W${info.week}` : ""}</div>
