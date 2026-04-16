@@ -6844,8 +6844,13 @@ function normalizeExerciseDisplayName(name) {
 }
 function normalizeExerciseKey(name) { return normalizeExerciseDisplayName(name).toLowerCase(); }
 function getExerciseSuggestions(input) {
-  const q = String(input || "").toLowerCase().trim();
-  if (!q || q.length < 3) return [];
+  const q = String(input||"").toLowerCase().trim();
+  if(!q) return EXERCISE_SUGGESTIONS.slice(0,18);
+  if(q.length < 3) return [];
+  if(EXERCISE_ALIASES[q]) {
+    const main = EXERCISE_ALIASES[q];
+    return [main];
+  }
   return EXERCISE_SUGGESTIONS.filter(name => name.toLowerCase().startsWith(q)).slice(0,12);
 }
 function suggestedExerciseId(name) {
@@ -8063,7 +8068,6 @@ function handleSearchInput(e) {
 }
 function handleAddExerciseNameInput(e) {
   updateExerciseSuggestions(e.target.value);
-  scheduleHistoryPreviewRender();
 }
 function handleAddExerciseClick() {
   if(ui.addBusy) return;
