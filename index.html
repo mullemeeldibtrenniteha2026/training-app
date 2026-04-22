@@ -8737,6 +8737,13 @@ function syncWorkoutWakeLock() {
   if(shouldHoldWorkoutWakeLock()) requestWorkoutWakeLock();
   else releaseWorkoutWakeLock();
 }
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "visible") {
+    renderTimer();
+    ensureTimerInterval();
+    syncWorkoutWakeLock();
+  }
+});
 window.addEventListener("focus", () => {
   renderTimer();
   ensureTimerInterval();
@@ -8903,6 +8910,17 @@ function setupLockScreen() {
       updateLockTexts();
     };
   }
+  document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "hidden") {
+      markSessionActive();
+    } else {
+      const raw = sessionStorage.getItem(PIN_SESSION_KEY);
+      const ts = raw ? Number(raw) : 0;
+      if(ts && nowTs() - ts >= LOCK_TIMEOUT_MS) openLockScreen();
+      else if(!appUnlocked && shouldStartLocked()) openLockScreen();
+      else markSessionActive();
+    }
+  });
   ["click","input","touchstart","keydown","scroll"].forEach(evt => {
     document.addEventListener(evt, () => { if(appUnlocked) markSessionActive(); }, {passive:true});
   });
@@ -8980,24 +8998,11 @@ function installReleaseReadinessListeners() {
   window.addEventListener("pagehide", () => {
     persistLocalStateNow();
   });
-}
-function handleUnifiedVisibilityChange() {
-  if (document.visibilityState === "hidden") {
-    persistLocalStateNow();
-    markSessionActive();
-    releaseWorkoutWakeLock();
-    return;
-  }
-
-  const raw = sessionStorage.getItem(PIN_SESSION_KEY);
-  const ts = raw ? Number(raw) : 0;
-  if (ts && nowTs() - ts >= LOCK_TIMEOUT_MS) openLockScreen();
-  else if (!appUnlocked && shouldStartLocked()) openLockScreen();
-  else markSessionActive();
-
-  renderTimer();
-  ensureTimerInterval();
-  syncWorkoutWakeLock();
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      persistLocalStateNow();
+    }
+  });
 }
 
 
@@ -9072,7 +9077,6 @@ function bootApp() {
   resetTimer();
   initSupabaseApp();
   setupLockScreen();
-  document.addEventListener("visibilitychange", handleUnifiedVisibilityChange);
   goToday();
   updateConnectivityState();
 }
