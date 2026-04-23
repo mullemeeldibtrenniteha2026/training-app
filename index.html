@@ -7249,7 +7249,6 @@ function addExercise(scope,displayName,historyMode) {
     ensureExerciseExists(week,day,exId,nice);
     if(preview && historyMode!=="empty") copyHistoryTo(week,day,exId,preview,historyMode);
   });
-  saveState();
 }
 function removeWorkoutSet(ex, idx) {
   const week = ui.week;
@@ -8357,6 +8356,8 @@ function handleAddExerciseClick() {
     return;
   }
   ui.addBusy = true;
+  // Capture name BEFORE clearing input for history refresh
+  const addedName = payload.resolvedName;
   try {
     commitStateUpdate(() => {
       addExercise(payload.scope, payload.resolvedName, payload.historyMode);
@@ -8364,7 +8365,16 @@ function handleAddExerciseClick() {
       if(payload.nameInput) payload.nameInput.value = "";
       if(payload.historyModeInput) payload.historyModeInput.value = "empty";
     }, { renderMode:"app", message:"Exercise saved locally on this device." });
-    scheduleHistoryPreviewRender();
+    // Force history preview refresh with the added exercise name
+    if(addedName) {
+      const histBox = document.getElementById("historyPreview");
+      if(histBox) {
+        const preview = historyPreview(addedName);
+        if(preview) {
+          histBox.innerHTML = `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${fmtShortDate(preview.date)}</div></div><div class="last-time-summary">${esc(preview.summary)}</div><div class="last-time-meta">Use this as your quick reference before the next set.</div></div></div>`;
+        }
+      }
+    }
   } finally {
     setTimeout(() => { ui.addBusy = false; }, 150);
   }
