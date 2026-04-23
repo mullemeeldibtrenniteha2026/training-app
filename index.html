@@ -8051,14 +8051,16 @@ function bindExerciseEvents(all) {
     };
   });
   document.querySelectorAll("[data-role='toggle-set']").forEach(el => el.onclick = e => {
-    const ex = e.target.dataset.ex;
-    const idx = Number(e.target.dataset.idx);
+    const btn = e.currentTarget;
+    const ex = btn.dataset.ex;
+    const idx = Number(btn.dataset.idx);
     const updated = toggleWorkoutSetDoneState(ex, idx);
     const shouldAdvance = String(updated.done||"")==="1";
+    if(shouldAdvance) closeTimer();
     commitStateUpdate(() => {}, { renderMode:"exercises", toast: String(updated.done||"")==="1" ? "Set done" : "Set updated" });
     if(shouldAdvance){
-      closeTimer();
       requestAnimationFrame(() => {
+        closeTimer();
         const nextRow = Array.from(document.querySelectorAll(".setrow")).find(row => row.classList.contains("is-next"));
         if(nextRow){
           const nextInput = nextRow.querySelector("[data-role='kg'], [data-role='reps']");
@@ -8068,12 +8070,14 @@ function bindExerciseEvents(all) {
     }
   });
   document.querySelectorAll("[data-role='toggle-block']").forEach(el => el.onclick = e => {
-    const key = `blockdone_w${ui.week}_${ui.day}_${e.target.dataset.ex}`;
+    const btn = e.currentTarget;
+    const key = `blockdone_w${ui.week}_${ui.day}_${btn.dataset.ex}`;
     const isMarkingDone = state[key] !== "1";
+    if(isMarkingDone) closeTimer();
     commitStateUpdate(() => {
       state[key] = state[key]==="1" ? "" : "1";
     }, { renderMode:"exercises" });
-    if(isMarkingDone) closeTimer();
+    if(isMarkingDone) requestAnimationFrame(() => closeTimer());
   });
   document.querySelectorAll("[data-role='add-set']").forEach(el => el.onclick = e => {
     const ex = e.target.dataset.ex;
@@ -8121,8 +8125,24 @@ function bindExerciseEvents(all) {
       updateWorkoutExerciseField(e.target.dataset.ex, 'rest', e.target.value);
       saveStateQuiet("Autosaved draft locally.");
     };
+    el.onkeydown = e => {
+      if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const currentSeconds = parseRestSeconds(e.target.value);
+      const delta = e.key === 'ArrowUp' ? 15 : -15;
+      const nextValue = formatRestSeconds(Math.max(0, currentSeconds + delta));
+      e.target.value = nextValue;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', nextValue);
+      saveStateQuiet("Autosaved draft locally.");
+    };
+    el.onblur = e => {
+      const normalized = normalizeRestValue(e.target.value);
+      if(e.target.value !== normalized) e.target.value = normalized;
+    };
     el.onchange = e => {
-      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', e.target.value);
+      const normalized = normalizeRestValue(e.target.value);
+      e.target.value = normalized;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', normalized);
       commitTextFieldWithoutRender();
     };
   });
