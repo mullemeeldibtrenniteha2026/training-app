@@ -6600,7 +6600,7 @@ const EXERCISE_LIBRARY = [
   { name:"DB Reverse Lunge", type:"weighted", aliases:["db reverse lunge","reverse lunge","dumbbell reverse lunge"] },
   { name:"Walking Lunges", type:"weighted", aliases:["walking lunges","walking lunge"] },
   { name:"Bulgarian Split Squat", type:"weighted", aliases:["bulgarian split squat","bss"] },
-  { name:"Rear-Foot Elevated Split Squat", type:"weighted", aliases:["rear-foot elevated split squat","rear foot elevated split squat","rfess"] },
+  { name:"Rear-Foot Elevated Split Squat", type:"weighted", aliases:["rear-foot elevated split squat","rear foot elevated split squat","rear foot","rfess"] },
   { name:"Step-Up", type:"weighted", aliases:["step-up","step up"] },
   { name:"Leg Extension", type:"weighted", aliases:["leg extension"] },
   { name:"Leg Curl", type:"weighted", aliases:["leg curl"] },
@@ -6986,6 +6986,9 @@ function normalizeExerciseDisplayName(name) {
   return raw.replace(/\b\w/g, c => c.toUpperCase());
 }
 function normalizeExerciseKey(name) { return normalizeExerciseDisplayName(name).toLowerCase(); }
+function normalizeSuggestionMatchValue(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+}
 function getExerciseSuggestions(input) {
   const q = String(input||"").toLowerCase().trim();
   if(!q) return EXERCISE_SUGGESTIONS.slice(0,18);
@@ -6994,7 +6997,12 @@ function getExerciseSuggestions(input) {
     const main = EXERCISE_ALIASES[q];
     return [main];
   }
-  return EXERCISE_SUGGESTIONS.filter(name => name.toLowerCase().startsWith(q)).slice(0,12);
+  const normalizedQuery = normalizeSuggestionMatchValue(q);
+  return EXERCISE_SUGGESTIONS.filter(name => {
+    const lower = name.toLowerCase();
+    const normalizedName = normalizeSuggestionMatchValue(name);
+    return lower.startsWith(q) || normalizedName.startsWith(normalizedQuery);
+  }).slice(0,12);
 }
 function suggestedExerciseId(name) {
   const n = normalizeExerciseDisplayName(name);
@@ -7506,11 +7514,10 @@ function getCalendarDefaultDayType(date) {
 
 function buildCalendarCellHtml(date) {
   if(!date) return `<div class="daycell inactive"></div>`;
-  const { info, dot, check, active, isToday } = getCalendarCellInfo(date);
+  const { info, dot, active, isToday } = getCalendarCellInfo(date);
   const dayTypeClass = getCalendarDefaultDayType(date);
   return `<div class="daycell ${dayTypeClass} ${active?'active':''} ${isToday?'today':''}" data-date="${date.toISOString()}">
       <div class="d">${date.getDate()}</div>
-      ${check ? `<div class="daycheck" style="color:${dot}">✓</div>` : ""}
       <div class="w">${info ? DAY_LABEL[info.day].slice(0,3) : ""}</div>
       <div class="daydot" style="background:${dot}"></div>
     </div>`;
@@ -7875,8 +7882,8 @@ function renderExercises() {
           const s = getSet(ui.week,ui.day,ex,i);
           return `<div class="setrow" data-setrow="${ex}_${i}">
             <div class="setn">${i+1}</div>
-            <div class="setcol"><div class="k">kg</div><input class="setinput" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
-            <div class="setcol"><div class="k">reps</div><input class="setinput" inputmode="numeric" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
+            <div class="setcol"><div class="k">kg</div><input class="setinput" type="number" step="0.01" min="0" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
+            <div class="setcol"><div class="k">reps</div><input class="setinput" type="number" step="1" min="0" inputmode="numeric" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
             <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setVolume(s)}" disabled /></div>
             <button class="setdeletebtn" type="button" data-role="delete-set" data-ex="${ex}" data-idx="${i}" aria-label="Delete set">✕</button>
             <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
@@ -8005,6 +8012,19 @@ function toggleWorkoutSetDoneState(ex, idx) {
   s.done = String(s.done || "") === "1" ? "" : "1";
   return s;
 }
+function sanitizeSetInputValue(role, value) {
+  const raw = String(value ?? "");
+  if(role === "kg") {
+    const normalized = raw.replace(/,/g, ".").replace(/[^0-9.]/g, "");
+    const parts = normalized.split(".");
+    if(parts.length <= 1) return normalized;
+    return `${parts.shift()}.${parts.join("")}`;
+  }
+  if(role === "reps") {
+    return raw.replace(/[^0-9]/g, "");
+  }
+  return raw;
+}
 function updateWorkoutExerciseField(ex, field, value) {
   const key = `${field}_w${ui.week}_${ui.day}_${ex}`;
   state[key] = value;
@@ -8014,14 +8034,18 @@ function updateWorkoutExerciseField(ex, field, value) {
 function bindExerciseEvents(all) {
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
     el.oninput = e => {
-      updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: e.target.value });
+      const cleanValue = sanitizeSetInputValue(e.target.dataset.role, e.target.value);
+      if(e.target.value !== cleanValue) e.target.value = cleanValue;
+      updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: cleanValue });
       updateSetVolumeForInput(e.target);
       saveStateQuiet("Autosaved draft locally.");
     };
     el.onfocus = e => { const row = e.target.closest(".setrow"); if(row) row.classList.add("input-row-active"); };
     el.onblur = e => { const row = e.target.closest(".setrow"); if(row) row.classList.remove("input-row-active"); };
     el.onchange = e => {
-      updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: e.target.value });
+      const cleanValue = sanitizeSetInputValue(e.target.dataset.role, e.target.value);
+      if(e.target.value !== cleanValue) e.target.value = cleanValue;
+      updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: cleanValue });
       updateSetVolumeForInput(e.target);
       commitTextFieldWithoutRender();
     };
@@ -8033,6 +8057,7 @@ function bindExerciseEvents(all) {
     const shouldAdvance = String(updated.done||"")==="1";
     commitStateUpdate(() => {}, { renderMode:"exercises", toast: String(updated.done||"")==="1" ? "Set done" : "Set updated" });
     if(shouldAdvance){
+      closeTimer();
       requestAnimationFrame(() => {
         const nextRow = Array.from(document.querySelectorAll(".setrow")).find(row => row.classList.contains("is-next"));
         if(nextRow){
@@ -8044,9 +8069,11 @@ function bindExerciseEvents(all) {
   });
   document.querySelectorAll("[data-role='toggle-block']").forEach(el => el.onclick = e => {
     const key = `blockdone_w${ui.week}_${ui.day}_${e.target.dataset.ex}`;
+    const isMarkingDone = state[key] !== "1";
     commitStateUpdate(() => {
       state[key] = state[key]==="1" ? "" : "1";
     }, { renderMode:"exercises" });
+    if(isMarkingDone) closeTimer();
   });
   document.querySelectorAll("[data-role='add-set']").forEach(el => el.onclick = e => {
     const ex = e.target.dataset.ex;
@@ -8685,9 +8712,11 @@ function getTimerElapsedMs() {
   return Math.max(0, timerState.elapsedMs || 0);
 }
 function formatTimer(totalSeconds) {
-  const mins = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
-  const secs = Math.floor(totalSeconds % 60).toString().padStart(2, "0");
-  return `${mins}:${secs}`;
+  const total = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const hours = Math.floor(total / 3600);
+  const mins = Math.floor((total % 3600) / 60).toString().padStart(2, "0");
+  const secs = Math.floor(total % 60).toString().padStart(2, "0");
+  return hours > 0 ? `${hours}.${mins}.${secs}` : `${mins}:${secs}`;
 }
 function renderTimer() {
   const display = document.getElementById("timerDisplay");
