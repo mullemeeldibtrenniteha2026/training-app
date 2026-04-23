@@ -6195,6 +6195,35 @@ body{
   }
 }
 
+
+
+/* =========================================
+   ITER76C — targeted fix pack
+   Scope locked to:
+   - timer dismiss on done
+   - rest field arrow logic
+   - long exercise name visibility
+========================================= */
+.exercise-name{
+  display:block !important;
+  width:100% !important;
+  min-width:0;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+textarea.exercise-name{
+  min-height:52px;
+  height:auto;
+  resize:none;
+  overflow:hidden;
+  padding:0;
+}
+.left-main > div[style*="min-width:0"]{
+  min-width:0 !important;
+  width:100% !important;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -7894,7 +7923,7 @@ function renderExercises() {
             <div class="left-main">
               <input class="codebox" data-role="code" data-ex="${ex}" value="${esc(code)}" />
               <div style="min-width:0;width:100%">
-                <input class="exercise-name" data-role="name" data-ex="${ex}" value="${esc(name)}" />
+                <textarea class="exercise-name textarea" rows="2" data-role="name" data-ex="${ex}">${esc(name)}</textarea>
                 <div class="exercise-meta">${[ /\d$/.test(code) ? `Superset item ${code}` : code ? `Block item ${code}` : "", recovery ? "Recovery / conditioning" : "", cfg.weight ? "Weighted" : ""].filter(Boolean).join(" • ")}</div>
               </div>
             </div>
@@ -8056,11 +8085,11 @@ function bindExerciseEvents(all) {
     const idx = Number(btn.dataset.idx);
     const updated = toggleWorkoutSetDoneState(ex, idx);
     const shouldAdvance = String(updated.done||"")==="1";
-    if(shouldAdvance) closeTimer();
+    if(shouldAdvance) dismissTimer();
     commitStateUpdate(() => {}, { renderMode:"exercises", toast: String(updated.done||"")==="1" ? "Set done" : "Set updated" });
     if(shouldAdvance){
       requestAnimationFrame(() => {
-        closeTimer();
+        dismissTimer();
         const nextRow = Array.from(document.querySelectorAll(".setrow")).find(row => row.classList.contains("is-next"));
         if(nextRow){
           const nextInput = nextRow.querySelector("[data-role='kg'], [data-role='reps']");
@@ -8073,11 +8102,11 @@ function bindExerciseEvents(all) {
     const btn = e.currentTarget;
     const key = `blockdone_w${ui.week}_${ui.day}_${btn.dataset.ex}`;
     const isMarkingDone = state[key] !== "1";
-    if(isMarkingDone) closeTimer();
+    if(isMarkingDone) dismissTimer();
     commitStateUpdate(() => {
       state[key] = state[key]==="1" ? "" : "1";
     }, { renderMode:"exercises" });
-    if(isMarkingDone) requestAnimationFrame(() => closeTimer());
+    if(isMarkingDone) requestAnimationFrame(() => dismissTimer());
   });
   document.querySelectorAll("[data-role='add-set']").forEach(el => el.onclick = e => {
     const ex = e.target.dataset.ex;
@@ -8099,13 +8128,21 @@ function bindExerciseEvents(all) {
     }, { renderMode:"exercises", toast:"Exercise removed" });
   });
   document.querySelectorAll("[data-role='name']").forEach(el => {
+    const autosizeName = node => {
+      if(!(node instanceof HTMLTextAreaElement)) return;
+      node.style.height = 'auto';
+      node.style.height = Math.max(52, node.scrollHeight) + 'px';
+    };
+    autosizeName(el);
     el.oninput = e => {
+      autosizeName(e.target);
       updateWorkoutExerciseField(e.target.dataset.ex, 'exname', e.target.value);
       saveStateQuiet("Autosaved draft locally.");
     };
     el.onchange = e => {
       const normalizedName = normalizeExerciseDisplayName(e.target.value);
       e.target.value = updateWorkoutExerciseField(e.target.dataset.ex, 'exname', normalizedName);
+      autosizeName(e.target);
       commitTextFieldWithoutRender();
     };
   });
@@ -8829,6 +8866,10 @@ function closeTimer() {
   const overlay = document.getElementById("timerOverlay");
   if(overlay) overlay.style.display = "none";
 }
+function dismissTimer() {
+  pauseTimer();
+  closeTimer();
+}
 
 
 
@@ -9063,6 +9104,20 @@ if(timerResetBtn) timerResetBtn.onclick = () => resetTimer();
 document.getElementById("timerOverlay")?.addEventListener("click", e => { if(e.target.id === "timerOverlay") closeTimer(); });
 document.addEventListener("keydown", e => {
   if(e.key === "Escape" && document.getElementById("timerOverlay")?.style.display === "flex") closeTimer();
+});
+
+document.addEventListener('keydown', e => {
+  const target = e.target;
+  if(!(target instanceof HTMLInputElement)) return;
+  if(target.dataset.role !== 'rest') return;
+  if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+  e.preventDefault();
+  const currentSeconds = parseRestSeconds(target.value);
+  const delta = e.key === 'ArrowUp' ? 15 : -15;
+  const nextValue = formatRestSeconds(Math.max(0, currentSeconds + delta));
+  target.value = nextValue;
+  updateWorkoutExerciseField(target.dataset.ex, 'rest', nextValue);
+  saveStateQuiet('Autosaved draft locally.');
 });
 
 const finishSummaryDoneBtn = document.getElementById("finishSummaryDoneBtn");
