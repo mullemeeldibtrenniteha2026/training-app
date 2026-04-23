@@ -6888,7 +6888,21 @@ function normalizeUiState() {
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if(!saved) return normalizeAppState(SEED_DATA);
-  try { return normalizeAppState(JSON.parse(saved)); } catch { return normalizeAppState(SEED_DATA); }
+  try {
+    const migrated = normalizeAppState(JSON.parse(saved));
+    // Pre-migration backup
+    try {
+      const prev = localStorage.getItem(STORAGE_KEY);
+      if (prev) {
+        localStorage.setItem(
+          STORAGE_KEY + "_backup_" + Date.now(),
+          prev
+        );
+      }
+    } catch (e) {}
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+    return migrated;
+  } catch { return normalizeAppState(SEED_DATA); }
 }
 let state = loadState();
 const LOCAL_SAFETY_SNAPSHOT_KEY = "timo_training_local_safety_snapshot";
