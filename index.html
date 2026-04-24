@@ -6754,7 +6754,12 @@ const MUSCLE_HINTS = {
 
 // ===== UTILITIES =====
 function structured(x) { return JSON.parse(JSON.stringify(x)); }
-function num(v) { const s=String(v??"").replace(",",".").trim(); return s?parseFloat(s):NaN; }
+function num(v) {
+  let value = String(v ?? "");
+  value = value.replace(",", ".");
+  const s = value.trim();
+  return s ? parseFloat(s) : NaN;
+}
 function esc(v) { return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
 function fmtShortDate(d) { return d.toLocaleDateString("en-GB", {day:"2-digit",month:"short"}); }
 function fmtFullDate(d) { return d.toLocaleDateString("en-GB", {weekday:"short",day:"2-digit",month:"long",year:"numeric"}); }
@@ -7321,6 +7326,10 @@ function getExercisesForWeekDay(week,day) {
     }
     if(ex && !seen.has(ex)) { seen.add(ex); ids.push(ex); }
   });
+  const issues = getSupersetIntegrityIssuesForDay(week, day, ids);
+  if (issues.length > 0) {
+    console.warn("Superset integrity issues", issues);
+  }
   return ids.filter(ex => !hiddenOf(week,day,ex)).sort((a,b) => {
     const ac = codeOf(week,day,a).match(/^([A-Z])(\d+)?$/);
     const bc = codeOf(week,day,b).match(/^([A-Z])(\d+)?$/);
