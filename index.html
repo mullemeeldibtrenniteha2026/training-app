@@ -6822,6 +6822,9 @@ function normalizeAppState(rawState) {
       base[scKey] = minimumCount;
     }
   });
+  if (!base.__meta) {
+    base.__meta = { schema: "3.6" };
+  }
   return base;
 }
 
@@ -7012,13 +7015,14 @@ function normalizeUiState() {
 //   - reps (stored in set.reps)
 //   - kg (stored in set.kg)
 //   - done states (set.done === "1" or "")
-// NOTE: No schema/version marker is added yet — future migrations should add state._version
+// NOTE: Schema marker is stored under state.__meta.schema for migration/version checks
+const CURRENT_SCHEMA = "3.6";
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if(!saved) return normalizeAppState(SEED_DATA);
   try {
     const original = JSON.parse(saved);
-    const migrated = normalizeAppState(original);
+    const migrated = original?.__meta?.schema === CURRENT_SCHEMA ? original : normalizeAppState(original);
     // Verify migration integrity — logs warnings only, does not block
     verifyMigrationIntegrity(original, migrated);
     // Pre-migration backup
