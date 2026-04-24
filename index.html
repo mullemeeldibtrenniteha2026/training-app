@@ -6754,7 +6754,13 @@ const MUSCLE_HINTS = {
 
 // ===== UTILITIES =====
 function structured(x) { return JSON.parse(JSON.stringify(x)); }
-function num(v) { const s=String(v??"").replace(",",".").trim(); return s?parseFloat(s):NaN; }
+function num(val) {
+  if (val === null || val === undefined || val === "") return null;
+  const normalized = String(val).replace(",", ".").trim();
+  if (!normalized) return null;
+  const parsed = parseFloat(normalized);
+  return Number.isNaN(parsed) ? null : parsed;
+}
 function esc(v) { return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
 function fmtShortDate(d) { return d.toLocaleDateString("en-GB", {day:"2-digit",month:"short"}); }
 function fmtFullDate(d) { return d.toLocaleDateString("en-GB", {weekday:"short",day:"2-digit",month:"long",year:"numeric"}); }
