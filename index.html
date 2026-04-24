@@ -6822,6 +6822,9 @@ function normalizeAppState(rawState) {
       base[scKey] = minimumCount;
     }
   });
+  if (!base.__meta) {
+    base.__meta = { schema: "3.6" };
+  }
   return base;
 }
 
@@ -7012,13 +7015,30 @@ function normalizeUiState() {
 //   - reps (stored in set.reps)
 //   - kg (stored in set.kg)
 //   - done states (set.done === "1" or "")
-// NOTE: No schema/version marker is added yet — future migrations should add state._version
+// NOTE: Schema marker is stored under state.__meta.schema for migration/version checks
+const CURRENT_SCHEMA = "3.6";
+function runMigrations(state) {
+  let current = state;
+
+  // future migrations go here
+  // example:
+  // if (current.__meta.schema === "3.6") {
+  //   current = migrate_3_6_to_3_7(current);
+  // }
+
+  return current;
+}
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if(!saved) return normalizeAppState(SEED_DATA);
   try {
     const original = JSON.parse(saved);
-    const migrated = normalizeAppState(original);
+    let migrated = original;
+
+    if (original?.__meta?.schema !== CURRENT_SCHEMA) {
+      migrated = normalizeAppState(original);
+      migrated = runMigrations(migrated);
+    }
     // Verify migration integrity — logs warnings only, does not block
     verifyMigrationIntegrity(original, migrated);
     // Pre-migration backup
@@ -7132,9 +7152,12 @@ function commitTextFieldWithoutRender(message="Saved locally on this device.") {
   saveStateQuiet(message);
   showToast("Saved");
 }
+function isWorkoutStateKey(key) {
+  return typeof key === "string" && /^w\d+_/.test(key);
+}
 function getWeeks() {
   const weeks = new Set();
-  Object.keys(state).forEach(k => {
+  Object.keys(state).filter(isWorkoutStateKey).forEach(k => {
     const m1 = k.match(/(?:^|_w)(\d+)_/);
     const m2 = k.match(/^w(\d+)_/);
     if(m1) weeks.add(Number(m1[1]));
@@ -7241,15 +7264,17 @@ function exerciseHasDone(week,day,ex) {
 }
 function getExercisesForWeekDay(week,day) {
   const ids=[], seen=new Set();
-  const metaPrefix = `_w${week}_${day}_`;
-  const setPrefix = `w${week}_${day}_`;
-  Object.keys(state).forEach(k => {
+  const dayMetaPattern = new RegExp(`^(sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w${week}_${day}_(.+)$`);
+  const daySetPattern = new RegExp(`^w${week}_${day}_(.+)_s\d+$`);
+  Object.keys(state)
+    .filter(k => dayMetaPattern.test(k) || daySetPattern.test(k))
+    .forEach(k => {
     let ex = null;
-    const metaMatch = k.match(/^(sc|note|interval|rest|exname|exlabel|exss|excode|hidden|blockdone)_w\d+_[a-z]{3}_(.+)$/);
-    if (metaMatch && k.includes(metaPrefix)) {
+    const metaMatch = k.match(dayMetaPattern);
+    if (metaMatch) {
       ex = metaMatch[2];
-    } else if (k.startsWith(setPrefix)) {
-      const m = k.match(/^w\d+_[a-z]{3}_(.+)_s\d+$/);
+    } else {
+      const m = k.match(daySetPattern);
       if (m) ex = m[1];
     }
     if(ex && !seen.has(ex)) { seen.add(ex); ids.push(ex); }
