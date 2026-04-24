@@ -65,3 +65,18 @@ This one is built for one thing:
 
 **Timo Anis**  
 Product Owner & Professional Motorsport Photographer
+
+---
+
+## V2 Architecture
+
+This project is evolving into a V2 version with a clean, long-term architecture.
+
+The goal is to build a reliable, scalable training system with:
+- clear domain model (workouts, exercises, sets)
+- strict data integrity
+- separated layers (domain, state, UI, services)
+- predictable behavior in real workout usage
+
+👉 Full architecture blueprint:
+[V2_ARCHITECTURE.md](./V2_ARCHITECTURE.md)
