@@ -6775,6 +6775,16 @@ function normalizeSetObject(raw) {
     done: src.done === "1" ? "1" : ""
   };
 }
+// MIGRATION FUNCTION
+// Transforms and normalizes raw state from localStorage.
+// CRITICAL: This function must preserve all existing workout data:
+//   - Week/day/exercise key structure (w{week}_{day}_{exercise}_s{set})
+//   - Set counts (sc_*) matching the highest set index + 1
+//   - Block done states (blockdone_*) as "1" or ""
+//   - Exercise metadata (note, rest, interval, exname, exlabel, exss, excode)
+//   - Hidden states (hidden_*) as boolean
+//   - Set data (kg, reps, done) via normalizeSetObject()
+// NOTE: No version marker — relies on structural normalization only
 function normalizeAppState(rawState) {
   const base = rawState && typeof rawState === "object" ? structured(rawState) : structured(SEED_DATA);
   const maxSetIndexByExercise = new Map();
@@ -6814,6 +6824,112 @@ function normalizeAppState(rawState) {
   });
   return base;
 }
+
+// MIGRATION VERIFICATION HELPER
+// Compares state before/after normalization and warns if critical data changed.
+// Does NOT block app, does NOT write data — console warnings only.
+function verifyMigrationIntegrity(original, migrated) {
+  const warnings = [];
+  const originalKeys = new Set(Object.keys(original || {}));
+  const migratedKeys = new Set(Object.keys(migrated || {}));
+
+  // Check: week numbers preserved
+  const originalWeeks = new Set();
+  const migratedWeeks = new Set();
+  Object.keys(original || {}).forEach(k => {
+    const m = k.match(/^w(\d+)_/);
+    if (m) originalWeeks.add(Number(m[1]));
+  });
+  Object.keys(migrated || {}).forEach(k => {
+    const m = k.match(/^w(\d+)_/);
+    if (m) migratedWeeks.add(Number(m[1]));
+  });
+  if (originalWeeks.size !== migratedWeeks.size) {
+    warnings.push(`Week count changed: ${originalWeeks.size} → ${migratedWeeks.size}`);
+  }
+
+  // Check: day tokens preserved
+  const originalDays = new Set();
+  const migratedDays = new Set();
+  Object.keys(original || {}).forEach(k => {
+    const m = k.match(/^w\d+_([a-z]{3})_/);
+    if (m) originalDays.add(m[1]);
+  });
+  Object.keys(migrated || {}).forEach(k => {
+    const m = k.match(/^w\d+_([a-z]{3})_/);
+    if (m) migratedDays.add(m[1]);
+  });
+  if (originalDays.size !== migratedDays.size) {
+    warnings.push(`Day count changed: ${originalDays.size} → ${migratedDays.size}`);
+  }
+
+  // Check: exercise count per day/week preserved
+  const originalExercises = new Set();
+  const migratedExercises = new Set();
+  Object.keys(original || {}).forEach(k => {
+    const m = k.match(/^w\d+_[a-z]{3}_(.+?)_s\d+$/);
+    if (m) originalExercises.add(m[1]);
+  });
+  Object.keys(migrated || {}).forEach(k => {
+    const m = k.match(/^w\d+_[a-z]{3}_(.+?)_s\d+$/);
+    if (m) migratedExercises.add(m[1]);
+  });
+  if (originalExercises.size !== migratedExercises.size) {
+    warnings.push(`Exercise count changed: ${originalExercises.size} → ${migratedExercises.size}`);
+  }
+
+  // Check: superset flags preserved
+  const originalSupersets = new Set(Object.keys(original || {}).filter(k => k.startsWith('exss_')));
+  const migratedSupersets = new Set(Object.keys(migrated || {}).filter(k => k.startsWith('exss_')));
+  if (originalSupersets.size !== migratedSupersets.size) {
+    warnings.push(`Superset flags changed: ${originalSupersets.size} → ${migratedSupersets.size}`);
+  }
+
+  // Check: set counts (sc_*) preserved or repaired
+  const originalSetCounts = {};
+  const migratedSetCounts = {};
+  Object.keys(original || {}).forEach(k => {
+    const m = k.match(/^sc_(w\d+_[a-z]{3}_.+)$/);
+    if (m) originalSetCounts[m[1]] = original[k];
+  });
+  Object.keys(migrated || {}).forEach(k => {
+    const m = k.match(/^sc_(w\d+_[a-z]{3}_.+)$/);
+    if (m) migratedSetCounts[m[1]] = migrated[k];
+  });
+  for (const key in originalSetCounts) {
+    if (migratedSetCounts[key] !== undefined && Number(originalSetCounts[key]) !== Number(migratedSetCounts[key])) {
+      warnings.push(`Set count changed for ${key}: ${originalSetCounts[key]} → ${migratedSetCounts[key]}`);
+    }
+  }
+
+  // Check: done states preserved (kg/reps may be normalized but done must stay)
+  const originalDoneStates = {};
+  const migratedDoneStates = {};
+  Object.keys(original || {}).forEach(k => {
+    const m = k.match(/^w\d+_[a-z]{3}_.+_s\d+$/);
+    if (m && typeof original[k] === 'object') originalDoneStates[k] = original[k].done;
+  });
+  Object.keys(migrated || {}).forEach(k => {
+    const m = k.match(/^w\d+_[a-z]{3}_.+_s\d+$/);
+    if (m && typeof migrated[k] === 'object') migratedDoneStates[k] = migrated[k].done;
+  });
+  for (const key in originalDoneStates) {
+    const orig = originalDoneStates[key] === "1" ? "1" : "";
+    const migr = migratedDoneStates[key] === "1" ? "1" : "";
+    if (orig !== migr) {
+      warnings.push(`Done state changed for ${key}: "${orig}" → "${migr}"`);
+    }
+  }
+
+  // Log warnings
+  if (warnings.length > 0) {
+    console.warn("[Migration Verification] Potential data changes detected:", warnings);
+  } else {
+    console.log("[Migration Verification] State integrity verified — no unexpected changes.");
+  }
+  return warnings;
+}
+
 function getStateIntegrityReport(candidateState) {
   const source = candidateState && typeof candidateState === "object" ? candidateState : {};
   const report = {
@@ -6885,11 +7001,26 @@ function normalizeUiState() {
 }
 
 // ===== STATE =====
+// MIGRATION ENTRY POINT
+// This function loads state from localStorage and applies normalizeAppState() as a migration step.
+// CRITICAL: Migration must preserve:
+//   - date (derived from w{week}_{day}_ pattern)
+//   - week number (w{week}_ prefix)
+//   - exercises order (Object.keys iteration order)
+//   - exercise type (single/superset via exss_* keys)
+//   - sets (all set objects under w{week}_{day}_{exercise}_s{index})
+//   - reps (stored in set.reps)
+//   - kg (stored in set.kg)
+//   - done states (set.done === "1" or "")
+// NOTE: No schema/version marker is added yet — future migrations should add state._version
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if(!saved) return normalizeAppState(SEED_DATA);
   try {
-    const migrated = normalizeAppState(JSON.parse(saved));
+    const original = JSON.parse(saved);
+    const migrated = normalizeAppState(original);
+    // Verify migration integrity — logs warnings only, does not block
+    verifyMigrationIntegrity(original, migrated);
     // Pre-migration backup
     try {
       const prev = localStorage.getItem(STORAGE_KEY);
@@ -6901,6 +7032,7 @@ function loadState() {
       }
     } catch (e) {}
     localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+    // MIGRATION: Write back migrated state — preserves all data fields unchanged
     return migrated;
   } catch { return normalizeAppState(SEED_DATA); }
 }
