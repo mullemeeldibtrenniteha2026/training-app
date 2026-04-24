@@ -6754,7 +6754,12 @@ const MUSCLE_HINTS = {
 
 // ===== UTILITIES =====
 function structured(x) { return JSON.parse(JSON.stringify(x)); }
-function num(v) { const s=String(v??"").replace(",",".").trim(); return s?parseFloat(s):NaN; }
+function num(v) {
+  let value = String(v ?? "");
+  value = value.replace(",", ".");
+  const s = value.trim();
+  return s ? parseFloat(s) : NaN;
+}
 function esc(v) { return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
 function fmtShortDate(d) { return d.toLocaleDateString("en-GB", {day:"2-digit",month:"short"}); }
 function fmtFullDate(d) { return d.toLocaleDateString("en-GB", {weekday:"short",day:"2-digit",month:"long",year:"numeric"}); }
@@ -7254,6 +7259,10 @@ function getExercisesForWeekDay(week,day) {
     }
     if(ex && !seen.has(ex)) { seen.add(ex); ids.push(ex); }
   });
+  const issues = getSupersetIntegrityIssuesForDay(week, day, ids);
+  if (issues.length > 0) {
+    console.warn("Superset integrity issues", issues);
+  }
   return ids.filter(ex => !hiddenOf(week,day,ex)).sort((a,b) => {
     const ac = codeOf(week,day,a).match(/^([A-Z])(\d+)?$/);
     const bc = codeOf(week,day,b).match(/^([A-Z])(\d+)?$/);
@@ -7949,6 +7958,35 @@ function getWorkoutGroups(exercises){
     groups[groups.length-1].items.push(ex);
   });
   return groups;
+}
+function getSupersetIntegrityIssuesForDay(week, day, exercises) {
+  const issues = [];
+  const numberedByLetter = new Map();
+
+  exercises.forEach(ex => {
+    const code = codeOf(week, day, ex);
+    const match = code.match(/^([A-Z])(\d+)$/);
+    if (!match) return;
+
+    const letter = match[1];
+    if (!numberedByLetter.has(letter)) numberedByLetter.set(letter, []);
+    numberedByLetter.get(letter).push({ ex, code });
+  });
+
+  numberedByLetter.forEach((items, letter) => {
+    if (items.length === 1) {
+      issues.push({
+        type: "missing_pair",
+        week,
+        day,
+        letter,
+        ex: items[0].ex,
+        code: items[0].code
+      });
+    }
+  });
+
+  return issues;
 }
 
 function getWorkoutSummaryStats(week,day){
