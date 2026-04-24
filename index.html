@@ -6754,7 +6754,13 @@ const MUSCLE_HINTS = {
 
 // ===== UTILITIES =====
 function structured(x) { return JSON.parse(JSON.stringify(x)); }
-function num(v) { const s=String(v??"").replace(",",".").trim(); return s?parseFloat(s):NaN; }
+function num(val) {
+  if (val === null || val === undefined || val === "") return null;
+  const normalized = String(val).replace(",", ".").trim();
+  if (!normalized) return null;
+  const parsed = parseFloat(normalized);
+  return Number.isNaN(parsed) ? null : parsed;
+}
 function esc(v) { return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
 function fmtShortDate(d) { return d.toLocaleDateString("en-GB", {day:"2-digit",month:"short"}); }
 function fmtFullDate(d) { return d.toLocaleDateString("en-GB", {weekday:"short",day:"2-digit",month:"long",year:"numeric"}); }
@@ -7035,6 +7041,77 @@ function loadState() {
     // MIGRATION: Write back migrated state — preserves all data fields unchanged
     return migrated;
   } catch { return normalizeAppState(SEED_DATA); }
+}
+function validateSupersetPairs(day) {
+  if (!day || !Array.isArray(day.exercises)) return [];
+
+  const issues = [];
+
+  day.exercises.forEach((exercise, index) => {
+    if (!exercise || exercise.type !== "superset") return;
+    if (!Array.isArray(exercise.sets)) return;
+
+    const labels = exercise.sets
+      .map(set => set && typeof set.label === "string" ? set.label.trim().toUpperCase() : "")
+      .filter(Boolean);
+
+    const hasA = labels.includes("A");
+    const hasB = labels.includes("B");
+
+    if (hasA !== hasB) {
+      issues.push({
+        exerciseIndex: index,
+        exerciseName: exercise.name || "",
+        hasA,
+        hasB
+      });
+    }
+  });
+
+  return issues;
+}
+let lastSupersetIssueSignature = null;
+function getSupersetIssueSignature(issues) {
+  return issues
+    .map(i => `${i.type}|${i.week}|${i.day}|${i.letter}|${i.ex}`)
+    .sort()
+    .join("||");
+}
+function runSupersetGuardrailFromState(currentState, week, day) {
+  const supersets = new Map();
+  Object.keys(currentState || {}).forEach(key => {
+    const m = key.match(/^excode_w(\d+)_([a-z]{3})_(.+)$/);
+    if (!m) return;
+    const keyWeek = Number(m[1]);
+    const keyDay = m[2];
+    if (keyWeek !== Number(week) || keyDay !== day) return;
+    const code = String(currentState[key] || "").toUpperCase().trim();
+    const codeMatch = code.match(/^([A-Z])(\d+)$/);
+    if (!codeMatch) return;
+    const letter = codeMatch[1];
+    const slot = codeMatch[2] === "1" ? "A" : (codeMatch[2] === "2" ? "B" : "");
+    if (!slot) return;
+    if (!supersets.has(letter)) supersets.set(letter, { name: letter, type: "superset", sets: [] });
+    supersets.get(letter).sets.push({ label: slot });
+  });
+  const dayData = { exercises: [...supersets.values()] };
+  const issues = validateSupersetPairs(dayData).map(i => ({
+    ...i,
+    type: i.type || "missing_pair",
+    week,
+    day,
+    letter: i.letter || i.exerciseName || "",
+    ex: i.ex || ""
+  }));
+  if (!issues.length) {
+    lastSupersetIssueSignature = null;
+    return;
+  }
+  const sig = getSupersetIssueSignature(issues);
+  if (sig !== lastSupersetIssueSignature) {
+    console.warn("Superset integrity issues", issues);
+    lastSupersetIssueSignature = sig;
+  }
 }
 let state = loadState();
 const LOCAL_SAFETY_SNAPSHOT_KEY = "timo_training_local_safety_snapshot";
@@ -7709,6 +7786,7 @@ function selectCalendarDate(isoDate) {
   const clickedDate = new Date(isoDate);
   const info = dateToProgramDay(clickedDate);
   if(!info) return;
+  runSupersetGuardrailFromState(state, info.week, info.day);
   commitUiUpdate(() => {
     ui.week = info.week;
     ui.day = info.day;
