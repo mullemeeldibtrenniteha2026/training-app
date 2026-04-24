@@ -7016,15 +7016,30 @@ function normalizeUiState() {
 //   - kg (stored in set.kg)
 //   - done states (set.done === "1" or "")
 // NOTE: Schema marker is stored under state.__meta.schema for migration/version checks
-const CURRENT_SCHEMA = "3.6";
+const CURRENT_SCHEMA = "3.7";
+function migrate_3_6_to_3_7(state) {
+  // no data changes, only schema bump
+  state.__meta.schema = "3.7";
+  return state;
+}
 function runMigrations(state) {
   let current = state;
 
+  // MIGRATION RULES:
+  // - Apply only explicit version-to-version steps (e.g., 3.6 -> 3.7).
+  // - Never reorder exercises.
+  // - Never change single/superset structure.
+  // - Never drop sets, reps, kg, or done states.
+  // - Every successful migration must explicitly bump current.__meta.schema.
+  // - If unsure, preserve existing data unchanged.
   // future migrations go here
   // example:
   // if (current.__meta.schema === "3.6") {
   //   current = migrate_3_6_to_3_7(current);
   // }
+  if (current.__meta?.schema === "3.6") {
+    current = migrate_3_6_to_3_7(current);
+  }
 
   return current;
 }
