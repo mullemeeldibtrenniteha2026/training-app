@@ -7950,6 +7950,35 @@ function getWorkoutGroups(exercises){
   });
   return groups;
 }
+function getSupersetIntegrityIssuesForDay(week, day, exercises) {
+  const issues = [];
+  const numberedByLetter = new Map();
+
+  exercises.forEach(ex => {
+    const code = codeOf(week, day, ex);
+    const match = code.match(/^([A-Z])(\d+)$/);
+    if (!match) return;
+
+    const letter = match[1];
+    if (!numberedByLetter.has(letter)) numberedByLetter.set(letter, []);
+    numberedByLetter.get(letter).push({ ex, code });
+  });
+
+  numberedByLetter.forEach((items, letter) => {
+    if (items.length === 1) {
+      issues.push({
+        type: "missing_pair",
+        week,
+        day,
+        letter,
+        ex: items[0].ex,
+        code: items[0].code
+      });
+    }
+  });
+
+  return issues;
+}
 
 function getWorkoutSummaryStats(week,day){
   const all = getExercisesForWeekDay(week,day);
