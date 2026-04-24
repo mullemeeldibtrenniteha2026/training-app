@@ -8663,9 +8663,8 @@ function markAddSignature(signature) {
 }
 function handleSearchInput(e) {
   ui.search = e.target.value;
-  ui.activeExerciseIndex = 0;
   normalizeUiState();
-  scheduleSearchRender();
+  requestRender("exercises");
 }
 function handleAddExerciseNameInput(e) {
   updateExerciseSuggestions(e.target.value);
