@@ -7016,11 +7016,35 @@ function normalizeUiState() {
 //   - kg (stored in set.kg)
 //   - done states (set.done === "1" or "")
 // NOTE: Schema marker is stored under state.__meta.schema for migration/version checks
-const CURRENT_SCHEMA = "3.7";
+const CURRENT_SCHEMA = "3.8";
 function migrate_3_6_to_3_7(state) {
   // no data changes, only schema bump
   state.__meta.schema = "3.7";
   return state;
+}
+function migrate_3_7_to_3_8(state) {
+  const next = structuredClone(state);
+
+  Object.keys(next).forEach(key => {
+    if (!/^w\d+_(mon|tue|wed|thu|fri|sat|sun)$/.test(key)) return;
+
+    const dayKeys = Object.keys(next).filter(k => k.startsWith(key));
+
+    const setIndexes = [];
+
+    dayKeys.forEach(k => {
+      const m = k.match(/_s(\d+)$/);
+      if (m) setIndexes.push(Number(m[1]));
+    });
+
+    if (setIndexes.length > 0) {
+      const maxIndex = Math.max(...setIndexes);
+      next[`${key}_sc_`] = maxIndex + 1;
+    }
+  });
+
+  next.__meta.schema = "3.8";
+  return next;
 }
 function runMigrations(state) {
   let current = state;
@@ -7039,6 +7063,9 @@ function runMigrations(state) {
   // }
   if (current.__meta?.schema === "3.6") {
     current = migrate_3_6_to_3_7(current);
+  }
+  if (current.__meta?.schema === "3.7") {
+    current = migrate_3_7_to_3_8(current);
   }
 
   return current;
