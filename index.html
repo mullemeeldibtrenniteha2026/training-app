@@ -8695,6 +8695,7 @@ function handleAddExerciseClick() {
       if(payload.nameInput) payload.nameInput.value = "";
       if(payload.historyModeInput) payload.historyModeInput.value = "empty";
     }, { renderMode:"app", message:"Exercise saved locally on this device." });
+    if(payload.nameInput) payload.nameInput.focus();
     // Force history preview refresh with the added exercise name
     if(addedName) {
       const histBox = document.getElementById("historyPreview");
