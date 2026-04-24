@@ -7017,12 +7017,28 @@ function normalizeUiState() {
 //   - done states (set.done === "1" or "")
 // NOTE: Schema marker is stored under state.__meta.schema for migration/version checks
 const CURRENT_SCHEMA = "3.6";
+function runMigrations(state) {
+  let current = state;
+
+  // future migrations go here
+  // example:
+  // if (current.__meta.schema === "3.6") {
+  //   current = migrate_3_6_to_3_7(current);
+  // }
+
+  return current;
+}
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if(!saved) return normalizeAppState(SEED_DATA);
   try {
     const original = JSON.parse(saved);
-    const migrated = original?.__meta?.schema === CURRENT_SCHEMA ? original : normalizeAppState(original);
+    let migrated = original;
+
+    if (original?.__meta?.schema !== CURRENT_SCHEMA) {
+      migrated = normalizeAppState(original);
+      migrated = runMigrations(migrated);
+    }
     // Verify migration integrity — logs warnings only, does not block
     verifyMigrationIntegrity(original, migrated);
     // Pre-migration backup
