@@ -6754,7 +6754,12 @@ const MUSCLE_HINTS = {
 
 // ===== UTILITIES =====
 function structured(x) { return JSON.parse(JSON.stringify(x)); }
-function num(v) { const s=String(v??"").replace(",",".").trim(); return s?parseFloat(s):NaN; }
+function num(v) {
+  let value = String(v ?? "");
+  value = value.replace(",", ".");
+  const s = value.trim();
+  return s ? parseFloat(s) : NaN;
+}
 function esc(v) { return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;"); }
 function fmtShortDate(d) { return d.toLocaleDateString("en-GB", {day:"2-digit",month:"short"}); }
 function fmtFullDate(d) { return d.toLocaleDateString("en-GB", {weekday:"short",day:"2-digit",month:"long",year:"numeric"}); }
@@ -7254,6 +7259,28 @@ function getExercisesForWeekDay(week,day) {
     }
     if(ex && !seen.has(ex)) { seen.add(ex); ids.push(ex); }
   });
+  const dayData = { exercises: [] };
+  const supersetByLetter = new Map();
+  ids.forEach(ex => {
+    const match = codeOf(week, day, ex).match(/^([A-Z])(\d+)$/);
+    if (!match) return;
+    const letter = match[1];
+    const slot = match[2] === "1" ? "A" : (match[2] === "2" ? "B" : "");
+    if (!slot) return;
+    if (!supersetByLetter.has(letter)) {
+      supersetByLetter.set(letter, { name: letter, type: "superset", sets: [] });
+    }
+    supersetByLetter.get(letter).sets.push({ label: slot });
+  });
+  dayData.exercises = [...supersetByLetter.values()];
+  const supersetPairIssues = validateSupersetPairs(dayData);
+  const supersetIssueSignature = getIssueSignature(supersetPairIssues);
+  if (supersetPairIssues.length && supersetIssueSignature !== lastSupersetIssueSignature) {
+    console.warn("Superset pairing issue detected:", supersetPairIssues);
+    lastSupersetIssueSignature = supersetIssueSignature;
+  } else if (!supersetPairIssues.length) {
+    lastSupersetIssueSignature = null;
+  }
   return ids.filter(ex => !hiddenOf(week,day,ex)).sort((a,b) => {
     const ac = codeOf(week,day,a).match(/^([A-Z])(\d+)?$/);
     const bc = codeOf(week,day,b).match(/^([A-Z])(\d+)?$/);
@@ -7949,6 +7976,42 @@ function getWorkoutGroups(exercises){
     groups[groups.length-1].items.push(ex);
   });
   return groups;
+}
+function validateSupersetPairs(day) {
+  if (!day || !Array.isArray(day.exercises)) return [];
+
+  const issues = [];
+
+  day.exercises.forEach((exercise, index) => {
+    if (!exercise || exercise.type !== "superset") return;
+    if (!Array.isArray(exercise.sets)) return;
+
+    const labels = exercise.sets
+      .map(set => set && typeof set.label === "string" ? set.label.trim().toUpperCase() : "")
+      .filter(Boolean);
+
+    const hasA = labels.includes("A");
+    const hasB = labels.includes("B");
+
+    if (hasA !== hasB) {
+      issues.push({
+        type: "missing_pair",
+        exerciseIndex: index,
+        exerciseName: exercise.name || "",
+        hasA,
+        hasB
+      });
+    }
+  });
+
+  return issues;
+}
+let lastSupersetIssueSignature = null;
+function getIssueSignature(issues) {
+  return (issues || [])
+    .map(issue => `${issue.type || ""}|${issue.week || ""}|${issue.day || ""}|${issue.letter || issue.exerciseName || ""}|${issue.ex || ""}|${issue.hasA ? "A" : ""}|${issue.hasB ? "B" : ""}`)
+    .sort()
+    .join("||");
 }
 
 function getWorkoutSummaryStats(week,day){
