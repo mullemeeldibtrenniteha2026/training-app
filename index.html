@@ -7132,6 +7132,13 @@ function validateSupersetPairs(day) {
 
   return issues;
 }
+let lastSupersetIssueSignature = null;
+function getSupersetIssueSignature(issues) {
+  return issues
+    .map(i => `${i.type}|${i.week}|${i.day}|${i.letter}|${i.ex}`)
+    .sort()
+    .join("||");
+}
 function runSupersetGuardrailFromState(currentState, week, day) {
   const supersets = new Map();
   Object.keys(currentState || {}).forEach(key => {
@@ -7150,9 +7157,22 @@ function runSupersetGuardrailFromState(currentState, week, day) {
     supersets.get(letter).sets.push({ label: slot });
   });
   const dayData = { exercises: [...supersets.values()] };
-  const issues = validateSupersetPairs(dayData);
-  if (issues.length) {
-    console.warn("Superset pairing issue detected:", { week, day, issues });
+  const issues = validateSupersetPairs(dayData).map(i => ({
+    ...i,
+    type: i.type || "missing_pair",
+    week,
+    day,
+    letter: i.letter || i.exerciseName || "",
+    ex: i.ex || ""
+  }));
+  if (!issues.length) {
+    lastSupersetIssueSignature = null;
+    return;
+  }
+  const sig = getSupersetIssueSignature(issues);
+  if (sig !== lastSupersetIssueSignature) {
+    console.warn("Superset integrity issues", issues);
+    lastSupersetIssueSignature = sig;
   }
 }
 let state = loadState();
