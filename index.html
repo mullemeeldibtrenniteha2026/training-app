@@ -8670,6 +8670,12 @@ function handleSearchInput(e) {
 function handleAddExerciseNameInput(e) {
   updateExerciseSuggestions(e.target.value);
 }
+function handleAddExerciseNameKeydown(e) {
+  if(e.key !== "Enter" && e.key !== "NumpadEnter") return;
+  if(e.shiftKey || e.ctrlKey || e.altKey || e.metaKey || e.isComposing) return;
+  e.preventDefault();
+  handleAddExerciseClick();
+}
 function handleAddExerciseClick() {
   if(ui.addBusy) return;
   const payload = getAddExercisePayload();
@@ -8689,6 +8695,7 @@ function handleAddExerciseClick() {
       if(payload.nameInput) payload.nameInput.value = "";
       if(payload.historyModeInput) payload.historyModeInput.value = "empty";
     }, { renderMode:"app", message:"Exercise saved locally on this device." });
+    if(payload.nameInput) payload.nameInput.focus();
     // Force history preview refresh with the added exercise name
     if(addedName) {
       const histBox = document.getElementById("historyPreview");
@@ -8718,6 +8725,7 @@ document.getElementById("workoutModeBtn").onclick = () => {
 document.getElementById("prevMonthBtn").onclick = () => commitUiUpdate(() => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()-1, 1); }, "calendar");
 document.getElementById("nextMonthBtn").onclick = () => commitUiUpdate(() => { ui.month=new Date(ui.month.getFullYear(), ui.month.getMonth()+1, 1); }, "calendar");
 document.getElementById("addExerciseName").oninput = handleAddExerciseNameInput;
+document.getElementById("addExerciseName").onkeydown = handleAddExerciseNameKeydown;
 document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.onclick = () => commitUiUpdate(() => { ui.radarMode = btn.dataset.radarMode; }, "radar"));
 document.getElementById("addExerciseBtn").onclick = handleAddExerciseClick;
 const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
