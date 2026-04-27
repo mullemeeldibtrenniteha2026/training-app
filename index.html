@@ -821,14 +821,21 @@ input, select, textarea {
 }
 
 .field[data-role="rest"]{
-  background-image:linear-gradient(45deg,transparent 50%, #8ea3bd 50%),linear-gradient(135deg,#8ea3bd 50%, transparent 50%);
-  background-position:calc(100% - 18px) calc(50% - 4px),calc(100% - 12px) calc(50% + 2px);
-  background-size:6px 6px,6px 6px;
-  background-repeat:no-repeat;
-  padding-right:34px;
+  width:min(100%, 7ch);
+  min-width:7ch;
+  max-width:7ch;
+  justify-self:start;
+  padding:0 10px;
+  text-align:center;
+  font-variant-numeric:tabular-nums;
+  background-image:none;
 }
 .exercise-name{
-  font-size:18px;
+  min-height:44px;
+  padding:10px 12px;
+  font-size:16px;
+  line-height:1.2;
+  font-weight:750;
 }
 .exercise-meta{
   margin-top:5px;
@@ -853,6 +860,10 @@ input, select, textarea {
   grid-template-columns:110px 1fr;
   gap:12px;
   margin-top:12px;
+}
+.field-grid-rest{
+  grid-template-columns:110px auto;
+  align-items:center;
 }
 .label{
   font-size:11px;
@@ -973,6 +984,9 @@ input, select, textarea {
     grid-template-columns:1fr;
     gap:7px;
     margin-top:10px;
+  }
+  .field-grid-rest{
+    grid-template-columns:1fr;
   }
   .label{
     padding-top:0;
@@ -3179,20 +3193,7 @@ body{
 }
 
 .timer-sheet.is-live::after{
-  content:"Running";
-  position:absolute;
-  top:16px;
-  left:18px;
-  padding:5px 9px;
-  border-radius:999px;
-  font-size:10px;
-  line-height:1;
-  font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  color:#fff1bf;
-  background:rgba(242,201,76,.12);
-  border:1px solid rgba(242,201,76,.28);
+  content:none;
 }
 
 @media (max-width:640px){
@@ -6220,6 +6221,14 @@ body{
   overflow:visible !important;
   text-overflow:clip !important;
 }
+input.exercise-name{
+  min-height:44px;
+  height:44px;
+  padding:10px 12px !important;
+  font-size:16px !important;
+  line-height:1.2;
+  font-weight:750;
+}
 textarea.exercise-name{
   min-height:52px;
   height:auto;
@@ -8255,7 +8264,7 @@ function renderExercises() {
             <div class="left-main">
               <input class="codebox" data-role="code" data-ex="${ex}" value="${esc(code)}" />
               <div style="min-width:0;width:100%">
-                <textarea class="exercise-name textarea" rows="2" data-role="name" data-ex="${ex}">${esc(name)}</textarea>
+                <input class="exercise-name field" type="text" data-role="name" data-ex="${ex}" value="${esc(name)}" />
                 <div class="exercise-meta">${[ /\d$/.test(code) ? `Superset item ${code}` : code ? `Block item ${code}` : "", recovery ? "Recovery / conditioning" : "", cfg.weight ? "Weighted" : ""].filter(Boolean).join(" • ")}</div>
               </div>
             </div>
@@ -8263,9 +8272,9 @@ function renderExercises() {
 
           ${last ? `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${fmtShortDate(last.date)}</div></div><div class="last-time-summary">${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div><div class="last-time-meta">Use this as your quick reference before the next set.</div></div></div>` : ""}
 
-          <div class="field-grid">
+          <div class="field-grid field-grid-rest">
             <div class="label">Rest</div>
-            <input class="field" data-role="rest" data-ex="${ex}" value="${esc(rest)}" />
+            <input class="field" data-role="rest" data-ex="${ex}" value="${esc(normalizeRestValue(rest))}" placeholder="2:00" />
           </div>
           <div class="field-grid">
             <div class="label">Notes</div>
@@ -8395,7 +8404,10 @@ function updateWorkoutExerciseField(ex, field, value) {
 function parseRestSeconds(value) {
   const raw = String(value ?? "").trim();
   if(!raw) return 0;
-  if(/^\d+$/.test(raw)) return Math.max(0, Number(raw) || 0);
+  if(/^\d+$/.test(raw)) {
+    const total = Math.max(0, Number(raw) || 0);
+    return raw.length <= 2 && total <= 10 ? total * 60 : total;
+  }
   const parts = raw.split(':').map(part => part.trim()).filter(Boolean);
   if(parts.some(part => !/^\d+$/.test(part))) return 0;
   if(parts.length === 2) {
@@ -8685,8 +8697,6 @@ function handleAddExerciseClick() {
     return;
   }
   ui.addBusy = true;
-  // Capture name BEFORE clearing input for history refresh
-  const addedName = payload.resolvedName;
   try {
     commitStateUpdate(() => {
       addExercise(payload.scope, payload.resolvedName, payload.historyMode);
@@ -8695,16 +8705,6 @@ function handleAddExerciseClick() {
       if(payload.historyModeInput) payload.historyModeInput.value = "empty";
     }, { renderMode:"app", message:"Exercise saved locally on this device." });
     if(payload.nameInput) payload.nameInput.focus();
-    // Force history preview refresh with the added exercise name
-    if(addedName) {
-      const histBox = document.getElementById("historyPreview");
-      if(histBox) {
-        const preview = historyPreview(addedName);
-        if(preview) {
-          histBox.innerHTML = `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${fmtShortDate(preview.date)}</div></div><div class="last-time-summary">${esc(preview.summary)}</div><div class="last-time-meta">Use this as your quick reference before the next set.</div></div></div>`;
-        }
-      }
-    }
   } finally {
     setTimeout(() => { ui.addBusy = false; }, 150);
   }
@@ -9176,7 +9176,7 @@ function renderTimer() {
       : (hasValue ? `⏱ ${formatTimer(elapsedSeconds)}` : "⏱ Timer");
   }
 
-  if(startBtn) startBtn.textContent = timerState.running ? "Running" : (hasValue ? "Resume" : "Start");
+  if(startBtn) startBtn.textContent = hasValue ? "Resume" : "Start";
   if(startBtn) startBtn.disabled = !!timerState.running;
 
   if(pauseBtn) pauseBtn.disabled = !timerState.running;
