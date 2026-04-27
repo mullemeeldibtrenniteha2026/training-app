@@ -1,5 +1,16 @@
 # TIMO TRAINING APP --- V2 ARCHITECTURE BLUEPRINT
 
+## STATUS
+
+This document describes the **V2 architecture scaffold**.
+
+It is not the active app implementation.
+
+It is not the current production-like baseline.
+
+The current source of truth remains MVP1 in `index.html` until the
+project explicitly switches to V2.
+
 ## PURPOSE
 
 Build a long-term, production-quality training system with strong data
