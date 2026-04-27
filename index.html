@@ -6247,6 +6247,7 @@ textarea.exercise-name{
 <script src="./v2/calendar-date-helpers.js"></script>
 <script src="./v2/format-helpers.js"></script>
 <script src="./v2/input-value-helpers.js"></script>
+<script src="./v2/workout-summary-helpers.js"></script>
 </head>
 <body>
 
@@ -6562,6 +6563,7 @@ const STORAGE_KEY = "timo_training_v81_real";
 const V2_CALENDAR = window.TimoTrainingV2Calendar || null;
 const V2_FORMAT = window.TimoTrainingV2Format || null;
 const V2_INPUT = window.TimoTrainingV2Input || null;
+const V2_SUMMARY = window.TimoTrainingV2Summary || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -7457,10 +7459,18 @@ function dateToProgramDay(date) {
   if(!slot) return null;
   return { ...slot, status: dayStatus(slot.week, slot.day) };
 }
+function formatSetSummaryLine(set) {
+  if(V2_SUMMARY?.formatSetSummaryLine) return V2_SUMMARY.formatSetSummaryLine(set);
+  return `${set?.kg || "—"} × ${set?.reps || "—"}`;
+}
+function buildSetSummary(sets) {
+  if(V2_SUMMARY?.buildSetSummary) return V2_SUMMARY.buildSetSummary(sets);
+  return (Array.isArray(sets) ? sets : []).map(formatSetSummaryLine).join(" • ");
+}
 function exerciseSetsSummary(week,day,ex) {
-  const parts=[], c=setCountOf(week,day,ex);
-  for(let i=0;i<c;i++) { const s=getSet(week,day,ex,i); parts.push(`${s.kg||"—"} × ${s.reps||"—"}`); }
-  return parts.join(" • ");
+  const sets=[], c=setCountOf(week,day,ex);
+  for(let i=0;i<c;i++) sets.push(getSet(week,day,ex,i));
+  return buildSetSummary(sets);
 }
 function findLastOccurrence(week,day,name) {
   const target = normalizeExerciseKey(name);
