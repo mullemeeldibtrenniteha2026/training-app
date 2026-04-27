@@ -7255,6 +7255,7 @@ function commitUiUpdate(mutator, renderMode="app") {
     return false;
   }
   normalizeUiState();
+  persistUiSelection();
   requestRender(nextRenderMode);
   syncWorkoutWakeLockSoon();
   return true;
@@ -7615,7 +7616,35 @@ function computeRadarLifetime() {
 }
 
 // ===== UI STATE =====
-let ui={week:getInitialWeek(), day:getFirstDay(getInitialWeek()), month:new Date(TODAY.getFullYear(), TODAY.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false, addBusy:false, lastAddSignature:"", lastAddAt:0, searchRenderTimer:null, historyRenderTimer:null};
+const UI_SELECTION_KEY = "timo_training_ui_selection_v1";
+function loadPersistedUiSelection() {
+  try {
+    const saved = localStorage.getItem(UI_SELECTION_KEY);
+    if(!saved) return null;
+    const parsed = JSON.parse(saved);
+    if(!parsed || typeof parsed !== "object") return null;
+    const week = Number(parsed.week);
+    const day = String(parsed.day || "");
+    if(!Number.isFinite(week) || week < 1) return null;
+    if(!DAY_ORDER.includes(day)) return null;
+    return { week: Math.floor(week), day };
+  } catch {
+    return null;
+  }
+}
+function persistUiSelection() {
+  try {
+    localStorage.setItem(UI_SELECTION_KEY, JSON.stringify({
+      week: Number(ui.week) || getInitialWeek(),
+      day: DAY_ORDER.includes(ui.day) ? ui.day : getFirstDay(Number(ui.week) || getInitialWeek())
+    }));
+  } catch {}
+}
+const persistedUiSelection = loadPersistedUiSelection();
+const initialUiWeek = persistedUiSelection?.week ?? getInitialWeek();
+const initialUiDay = persistedUiSelection?.day ?? getFirstDay(initialUiWeek);
+const initialUiDate = dayDate(initialUiWeek, initialUiDay);
+let ui={week:initialUiWeek, day:initialUiDay, month:new Date(initialUiDate.getFullYear(), initialUiDate.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false, addBusy:false, lastAddSignature:"", lastAddAt:0, searchRenderTimer:null, historyRenderTimer:null};
 let pendingExerciseViewportRestore = null;
 let workoutWakeLock = null;
 
@@ -7738,6 +7767,18 @@ function goToday() {
     ui.activeExerciseIndex = 0;
   }, "app");
 }
+function restoreSelectedDayOnBoot() {
+  if(!persistedUiSelection) {
+    goToday();
+    return;
+  }
+  commitUiUpdate(() => {
+    ui.week = initialUiWeek;
+    ui.day = initialUiDay;
+    ui.month = new Date(initialUiDate.getFullYear(), initialUiDate.getMonth(), 1);
+    ui.activeExerciseIndex = 0;
+  }, "app");
+}
 
 // ===== STABILITY HELPERS =====
 function ensureElement(id) {
@@ -7851,19 +7892,36 @@ function getCalendarDefaultDayType(date) {
   return "";
 }
 
+function formatCalendarDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseCalendarDateKey(dateKey) {
+  const match = String(dateKey || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!match) return null;
+  const year = Number(match[1]);
+  const monthIndex = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  return new Date(year, monthIndex, day);
+}
+
 function buildCalendarCellHtml(date) {
   if(!date) return `<div class="daycell inactive"></div>`;
   const { info, dot, active, isToday } = getCalendarCellInfo(date);
   const dayTypeClass = getCalendarDefaultDayType(date);
-  return `<div class="daycell ${dayTypeClass} ${active?'active':''} ${isToday?'today':''}" data-date="${date.toISOString()}">
+  return `<div class="daycell ${dayTypeClass} ${active?'active':''} ${isToday?'today':''}" data-date="${formatCalendarDateKey(date)}">
       <div class="d">${date.getDate()}</div>
       <div class="w">${info ? DAY_LABEL[info.day].slice(0,3) : ""}</div>
       <div class="daydot" style="background:${dot}"></div>
     </div>`;
 }
 
-function selectCalendarDate(isoDate) {
-  const clickedDate = new Date(isoDate);
+function selectCalendarDate(dateKey) {
+  const clickedDate = parseCalendarDateKey(dateKey);
+  if(!clickedDate || Number.isNaN(clickedDate.getTime())) return;
   const info = dateToProgramDay(clickedDate);
   if(!info) return;
   runSupersetGuardrailFromState(state, info.week, info.day);
@@ -8864,6 +8922,15 @@ function hideAuth() {
   const overlay = document.getElementById("authOverlay");
   if(overlay) overlay.style.display = "none";
 }
+function openManualAuth() {
+  showAuth();
+  setAuthMessage("");
+}
+function closeManualAuth() {
+  hideAuth();
+  setAuthMessage("");
+  if(!currentUser) setSyncStatus("Cloud: local only");
+}
 function resetCloudRuntimeState() {
   applyingCloudState = false;
   cloudReady = false;
@@ -8879,7 +8946,7 @@ function applySignedOutUiState() {
   currentUser = null;
   initialSyncResolved = true;
   hideBoot();
-  showAuth();
+  hideAuth();
   updateAuthUi();
   setAuthMessage("");
   setSyncStatus("Cloud: local only");
@@ -8890,9 +8957,16 @@ function getAuthStateKey(user) {
 function updateAuthUi() {
   const signOutBtn = document.getElementById("signOutBtn");
   const accountActionsRow = document.getElementById("accountActionsRow");
+  const syncStatus = document.getElementById("syncStatus");
   const visible = !!currentUser;
   if(signOutBtn) signOutBtn.style.display = visible ? "inline-flex" : "none";
   if(accountActionsRow) accountActionsRow.style.display = visible ? "grid" : "none";
+  if(syncStatus) {
+    syncStatus.style.cursor = visible ? "default" : "pointer";
+    syncStatus.setAttribute("title", visible ? "Cloud sync status" : "Open sign in");
+    syncStatus.setAttribute("aria-label", visible ? "Cloud sync status" : "Open sign in");
+    syncStatus.tabIndex = visible ? -1 : 0;
+  }
 }
 async function signOutSupabase() {
   if(!sb) return;
@@ -9027,6 +9101,28 @@ async function initSupabaseApp() {
   const signInBtn = document.getElementById("signInBtn");
   const signUpBtn = document.getElementById("signUpBtn");
   const signOutBtn = document.getElementById("signOutBtn");
+  const syncStatus = document.getElementById("syncStatus");
+  const authOverlay = document.getElementById("authOverlay");
+
+  if(syncStatus) {
+    syncStatus.onclick = () => {
+      if(currentUser) return;
+      openManualAuth();
+    };
+    syncStatus.onkeydown = e => {
+      if(currentUser) return;
+      if(e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      openManualAuth();
+    };
+  }
+
+  if(authOverlay) {
+    authOverlay.onclick = e => {
+      if(e.target?.id !== "authOverlay" || currentUser) return;
+      closeManualAuth();
+    };
+  }
 
   if(signInBtn) signInBtn.onclick = async () => {
     const email = document.getElementById("authEmail").value.trim();
@@ -9083,6 +9179,13 @@ async function initSupabaseApp() {
       signOutBtn.disabled = false;
     }
   };
+
+  document.addEventListener("keydown", e => {
+    if(e.key !== "Escape") return;
+    const overlay = document.getElementById("authOverlay");
+    if(!overlay || overlay.style.display !== "flex" || currentUser) return;
+    closeManualAuth();
+  });
 
   sb.auth.onAuthStateChange((_event, session) => {
     const nextUser = session?.user || null;
@@ -9646,7 +9749,7 @@ function bootApp() {
   resetTimer();
   initSupabaseApp();
   setupLockScreen();
-  goToday();
+  restoreSelectedDayOnBoot();
   updateConnectivityState();
 }
 
