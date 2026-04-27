@@ -6246,6 +6246,7 @@ textarea.exercise-name{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./v2/calendar-date-helpers.js"></script>
 <script src="./v2/format-helpers.js"></script>
+<script src="./v2/input-value-helpers.js"></script>
 </head>
 <body>
 
@@ -6560,6 +6561,7 @@ const SEED_DATA = {};
 const STORAGE_KEY = "timo_training_v81_real";
 const V2_CALENDAR = window.TimoTrainingV2Calendar || null;
 const V2_FORMAT = window.TimoTrainingV2Format || null;
+const V2_INPUT = window.TimoTrainingV2Input || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -6768,6 +6770,7 @@ const MUSCLE_HINTS = {
 // ===== UTILITIES =====
 function structured(x) { return JSON.parse(JSON.stringify(x)); }
 function num(val) {
+  if(V2_INPUT?.num) return V2_INPUT.num(val);
   if (val === null || val === undefined || val === "") return null;
   const normalized = String(val).replace(",", ".").trim();
   if (!normalized) return null;
@@ -8480,6 +8483,7 @@ function toggleWorkoutSetDoneState(ex, idx) {
   return s;
 }
 function sanitizeSetInputValue(role, value) {
+  if(V2_INPUT?.sanitizeSetInputValue) return V2_INPUT.sanitizeSetInputValue(role, value);
   const raw = String(value ?? "");
   if(role === "kg") {
     const normalized = raw.replace(/,/g, ".").replace(/[^0-9.]/g, "");
