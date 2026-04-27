@@ -7383,6 +7383,7 @@ function getSet(week,day,ex,i) {
   return state[key];
 }
 function setVolume(s) {
+  if(V2_INPUT?.setVolume) return V2_INPUT.setVolume(s);
   const kg=num(s.kg), reps=num(s.reps);
   if(!Number.isNaN(kg)&&!Number.isNaN(reps)) return Math.round(kg*reps);
   if(!Number.isNaN(reps)) return Math.round(reps);

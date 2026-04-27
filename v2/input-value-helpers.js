@@ -23,8 +23,17 @@
     return raw;
   }
 
+  function setVolume(set) {
+    const kg = num(set?.kg);
+    const reps = num(set?.reps);
+    if (!Number.isNaN(kg) && !Number.isNaN(reps)) return Math.round(kg * reps);
+    if (!Number.isNaN(reps)) return Math.round(reps);
+    return "";
+  }
+
   global.TimoTrainingV2Input = {
     num,
-    sanitizeSetInputValue
+    sanitizeSetInputValue,
+    setVolume
   };
 })(window);
