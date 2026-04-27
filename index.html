@@ -6244,6 +6244,8 @@ textarea.exercise-name{
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./v2/calendar-date-helpers.js"></script>
+<script src="./v2/format-helpers.js"></script>
 </head>
 <body>
 
@@ -6556,6 +6558,8 @@ textarea.exercise-name{
 // ===== APP CONSTANTS =====
 const SEED_DATA = {};
 const STORAGE_KEY = "timo_training_v81_real";
+const V2_CALENDAR = window.TimoTrainingV2Calendar || null;
+const V2_FORMAT = window.TimoTrainingV2Format || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -7617,17 +7621,45 @@ function computeRadarLifetime() {
 
 // ===== UI STATE =====
 const UI_SELECTION_KEY = "timo_training_ui_selection_v1";
+function normalizePersistedUiSelectionValue(selection) {
+  if(V2_CALENDAR?.normalizePersistedUiSelection) {
+    return V2_CALENDAR.normalizePersistedUiSelection(selection, DAY_ORDER);
+  }
+  if(!selection || typeof selection !== "object") return null;
+  const week = Number(selection.week);
+  const day = String(selection.day || "");
+  if(!Number.isFinite(week) || week < 1) return null;
+  if(!DAY_ORDER.includes(day)) return null;
+  return { week: Math.floor(week), day };
+}
+function getInitialUiSelectionState(persistedSelection) {
+  if(V2_CALENDAR?.buildInitialUiSelection) {
+    return V2_CALENDAR.buildInitialUiSelection({
+      persistedSelection,
+      dayOrder: DAY_ORDER,
+      initialWeek: getInitialWeek(),
+      getFirstDay,
+      dayDate
+    });
+  }
+  const normalized = normalizePersistedUiSelectionValue(persistedSelection);
+  const initialWeek = normalized?.week ?? getInitialWeek();
+  const initialDay = normalized?.day ?? getFirstDay(initialWeek);
+  const initialDate = dayDate(initialWeek, initialDay);
+  return {
+    persistedSelection: normalized,
+    initialWeek,
+    initialDay,
+    initialDate,
+    month: new Date(initialDate.getFullYear(), initialDate.getMonth(), 1)
+  };
+}
 function loadPersistedUiSelection() {
   try {
     const saved = localStorage.getItem(UI_SELECTION_KEY);
     if(!saved) return null;
     const parsed = JSON.parse(saved);
-    if(!parsed || typeof parsed !== "object") return null;
-    const week = Number(parsed.week);
-    const day = String(parsed.day || "");
-    if(!Number.isFinite(week) || week < 1) return null;
-    if(!DAY_ORDER.includes(day)) return null;
-    return { week: Math.floor(week), day };
+    return normalizePersistedUiSelectionValue(parsed);
   } catch {
     return null;
   }
@@ -7641,10 +7673,11 @@ function persistUiSelection() {
   } catch {}
 }
 const persistedUiSelection = loadPersistedUiSelection();
-const initialUiWeek = persistedUiSelection?.week ?? getInitialWeek();
-const initialUiDay = persistedUiSelection?.day ?? getFirstDay(initialUiWeek);
-const initialUiDate = dayDate(initialUiWeek, initialUiDay);
-let ui={week:initialUiWeek, day:initialUiDay, month:new Date(initialUiDate.getFullYear(), initialUiDate.getMonth(), 1), search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false, addBusy:false, lastAddSignature:"", lastAddAt:0, searchRenderTimer:null, historyRenderTimer:null};
+const initialUiSelection = getInitialUiSelectionState(persistedUiSelection);
+const initialUiWeek = initialUiSelection.initialWeek;
+const initialUiDay = initialUiSelection.initialDay;
+const initialUiDate = initialUiSelection.initialDate;
+let ui={week:initialUiWeek, day:initialUiDay, month:initialUiSelection.month, search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false, addBusy:false, lastAddSignature:"", lastAddAt:0, searchRenderTimer:null, historyRenderTimer:null};
 let pendingExerciseViewportRestore = null;
 let workoutWakeLock = null;
 
@@ -7893,6 +7926,7 @@ function getCalendarDefaultDayType(date) {
 }
 
 function formatCalendarDateKey(date) {
+  if(V2_CALENDAR?.formatLocalDateKey) return V2_CALENDAR.formatLocalDateKey(date);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -7900,6 +7934,7 @@ function formatCalendarDateKey(date) {
 }
 
 function parseCalendarDateKey(dateKey) {
+  if(V2_CALENDAR?.parseLocalDateKey) return V2_CALENDAR.parseLocalDateKey(dateKey);
   const match = String(dateKey || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(!match) return null;
   const year = Number(match[1]);
@@ -7920,15 +7955,19 @@ function buildCalendarCellHtml(date) {
 }
 
 function selectCalendarDate(dateKey) {
-  const clickedDate = parseCalendarDateKey(dateKey);
+  const selection = V2_CALENDAR?.mapCalendarSelection
+    ? V2_CALENDAR.mapCalendarSelection(dateKey, dateToProgramDay)
+    : null;
+  const clickedDate = selection?.clickedDate ?? parseCalendarDateKey(dateKey);
   if(!clickedDate || Number.isNaN(clickedDate.getTime())) return;
-  const info = dateToProgramDay(clickedDate);
+  const info = selection?.info ?? dateToProgramDay(clickedDate);
   if(!info) return;
+  const monthDate = selection?.monthDate ?? new Date(clickedDate.getFullYear(), clickedDate.getMonth(), 1);
   runSupersetGuardrailFromState(state, info.week, info.day);
   commitUiUpdate(() => {
     ui.week = info.week;
     ui.day = info.day;
-    ui.month = new Date(clickedDate.getFullYear(), clickedDate.getMonth(), 1);
+    ui.month = monthDate;
     ui.activeExerciseIndex = 0;
   }, "app");
 }
@@ -8460,6 +8499,7 @@ function updateWorkoutExerciseField(ex, field, value) {
 }
 
 function parseRestSeconds(value) {
+  if(V2_FORMAT?.parseRestSeconds) return V2_FORMAT.parseRestSeconds(value);
   const raw = String(value ?? "").trim();
   if(!raw) return 0;
   if(/^\d+$/.test(raw)) {
@@ -8479,6 +8519,7 @@ function parseRestSeconds(value) {
   return 0;
 }
 function formatRestSeconds(totalSeconds) {
+  if(V2_FORMAT?.formatRestSeconds) return V2_FORMAT.formatRestSeconds(totalSeconds);
   const total = Math.max(0, Math.floor(Number(totalSeconds) || 0));
   const hours = Math.floor(total / 3600);
   const minutes = Math.floor((total % 3600) / 60);
@@ -8487,6 +8528,7 @@ function formatRestSeconds(totalSeconds) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 function normalizeRestValue(value) {
+  if(V2_FORMAT?.normalizeRestValue) return V2_FORMAT.normalizeRestValue(value);
   const raw = String(value ?? "").trim();
   if(!raw) return "";
   return formatRestSeconds(parseRestSeconds(raw));
