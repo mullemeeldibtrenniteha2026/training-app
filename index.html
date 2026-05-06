@@ -9515,6 +9515,7 @@ window.addEventListener("beforeunload", () => {
 const SUPABASE_URL = "https://krpbqzhttgelrbhkohct.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Ea08srA5UXkyRBx00sIQFw_hEQ8u_7t";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const AUTH_VIEW_LOCK_KEY = "timo_training_auth_view_lock_v1";
 let currentUser = null;
 let cloudSaveTimer = null;
 let cloudReady = false;
@@ -9576,7 +9577,7 @@ function setSyncStatus(text) {
   if(/synced|loaded|ready/i.test(value)) { label = "✔ Synced"; cls += " ok"; }
   else if(/syncing|connecting|loading/i.test(value)) { label = "⟳ Syncing"; cls += " info"; }
   else if(/failed|unavailable|error/i.test(value)) { label = "⚠ Offline"; cls += " warn"; }
-  else if(/local only/i.test(value)) { label = "Local"; }
+  else if(/local only/i.test(value)) { label = "Signed out · Local"; cls += " info"; }
   else if(/sign in/i.test(value)) { label = "Sign in"; }
   el.className = cls;
   el.textContent = label;
@@ -9586,6 +9587,25 @@ function setAuthMessage(text, mode="") {
   if(!el) return;
   el.textContent = text || "";
   el.className = "auth-message" + (mode ? " " + mode : "");
+}
+function isAuthViewLocked() {
+  try {
+    return localStorage.getItem(AUTH_VIEW_LOCK_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function setAuthViewLocked(locked) {
+  try {
+    if(locked) localStorage.setItem(AUTH_VIEW_LOCK_KEY, "1");
+    else localStorage.removeItem(AUTH_VIEW_LOCK_KEY);
+  } catch {}
+}
+function setMainAppVisibility(visible) {
+  const app = document.getElementById("mainApp");
+  if(!app) return;
+  app.style.display = visible ? "" : "none";
+  app.setAttribute("aria-hidden", visible ? "false" : "true");
 }
 function showAuth() {
   const overlay = document.getElementById("authOverlay");
@@ -9601,6 +9621,7 @@ function openManualAuth() {
   setAuthMessage("");
 }
 function closeManualAuth() {
+  if(isAuthViewLocked() && !currentUser) return;
   hideAuth();
   setAuthMessage("");
   if(!currentUser) setSyncStatus("Cloud: local only");
@@ -9615,18 +9636,39 @@ function resetCloudRuntimeState() {
     cloudSaveTimer = null;
   }
 }
-function applySignedOutUiState() {
+function applySignedOutUiState({ lockAppView = false, showAuthScreen = false } = {}) {
   resetCloudRuntimeState();
   currentUser = null;
   initialSyncResolved = true;
+  setAuthViewLocked(!!lockAppView);
   hideBoot();
-  hideAuth();
+  setMainAppVisibility(!lockAppView);
+  if(showAuthScreen || lockAppView) showAuth();
+  else hideAuth();
   updateAuthUi();
   setAuthMessage("");
-  setSyncStatus("Cloud: local only");
+  if(lockAppView) setSyncStatus("Cloud: sign in required");
+  else setSyncStatus("Cloud: local only");
 }
 function getAuthStateKey(user) {
   return user && user.id ? `user:${user.id}` : "anon";
+}
+function applySignedInUiState(user, { startBootstrap = false } = {}) {
+  currentUser = user || null;
+  if(!currentUser) {
+    applySignedOutUiState();
+    return;
+  }
+  setAuthViewLocked(false);
+  lastAuthStateKey = getAuthStateKey(currentUser);
+  setMainAppVisibility(true);
+  hideAuth();
+  updateAuthUi();
+  setAuthMessage("");
+  cloudReady = true;
+  initialSyncResolved = true;
+  setSyncStatus("Cloud: connecting…");
+  if(startBootstrap) startCloudBootstrap();
 }
 function updateAuthUi() {
   const signOutBtn = document.getElementById("signOutBtn");
@@ -9637,17 +9679,23 @@ function updateAuthUi() {
   if(accountActionsRow) accountActionsRow.style.display = visible ? "grid" : "none";
   if(syncStatus) {
     syncStatus.style.cursor = visible ? "default" : "pointer";
-    syncStatus.setAttribute("title", visible ? "Cloud sync status" : "Open sign in");
-    syncStatus.setAttribute("aria-label", visible ? "Cloud sync status" : "Open sign in");
+    syncStatus.setAttribute("title", visible ? "Cloud sync status" : "Signed out. Open sign in.");
+    syncStatus.setAttribute("aria-label", visible ? "Cloud sync status" : "Signed out. Open sign in.");
+    syncStatus.setAttribute("role", visible ? "status" : "button");
     syncStatus.tabIndex = visible ? -1 : 0;
   }
 }
 async function signOutSupabase() {
   if(!sb) return;
-  const { error } = await withTimeout(sb.auth.signOut({ scope: "local" }), 5000);
+  const { error } = await withTimeout(sb.auth.signOut(), 5000);
   if(error) throw error;
-  const { data } = await withTimeout(sb.auth.getSession(), 2500);
-  if(data?.session?.user) throw new Error("Sign out did not clear session.");
+  const startedAt = Date.now();
+  while(Date.now() - startedAt < 2500) {
+    const { data } = await withTimeout(sb.auth.getSession(), 1500);
+    if(!data?.session?.user) return;
+    await new Promise(resolve => setTimeout(resolve, 120));
+  }
+  throw new Error("Sign out did not clear session.");
 }
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
@@ -9795,7 +9843,7 @@ async function initSupabaseApp() {
 
   if(authOverlay) {
     authOverlay.onclick = e => {
-      if(e.target?.id !== "authOverlay" || currentUser) return;
+      if(e.target?.id !== "authOverlay" || currentUser || isAuthViewLocked()) return;
       closeManualAuth();
     };
   }
@@ -9809,7 +9857,9 @@ async function initSupabaseApp() {
     }
     setAuthMessage("Signing in…");
     try {
-      await signInSupabase(email, password);
+      const result = await signInSupabase(email, password);
+      const signedInUser = result?.session?.user || result?.user || null;
+      if(signedInUser) applySignedInUiState(signedInUser, { startBootstrap: true });
       setAuthMessage("");
     } catch (e) {
       console.error("SIGN IN ERROR", e);
@@ -9840,8 +9890,7 @@ async function initSupabaseApp() {
     try {
       setSyncStatus("Cloud: signing out…");
       await signOutSupabase();
-      applySignedOutUiState();
-      lastAuthStateKey = getAuthStateKey(null);
+      applySignedOutUiState({ lockAppView: true, showAuthScreen: true });
       showToast("Signed out");
     } catch (e) {
       console.error("SIGN OUT ERROR", e);
@@ -9855,7 +9904,7 @@ async function initSupabaseApp() {
   document.addEventListener("keydown", e => {
     if(e.key !== "Escape") return;
     const overlay = document.getElementById("authOverlay");
-    if(!overlay || overlay.style.display !== "flex" || currentUser) return;
+    if(!overlay || overlay.style.display !== "flex" || currentUser || isAuthViewLocked()) return;
     closeManualAuth();
   });
 
@@ -9868,17 +9917,15 @@ async function initSupabaseApp() {
       updateAuthUi();
       return;
     }
-    lastAuthStateKey = authStateKey;
 
     if(currentUser) {
-      hideAuth();
-      updateAuthUi();
-      cloudReady = true;
-      initialSyncResolved = true;
-      setSyncStatus("Cloud: connecting…");
-      startCloudBootstrap();
+      applySignedInUiState(currentUser, { startBootstrap: true });
     } else {
-      applySignedOutUiState();
+      lastAuthStateKey = authStateKey;
+      applySignedOutUiState({
+        lockAppView: isAuthViewLocked(),
+        showAuthScreen: isAuthViewLocked()
+      });
     }
   });
 
@@ -9894,14 +9941,12 @@ async function initSupabaseApp() {
   }
 
   if(currentUser) {
-    hideAuth();
-    updateAuthUi();
-    cloudReady = true;
-    initialSyncResolved = true;
-    setSyncStatus("Cloud: connecting…");
-    startCloudBootstrap();
+    applySignedInUiState(currentUser, { startBootstrap: true });
   } else {
-    applySignedOutUiState();
+    applySignedOutUiState({
+      lockAppView: isAuthViewLocked(),
+      showAuthScreen: isAuthViewLocked()
+    });
   }
 }
 
