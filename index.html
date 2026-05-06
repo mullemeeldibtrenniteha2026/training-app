@@ -6255,6 +6255,7 @@ textarea.exercise-name{
 <script src="./v2/render-metrics-boundary.js"></script>
 <script src="./v2/render-calendar-boundary.js"></script>
 <script src="./v2/render-workout-header-boundary.js"></script>
+<script src="./v2/render-workout-container-boundary.js"></script>
 </head>
 <body>
 
@@ -6578,6 +6579,7 @@ const V2_GROUP = window.TimoTrainingV2Group || null;
 const V2_RENDER_METRICS = window.TimoTrainingV2RenderMetrics || null;
 const V2_RENDER_CALENDAR = window.TimoTrainingV2RenderCalendar || null;
 const V2_RENDER_WORKOUT_HEADER = window.TimoTrainingV2RenderWorkoutHeader || null;
+const V2_RENDER_WORKOUT_CONTAINER = window.TimoTrainingV2RenderWorkoutContainer || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -7953,6 +7955,14 @@ function buildWorkoutHeaderMarkup(input) {
   const navMarkup = String(input?.navMarkup || "");
   return `<div class="card workout-focus-card"><div class="workout-date-big">${dateDisplay}</div><div class="section-title"><h3>${title}</h3></div>${summaryMarkup}${progressMarkup}${navMarkup}</div>`;
 }
+function buildWorkoutContainerMarkup(input) {
+  if(V2_RENDER_WORKOUT_CONTAINER?.buildWorkoutContainerMarkup) return V2_RENDER_WORKOUT_CONTAINER.buildWorkoutContainerMarkup(input);
+  const headerMarkup = String(input?.headerMarkup || "");
+  const contentMarkup = String(input?.contentMarkup || "");
+  const emptyMarkup = String(input?.emptyMarkup || "");
+  const hasContent = !!input?.hasContent;
+  return `${headerMarkup}${hasContent ? contentMarkup : emptyMarkup}`;
+}
 
 // ===== RENDER: METRICS =====
 
@@ -8551,7 +8561,7 @@ function renderExercises() {
   if(searchHost) searchHost.innerHTML = searchBox;
   const emptyMessage = "";
   wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
-  wrap.innerHTML = focus + (groups.length ? groups.map(group => {
+  const contentMarkup = groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
     const isSupersetBlock = group.items.length > 1 && isSupersetStart(group.items, 0);
     const groupInner = group.items.map(ex => {
@@ -8616,10 +8626,16 @@ function renderExercises() {
         </div>`;
       }).join("");
     const blockLabel = group.block && group.block !== "•" ? group.block : "Single";
-    const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
-    const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
-    return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
-  }).join("") : ``) + (groups.length ? `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn" id="bottomTimerBtn">⏱ Timer</button><button class="btn" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``) + emptyMessage;
+        const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
+        const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
+        return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
+      }).join("") + `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn" id="bottomTimerBtn">⏱ Timer</button><button class="btn" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``;
+  wrap.innerHTML = buildWorkoutContainerMarkup({
+    headerMarkup: focus,
+    contentMarkup,
+    emptyMarkup: emptyMessage,
+    hasContent: groups.length > 0
+  });
   bindExerciseEvents(all);
   applySetRowGuidance();
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
