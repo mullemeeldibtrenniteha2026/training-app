@@ -6260,6 +6260,7 @@ textarea.exercise-name{
 <script src="./v2/render-exercise-details-boundary.js"></script>
 <script src="./v2/render-exercise-compare-boundary.js"></script>
 <script src="./v2/render-exercise-actions-boundary.js"></script>
+<script src="./v2/render-set-helpers.js"></script>
 </head>
 <body>
 
@@ -6588,6 +6589,7 @@ const V2_RENDER_EXERCISE = window.TimoTrainingV2RenderExercise || null;
 const V2_RENDER_EXERCISE_DETAILS = window.TimoTrainingV2RenderExerciseDetails || null;
 const V2_RENDER_EXERCISE_COMPARE = window.TimoTrainingV2RenderExerciseCompare || null;
 const V2_RENDER_EXERCISE_ACTIONS = window.TimoTrainingV2RenderExerciseActions || null;
+const V2_SET = window.TimoTrainingV2Set || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8019,6 +8021,22 @@ function buildExerciseActionsMarkup(input) {
 	            <button class="btn" data-role="delete" data-ex="${exerciseId}">Delete exercise</button>
 	          </div>`;
 }
+function getSetDisplayIndex(set, index) {
+  if(V2_SET?.getSetDisplayIndex) return V2_SET.getSetDisplayIndex(set, index);
+  return String(Number(index) + 1);
+}
+function getSetDoneState(set) {
+  if(V2_SET?.getSetDoneState) return V2_SET.getSetDoneState(set);
+  return String(set?.done || "");
+}
+function getSetRepsValue(set) {
+  if(V2_SET?.getSetRepsValue) return V2_SET.getSetRepsValue(set);
+  return set?.reps ?? "";
+}
+function getSetWeightValue(set) {
+  if(V2_SET?.getSetWeightValue) return V2_SET.getSetWeightValue(set);
+  return set?.kg ?? "";
+}
 
 // ===== RENDER: METRICS =====
 
@@ -8655,13 +8673,14 @@ function renderExercises() {
  	        const setsHtml = recovery ? "" : Array.from({length:c}, (_,i) => {
 	          const s = getSet(ui.week,ui.day,ex,i);
 	          const setRowDisplay = formatSetRowDisplay(s, i);
+            const setDoneState = getSetDoneState(s);
           return `<div class="setrow" data-setrow="${ex}_${i}">
-            <div class="setn">${setRowDisplay.setNumber}</div>
-            <div class="setcol"><div class="k">kg</div><input class="setinput" type="text" step="0.01" min="0" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
-            <div class="setcol"><div class="k">reps</div><input class="setinput" type="text" step="1" min="0" inputmode="decimal" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
+            <div class="setn">${getSetDisplayIndex(s, i)}</div>
+            <div class="setcol"><div class="k">kg</div><input class="setinput" type="text" step="0.01" min="0" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(getSetWeightValue(s))}" /></div>
+            <div class="setcol"><div class="k">reps</div><input class="setinput" type="text" step="1" min="0" inputmode="decimal" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(getSetRepsValue(s))}" /></div>
             <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setRowDisplay.volume}" disabled /></div>
             <button class="setdeletebtn" type="button" data-role="delete-set" data-ex="${ex}" data-idx="${i}" aria-label="Delete set">✕</button>
-	            <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
+	            <button class="donebtn ${setDoneState==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${setDoneState==='1'?'✓':'·'}</button>
 	          </div>`;
 	        }).join("");
         const detailsMarkup = buildExerciseDetailsMarkup({
