@@ -6258,6 +6258,7 @@ textarea.exercise-name{
 <script src="./v2/render-workout-container-boundary.js"></script>
 <script src="./v2/render-exercise-shell-boundary.js"></script>
 <script src="./v2/render-exercise-details-boundary.js"></script>
+<script src="./v2/render-exercise-compare-boundary.js"></script>
 </head>
 <body>
 
@@ -6584,6 +6585,7 @@ const V2_RENDER_WORKOUT_HEADER = window.TimoTrainingV2RenderWorkoutHeader || nul
 const V2_RENDER_WORKOUT_CONTAINER = window.TimoTrainingV2RenderWorkoutContainer || null;
 const V2_RENDER_EXERCISE = window.TimoTrainingV2RenderExercise || null;
 const V2_RENDER_EXERCISE_DETAILS = window.TimoTrainingV2RenderExerciseDetails || null;
+const V2_RENDER_EXERCISE_COMPARE = window.TimoTrainingV2RenderExerciseCompare || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -7996,6 +7998,14 @@ function buildExerciseDetailsMarkup(input) {
           ${recoveryMarkup}
           ${setsMarkup}`;
 }
+function buildExerciseCompareMarkup(input) {
+  if(V2_RENDER_EXERCISE_COMPARE?.buildExerciseCompareMarkup) return V2_RENDER_EXERCISE_COMPARE.buildExerciseCompareMarkup(input);
+  const dateLabel = String(input?.dateLabel || "");
+  const summaryText = String(input?.summaryText || "");
+  const metaText = String(input?.metaText || "");
+  if(!dateLabel && !summaryText && !metaText) return "";
+  return `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${dateLabel}</div></div><div class="last-time-summary">${summaryText}</div><div class="last-time-meta">${metaText}</div></div></div>`;
+}
 
 // ===== RENDER: METRICS =====
 
@@ -8624,7 +8634,11 @@ function renderExercises() {
               </div>
             </div>
           </div>`;
-        const compareMarkup = last ? `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${fmtShortDate(last.date)}</div></div><div class="last-time-summary">${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div><div class="last-time-meta">Use this as your quick reference before the next set.</div></div></div>` : "";
+        const compareMarkup = last ? buildExerciseCompareMarkup({
+          dateLabel: fmtShortDate(last.date),
+          summaryText: esc(exerciseSetsSummary(last.week,last.day,last.ex)),
+          metaText: "Use this as your quick reference before the next set."
+        }) : "";
  	        const setsHtml = recovery ? "" : Array.from({length:c}, (_,i) => {
 	          const s = getSet(ui.week,ui.day,ex,i);
 	          const setRowDisplay = formatSetRowDisplay(s, i);
