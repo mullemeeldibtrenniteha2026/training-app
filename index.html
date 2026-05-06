@@ -7989,12 +7989,13 @@ function buildExerciseShellMarkup(input) {
 }
 function buildExerciseDetailsMarkup(input) {
   if(V2_RENDER_EXERCISE_DETAILS?.buildExerciseDetailsMarkup) return V2_RENDER_EXERCISE_DETAILS.buildExerciseDetailsMarkup(input);
+  const prioritizeSets = !!input?.prioritizeSets;
   const exerciseId = String(input?.exerciseId || "");
   const restValue = String(input?.restValue || "");
   const noteValue = String(input?.noteValue || "");
   const recoveryMarkup = String(input?.recoveryMarkup || "");
   const setsMarkup = String(input?.setsMarkup || "");
-  return `<div class="field-grid field-grid-rest">
+  const secondaryMarkup = `<div class="field-grid field-grid-rest">
             <div class="label">Rest</div>
             <input class="field" data-role="rest" data-ex="${exerciseId}" value="${restValue}" placeholder="2:00" />
           </div>
@@ -8003,8 +8004,8 @@ function buildExerciseDetailsMarkup(input) {
             <textarea class="textarea" rows="1" data-role="note" data-ex="${exerciseId}">${noteValue}</textarea>
           </div>
 
-          ${recoveryMarkup}
-          ${setsMarkup}`;
+          ${recoveryMarkup}`;
+  return prioritizeSets ? `${setsMarkup}${secondaryMarkup}` : `${secondaryMarkup}${setsMarkup}`;
 }
 function buildExerciseCompareMarkup(input) {
   if(V2_RENDER_EXERCISE_COMPARE?.buildExerciseCompareMarkup) return V2_RENDER_EXERCISE_COMPARE.buildExerciseCompareMarkup(input);
@@ -8713,6 +8714,7 @@ function renderExercises() {
 	        }).join("");
         const detailsMarkup = buildExerciseDetailsMarkup({
           exerciseId: ex,
+          prioritizeSets: ui.workoutMode,
           restValue: esc(normalizeRestValue(rest)),
           noteValue: esc(note),
           recoveryMarkup: recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : "",
@@ -8728,8 +8730,8 @@ function renderExercises() {
           exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
           exerciseId: ex,
           mainMarkup,
-          compareMarkup,
-          detailsMarkup,
+          compareMarkup: ui.workoutMode ? "" : compareMarkup,
+          detailsMarkup: ui.workoutMode ? `${detailsMarkup}${compareMarkup}` : detailsMarkup,
           actionsMarkup
         });
 	      }).join("");
