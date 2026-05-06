@@ -7801,6 +7801,7 @@ const initialUiDay = initialUiSelection.initialDay;
 const initialUiDate = initialUiSelection.initialDate;
 let ui={week:initialUiWeek, day:initialUiDay, month:initialUiSelection.month, search:"", workoutMode:false, activeExerciseIndex:0, radarMode:"day", calendarCollapsed:false, addBusy:false, lastAddSignature:"", lastAddAt:0, searchRenderTimer:null, historyRenderTimer:null};
 let pendingExerciseViewportRestore = null;
+let pendingWorkoutFieldFocusSelector = "";
 let workoutWakeLock = null;
 
 function getFilteredExercisesForCurrentDay() {
@@ -7877,6 +7878,17 @@ function restoreExerciseViewportContext() {
       } catch {}
     }
   }
+}
+function queueWorkoutFieldFocus(selector) {
+  pendingWorkoutFieldFocusSelector = String(selector || "");
+}
+function restoreWorkoutFieldFocus() {
+  const selector = pendingWorkoutFieldFocusSelector;
+  pendingWorkoutFieldFocusSelector = "";
+  if(!selector) return;
+  const target = document.querySelector(selector);
+  if(!target) return;
+  try { target.focus({ preventScroll: true }); } catch { try { target.focus(); } catch {} }
 }
 function syncWorkoutWakeLockSoon() {
   setTimeout(() => { syncWorkoutWakeLock(); }, 0);
@@ -8824,12 +8836,13 @@ function renderExercises() {
       showToast("No strength exercise selected");
       return;
     }
-    commitStateUpdate(() => {
-      appendWorkoutSet(active);
-    }, { renderMode:"exercises", toast:"Set added" });
+    appendWorkoutSetWithFocus(active);
   };
 
-  requestAnimationFrame(() => restoreExerciseViewportContext());
+  requestAnimationFrame(() => {
+    restoreExerciseViewportContext();
+    restoreWorkoutFieldFocus();
+  });
 }
 
 
@@ -8868,6 +8881,39 @@ function appendWorkoutSet(ex) {
   state[`w${ui.week}_${ui.day}_${ex}_s${c}`] = createEmptyWorkoutSet();
   state[`sc_w${ui.week}_${ui.day}_${ex}`] = c + 1;
   return c;
+}
+function getWorkoutFieldSelector(ex, idx, role) {
+  return `[data-role="${role}"][data-ex="${ex}"][data-idx="${idx}"]`;
+}
+function focusWorkoutField(ex, idx, role) {
+  const selector = getWorkoutFieldSelector(ex, idx, role);
+  const target = document.querySelector(selector);
+  if(!target) return false;
+  try { target.focus({ preventScroll: true }); } catch { try { target.focus(); } catch {} }
+  return true;
+}
+function appendWorkoutSetWithFocus(ex) {
+  let newIdx = null;
+  const ok = commitStateUpdate(() => {
+    newIdx = appendWorkoutSet(ex);
+  }, { renderMode:"exercises", toast:"Set added" });
+  if(ok && Number.isFinite(newIdx)) queueWorkoutFieldFocus(getWorkoutFieldSelector(ex, newIdx, "reps"));
+  return ok;
+}
+function handleWorkoutSetAdvance(input) {
+  if(!(input instanceof HTMLElement)) return false;
+  const role = input.dataset.role;
+  const ex = input.dataset.ex;
+  const idx = Number(input.dataset.idx);
+  if(!role || !ex || Number.isNaN(idx)) return false;
+  if(role === "reps") {
+    return focusWorkoutField(ex, idx, "kg");
+  }
+  if(role === "kg") {
+    if(focusWorkoutField(ex, idx + 1, "reps")) return true;
+    return appendWorkoutSetWithFocus(ex);
+  }
+  return false;
 }
 function toggleWorkoutSetDoneState(ex, idx) {
   const s = getSet(ui.week, ui.day, ex, idx);
@@ -8960,12 +9006,33 @@ function armHoldDeleteTimer(el, onDelete) {
 
 function bindExerciseEvents(all) {
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
+    const handleAdvanceTrigger = e => {
+      const now = Date.now();
+      if(now - Number(el._lastAdvanceAt || 0) < 80) return;
+      el._lastAdvanceAt = now;
+      e.preventDefault();
+      const cleanValue = sanitizeSetInputValue(el.dataset.role, el.value);
+      if(el.value !== cleanValue) el.value = cleanValue;
+      updateWorkoutSetFields(el.dataset.ex, Number(el.dataset.idx), { [el.dataset.role]: cleanValue });
+      updateSetVolumeForInput(el);
+      saveStateQuiet("Autosaved draft locally.");
+      handleWorkoutSetAdvance(el);
+    };
+    el.enterKeyHint = el.dataset.role === "reps" ? "next" : "done";
     el.oninput = e => {
       const cleanValue = sanitizeSetInputValue(e.target.dataset.role, e.target.value);
       if(e.target.value !== cleanValue) e.target.value = cleanValue;
       updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: cleanValue });
       updateSetVolumeForInput(e.target);
       saveStateQuiet("Autosaved draft locally.");
+    };
+    el.onbeforeinput = e => {
+      if(e.inputType !== "insertLineBreak") return;
+      handleAdvanceTrigger(e);
+    };
+    el.onkeydown = e => {
+      if(e.key !== "Enter") return;
+      handleAdvanceTrigger(e);
     };
     el.onfocus = e => { const row = e.target.closest(".setrow"); if(row) row.classList.add("input-row-active"); };
     el.onblur = e => { const row = e.target.closest(".setrow"); if(row) row.classList.remove("input-row-active"); };
@@ -9003,9 +9070,7 @@ function bindExerciseEvents(all) {
   });
   document.querySelectorAll("[data-role='add-set']").forEach(el => el.onclick = e => {
     const ex = e.target.dataset.ex;
-    commitStateUpdate(() => {
-      appendWorkoutSet(ex);
-    }, { renderMode:"exercises", toast:"Set added" });
+    appendWorkoutSetWithFocus(ex);
   });
   document.querySelectorAll("[data-role='delete-set']").forEach(el => {
     const triggerDelete = () => {
