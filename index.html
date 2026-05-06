@@ -6252,6 +6252,7 @@ textarea.exercise-name{
 <script src="./v2/superset-helpers.js"></script>
 <script src="./v2/exercise-render-helpers.js"></script>
 <script src="./v2/render-grouping-helpers.js"></script>
+<script src="./v2/render-metrics-boundary.js"></script>
 </head>
 <body>
 
@@ -6572,6 +6573,7 @@ const V2_SEARCH = window.TimoTrainingV2Search || null;
 const V2_SUPERSET = window.TimoTrainingV2Superset || null;
 const V2_RENDER = window.TimoTrainingV2Render || null;
 const V2_GROUP = window.TimoTrainingV2Group || null;
+const V2_RENDER_METRICS = window.TimoTrainingV2RenderMetrics || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -7919,6 +7921,25 @@ function getWorkoutStatsSafe() {
   });
   return { exs, totalSets, doneSets, totalVol };
 }
+function buildMetricsMarkup(input) {
+  if(V2_RENDER_METRICS?.buildMetricsMarkup) return V2_RENDER_METRICS.buildMetricsMarkup(input);
+  const week = Number(input?.week) || 0;
+  const weekRange = String(input?.weekRange || "");
+  const dayLabel = String(input?.dayLabel || "");
+  const fullDate = String(input?.fullDate || "");
+  const groups = Number(input?.groups) || 0;
+  const exerciseCount = Number(input?.exerciseCount) || 0;
+  const totalVolume = Number(input?.totalVolume) || 0;
+  const doneSets = Number(input?.doneSets) || 0;
+  const totalSets = Number(input?.totalSets) || 0;
+  const volumeText = totalVolume ? `${totalVolume.toLocaleString("en-GB")} kg` : "0 kg";
+  return `
+    <div class="metric"><div class="k">Week</div><div class="v">W${week}</div><div class="s">${weekRange}</div></div>
+    <div class="metric"><div class="k">Day</div><div class="v">${dayLabel}</div><div class="s">${fullDate}</div></div>
+    <div class="metric"><div class="k">Blocks</div><div class="v">${groups || 0}</div><div class="s">${exerciseCount} exercises</div></div>
+    <div class="metric"><div class="k">Volume</div><div class="v">${volumeText}</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
+  `;
+}
 
 // ===== RENDER: METRICS =====
 
@@ -7935,12 +7956,17 @@ function renderMetrics() {
   },0);
   const totalVol = exs.reduce((sum,ex)=> sum + sumExerciseVolume(getExerciseSetsForDay(ui.week,ui.day,ex)), 0);
   const groups = new Set(exs.map(ex => (codeOf(ui.week,ui.day,ex).match(/^([A-Z])/)||["","•"])[1])).size;
-  document.getElementById("metrics").innerHTML = `
-    <div class="metric"><div class="k">Week</div><div class="v">W${ui.week}</div><div class="s">${weekRangeLabel(ui.week)}</div></div>
-    <div class="metric"><div class="k">Day</div><div class="v">${DAY_LABEL[ui.day]}</div><div class="s">${fmtFullDate(dayDate(ui.week,ui.day))}</div></div>
-    <div class="metric"><div class="k">Blocks</div><div class="v">${groups||0}</div><div class="s">${exs.length} exercises</div></div>
-    <div class="metric"><div class="k">Volume</div><div class="v">${totalVol ? totalVol.toLocaleString("en-GB") : 0} kg</div><div class="s">${doneSets} / ${totalSets} sets done</div></div>
-  `;
+  document.getElementById("metrics").innerHTML = buildMetricsMarkup({
+    week: ui.week,
+    weekRange: weekRangeLabel(ui.week),
+    dayLabel: DAY_LABEL[ui.day],
+    fullDate: fmtFullDate(dayDate(ui.week,ui.day)),
+    groups,
+    exerciseCount: exs.length,
+    totalVolume: totalVol,
+    doneSets,
+    totalSets
+  });
   document.getElementById("weekHeader").textContent = "";
 }
 
