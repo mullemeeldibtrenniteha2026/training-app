@@ -9053,14 +9053,12 @@ function setHoldDeleteVisual(el, active) {
 function clearHoldDeleteTimer(el) {
   if(!el?._holdDeleteTimer) {
     if(el) setHoldDeleteVisual(el, false);
-    return false;
+    return;
   }
   clearTimeout(el._holdDeleteTimer);
   el._holdDeleteTimer = null;
-  const fired = !!el._holdDeleteFired;
   el._holdDeleteFired = false;
   setHoldDeleteVisual(el, false);
-  return fired;
 }
 function armHoldDeleteTimer(el, onDelete) {
   clearHoldDeleteTimer(el);
@@ -9142,7 +9140,6 @@ function bindExerciseEvents(all) {
       if(!e.target._dirtySinceFocus && e.target.value === e.target._valueOnFocus) return;
       if(Date.now() - Number(e.target._lastAdvanceAt || 0) < 120) return;
       const pendingAt = Date.now();
-      e.target._pendingAdvanceFallbackAt = pendingAt;
       clearPendingAdvanceFallback();
       e.target._pendingAdvanceFallbackAt = pendingAt;
       e.target._pendingAdvanceFallbackTimer = setTimeout(() => {
