@@ -6256,6 +6256,7 @@ textarea.exercise-name{
 <script src="./v2/render-calendar-boundary.js"></script>
 <script src="./v2/render-workout-header-boundary.js"></script>
 <script src="./v2/render-workout-container-boundary.js"></script>
+<script src="./v2/render-exercise-shell-boundary.js"></script>
 </head>
 <body>
 
@@ -6580,6 +6581,7 @@ const V2_RENDER_METRICS = window.TimoTrainingV2RenderMetrics || null;
 const V2_RENDER_CALENDAR = window.TimoTrainingV2RenderCalendar || null;
 const V2_RENDER_WORKOUT_HEADER = window.TimoTrainingV2RenderWorkoutHeader || null;
 const V2_RENDER_WORKOUT_CONTAINER = window.TimoTrainingV2RenderWorkoutContainer || null;
+const V2_RENDER_EXERCISE = window.TimoTrainingV2RenderExercise || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -7963,6 +7965,16 @@ function buildWorkoutContainerMarkup(input) {
   const hasContent = !!input?.hasContent;
   return `${headerMarkup}${hasContent ? contentMarkup : emptyMarkup}`;
 }
+function buildExerciseShellMarkup(input) {
+  if(V2_RENDER_EXERCISE?.buildExerciseShellMarkup) return V2_RENDER_EXERCISE.buildExerciseShellMarkup(input);
+  const exerciseClass = String(input?.exerciseClass || "");
+  const exerciseId = String(input?.exerciseId || "");
+  const mainMarkup = String(input?.mainMarkup || "");
+  const compareMarkup = String(input?.compareMarkup || "");
+  const detailsMarkup = String(input?.detailsMarkup || "");
+  const actionsMarkup = String(input?.actionsMarkup || "");
+  return `<div class="exercise ${exerciseClass}" data-exercise-card="${exerciseId}">${mainMarkup}${compareMarkup}${detailsMarkup}${actionsMarkup}</div>`;
+}
 
 // ===== RENDER: METRICS =====
 
@@ -8575,27 +8587,14 @@ function renderExercises() {
         const last = findLastOccurrence(ui.week,ui.day,name);
         const c = setCountOf(ui.week,ui.day,ex);
         const cfg = getExerciseConfig(name);
-        const headerDisplay = formatExerciseHeaderDisplay({
-          name,
-          code,
-          supersetLabel,
-          recovery,
-          weighted: cfg.weight
-        });
-        const setsHtml = recovery ? "" : Array.from({length:c}, (_,i) => {
-          const s = getSet(ui.week,ui.day,ex,i);
-          const setRowDisplay = formatSetRowDisplay(s, i);
-          return `<div class="setrow" data-setrow="${ex}_${i}">
-            <div class="setn">${setRowDisplay.setNumber}</div>
-            <div class="setcol"><div class="k">kg</div><input class="setinput" type="text" step="0.01" min="0" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
-            <div class="setcol"><div class="k">reps</div><input class="setinput" type="text" step="1" min="0" inputmode="decimal" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
-            <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setRowDisplay.volume}" disabled /></div>
-            <button class="setdeletebtn" type="button" data-role="delete-set" data-ex="${ex}" data-idx="${i}" aria-label="Delete set">✕</button>
-            <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
-          </div>`;
-        }).join("");
-        return `<div class="exercise ${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}" data-exercise-card="${ex}">
-          <div class="exercise-main">
+	        const headerDisplay = formatExerciseHeaderDisplay({
+	          name,
+	          code,
+	          supersetLabel,
+	          recovery,
+	          weighted: cfg.weight
+	        });
+        const mainMarkup = `<div class="exercise-main">
             <div class="left-main">
               <input class="codebox" data-role="code" data-ex="${ex}" value="${esc(code)}" />
               <div style="min-width:0;width:100%">
@@ -8603,28 +8602,44 @@ function renderExercises() {
                 <div class="exercise-meta">${headerDisplay.metaText}</div>
               </div>
             </div>
-          </div>
+          </div>`;
+        const compareMarkup = last ? `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${fmtShortDate(last.date)}</div></div><div class="last-time-summary">${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div><div class="last-time-meta">Use this as your quick reference before the next set.</div></div></div>` : "";
+ 	        const setsHtml = recovery ? "" : Array.from({length:c}, (_,i) => {
+	          const s = getSet(ui.week,ui.day,ex,i);
+	          const setRowDisplay = formatSetRowDisplay(s, i);
+          return `<div class="setrow" data-setrow="${ex}_${i}">
+            <div class="setn">${setRowDisplay.setNumber}</div>
+            <div class="setcol"><div class="k">kg</div><input class="setinput" type="text" step="0.01" min="0" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
+            <div class="setcol"><div class="k">reps</div><input class="setinput" type="text" step="1" min="0" inputmode="decimal" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
+            <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setRowDisplay.volume}" disabled /></div>
+            <button class="setdeletebtn" type="button" data-role="delete-set" data-ex="${ex}" data-idx="${i}" aria-label="Delete set">✕</button>
+	            <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
+	          </div>`;
+	        }).join("");
+        const detailsMarkup = `<div class="field-grid field-grid-rest">
+	            <div class="label">Rest</div>
+	            <input class="field" data-role="rest" data-ex="${ex}" value="${esc(normalizeRestValue(rest))}" placeholder="2:00" />
+	          </div>
+	          <div class="field-grid">
+	            <div class="label">Notes</div>
+	            <textarea class="textarea" rows="1" data-role="note" data-ex="${ex}">${esc(note)}</textarea>
+	          </div>
 
-          ${last ? `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${fmtShortDate(last.date)}</div></div><div class="last-time-summary">${esc(exerciseSetsSummary(last.week,last.day,last.ex))}</div><div class="last-time-meta">Use this as your quick reference before the next set.</div></div></div>` : ""}
-
-          <div class="field-grid field-grid-rest">
-            <div class="label">Rest</div>
-            <input class="field" data-role="rest" data-ex="${ex}" value="${esc(normalizeRestValue(rest))}" placeholder="2:00" />
-          </div>
-          <div class="field-grid">
-            <div class="label">Notes</div>
-            <textarea class="textarea" rows="1" data-role="note" data-ex="${ex}">${esc(note)}</textarea>
-          </div>
-
-          ${recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : ""}
-          ${setsHtml ? `<div class="sets">${setsHtml}</div>` : ""}
-
-          <div class="exercise-actions">
-            ${recovery ? `<button class="btn gold" data-role="toggle-block" data-ex="${ex}">${done ? "Set as not done" : "Set as done"}</button>` : `<button class="btn" data-role="add-set" data-ex="${ex}">+ Set</button>`}
-            <button class="btn" data-role="delete" data-ex="${ex}">Delete exercise</button>
-          </div>
-        </div>`;
-      }).join("");
+	          ${recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : ""}
+	          ${setsHtml ? `<div class="sets">${setsHtml}</div>` : ""}`;
+        const actionsMarkup = `<div class="exercise-actions">
+	            ${recovery ? `<button class="btn gold" data-role="toggle-block" data-ex="${ex}">${done ? "Set as not done" : "Set as done"}</button>` : `<button class="btn" data-role="add-set" data-ex="${ex}">+ Set</button>`}
+	            <button class="btn" data-role="delete" data-ex="${ex}">Delete exercise</button>
+	          </div>`;
+        return buildExerciseShellMarkup({
+          exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
+          exerciseId: ex,
+          mainMarkup,
+          compareMarkup,
+          detailsMarkup,
+          actionsMarkup
+        });
+	      }).join("");
     const blockLabel = group.block && group.block !== "•" ? group.block : "Single";
         const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
         const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
