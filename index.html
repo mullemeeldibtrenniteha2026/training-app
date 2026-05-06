@@ -6262,6 +6262,7 @@ textarea.exercise-name{
 <script src="./v2/render-exercise-actions-boundary.js"></script>
 <script src="./v2/render-set-helpers.js"></script>
 <script src="./v2/render-set-markup-boundary.js"></script>
+<script src="./v2/render-sets-container-boundary.js"></script>
 </head>
 <body>
 
@@ -6592,6 +6593,7 @@ const V2_RENDER_EXERCISE_COMPARE = window.TimoTrainingV2RenderExerciseCompare ||
 const V2_RENDER_EXERCISE_ACTIONS = window.TimoTrainingV2RenderExerciseActions || null;
 const V2_SET = window.TimoTrainingV2Set || null;
 const V2_RENDER_SET = window.TimoTrainingV2RenderSet || null;
+const V2_RENDER_SETS_CONTAINER = window.TimoTrainingV2RenderSetsContainer || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8057,6 +8059,11 @@ function buildSetMarkup(input) {
 	            <button class="donebtn ${doneState==='1'?'on':''}" data-role="toggle-set" data-ex="${exerciseId}" data-idx="${setIndex}">${doneState==='1'?'✓':'·'}</button>
 	          </div>`;
 }
+function buildSetsContainerMarkup(input) {
+  if(V2_RENDER_SETS_CONTAINER?.buildSetsContainerMarkup) return V2_RENDER_SETS_CONTAINER.buildSetsContainerMarkup(input);
+  const setRowsMarkup = String(input?.setRowsMarkup || "");
+  return `<div class="sets">${setRowsMarkup}</div>`;
+}
 
 // ===== RENDER: METRICS =====
 
@@ -8709,7 +8716,7 @@ function renderExercises() {
           restValue: esc(normalizeRestValue(rest)),
           noteValue: esc(note),
           recoveryMarkup: recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : "",
-          setsMarkup: setsHtml ? `<div class="sets">${setsHtml}</div>` : ""
+          setsMarkup: setsHtml ? buildSetsContainerMarkup({ setRowsMarkup: setsHtml }) : ""
         });
         const actionsMarkup = buildExerciseActionsMarkup({
           exerciseId: ex,
