@@ -9031,6 +9031,20 @@ function normalizeRestValue(value) {
   if(!raw) return "";
   return formatRestSeconds(parseRestSeconds(raw));
 }
+const WORKOUT_MOBILE_ADVANCE_BLUR_DELAY_MS = 40;
+const WORKOUT_MOBILE_ADVANCE_POINTER_GUARD_MS = 180;
+let lastWorkoutPointerIntentAt = 0;
+let workoutInputAdvanceGuardsBound = false;
+function markWorkoutPointerIntent() {
+  lastWorkoutPointerIntentAt = Date.now();
+}
+function ensureWorkoutInputAdvanceGuards() {
+  if(workoutInputAdvanceGuardsBound) return;
+  workoutInputAdvanceGuardsBound = true;
+  document.addEventListener("pointerdown", markWorkoutPointerIntent, true);
+  document.addEventListener("touchstart", markWorkoutPointerIntent, true);
+  document.addEventListener("mousedown", markWorkoutPointerIntent, true);
+}
 const SET_DELETE_HOLD_MS = 450;
 function setHoldDeleteVisual(el, active) {
   if(!el) return;
@@ -9061,21 +9075,45 @@ function armHoldDeleteTimer(el, onDelete) {
 }
 
 function bindExerciseEvents(all) {
+  ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
+    const clearPendingAdvanceFallback = () => {
+      if(el._pendingAdvanceFallbackTimer) clearTimeout(el._pendingAdvanceFallbackTimer);
+      el._pendingAdvanceFallbackTimer = null;
+      el._pendingAdvanceFallbackAt = 0;
+    };
     const handleAdvanceTrigger = e => {
+      if(el._isComposing) return;
       const now = Date.now();
       if(now - Number(el._lastAdvanceAt || 0) < 80) return;
       el._lastAdvanceAt = now;
+      clearPendingAdvanceFallback();
       e.preventDefault();
       const cleanValue = sanitizeSetInputValue(el.dataset.role, el.value);
       if(el.value !== cleanValue) el.value = cleanValue;
       updateWorkoutSetFields(el.dataset.ex, Number(el.dataset.idx), { [el.dataset.role]: cleanValue });
       updateSetVolumeForInput(el);
       saveStateQuiet("Autosaved draft locally.");
+      el._dirtySinceFocus = false;
       handleWorkoutSetAdvance(el);
     };
     el.enterKeyHint = "next";
     el.oninput = e => {
+      clearPendingAdvanceFallback();
+      const cleanValue = sanitizeSetInputValue(e.target.dataset.role, e.target.value);
+      if(e.target.value !== cleanValue) e.target.value = cleanValue;
+      e.target._dirtySinceFocus = true;
+      updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: cleanValue });
+      updateSetVolumeForInput(e.target);
+      saveStateQuiet("Autosaved draft locally.");
+    };
+    el.oncompositionstart = () => {
+      clearPendingAdvanceFallback();
+      el._isComposing = true;
+    };
+    el.oncompositionend = e => {
+      el._isComposing = false;
+      el._dirtySinceFocus = true;
       const cleanValue = sanitizeSetInputValue(e.target.dataset.role, e.target.value);
       if(e.target.value !== cleanValue) e.target.value = cleanValue;
       updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: cleanValue });
@@ -9083,16 +9121,45 @@ function bindExerciseEvents(all) {
       saveStateQuiet("Autosaved draft locally.");
     };
     el.onbeforeinput = e => {
-      if(e.inputType !== "insertLineBreak") return;
+      if(e.inputType !== "insertLineBreak" && e.inputType !== "insertParagraph") return;
       handleAdvanceTrigger(e);
     };
     el.onkeydown = e => {
-      if(e.key !== "Enter") return;
+      if(e.key !== "Enter" && e.key !== "Go" && e.key !== "Next" && e.key !== "Done") return;
       handleAdvanceTrigger(e);
     };
-    el.onfocus = e => { const row = e.target.closest(".setrow"); if(row) row.classList.add("input-row-active"); };
-    el.onblur = e => { const row = e.target.closest(".setrow"); if(row) row.classList.remove("input-row-active"); };
+    el.onfocus = e => {
+      clearPendingAdvanceFallback();
+      e.target._valueOnFocus = e.target.value;
+      e.target._dirtySinceFocus = false;
+      const row = e.target.closest(".setrow");
+      if(row) row.classList.add("input-row-active");
+    };
+    el.onblur = e => {
+      const row = e.target.closest(".setrow");
+      if(row) row.classList.remove("input-row-active");
+      if(e.target._isComposing) return;
+      if(!e.target._dirtySinceFocus && e.target.value === e.target._valueOnFocus) return;
+      if(Date.now() - Number(e.target._lastAdvanceAt || 0) < 120) return;
+      const pendingAt = Date.now();
+      e.target._pendingAdvanceFallbackAt = pendingAt;
+      clearPendingAdvanceFallback();
+      e.target._pendingAdvanceFallbackAt = pendingAt;
+      e.target._pendingAdvanceFallbackTimer = setTimeout(() => {
+        e.target._pendingAdvanceFallbackTimer = null;
+        if(e.target._pendingAdvanceFallbackAt !== pendingAt) return;
+        if(e.target._isComposing) return;
+        if(Date.now() - Number(e.target._lastAdvanceAt || 0) < 120) return;
+        if(Date.now() - lastWorkoutPointerIntentAt < WORKOUT_MOBILE_ADVANCE_POINTER_GUARD_MS) return;
+        const active = document.activeElement;
+        if(active && active !== document.body && active !== e.target) return;
+        handleAdvanceTrigger({
+          preventDefault() {}
+        });
+      }, WORKOUT_MOBILE_ADVANCE_BLUR_DELAY_MS);
+    };
     el.onchange = e => {
+      e.target._dirtySinceFocus = true;
       const cleanValue = sanitizeSetInputValue(e.target.dataset.role, e.target.value);
       if(e.target.value !== cleanValue) e.target.value = cleanValue;
       updateWorkoutSetFields(e.target.dataset.ex, Number(e.target.dataset.idx), { [e.target.dataset.role]: cleanValue });
