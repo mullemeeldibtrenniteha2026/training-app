@@ -6253,6 +6253,7 @@ textarea.exercise-name{
 <script src="./v2/exercise-render-helpers.js"></script>
 <script src="./v2/render-grouping-helpers.js"></script>
 <script src="./v2/render-metrics-boundary.js"></script>
+<script src="./v2/render-calendar-boundary.js"></script>
 </head>
 <body>
 
@@ -6574,6 +6575,7 @@ const V2_SUPERSET = window.TimoTrainingV2Superset || null;
 const V2_RENDER = window.TimoTrainingV2Render || null;
 const V2_GROUP = window.TimoTrainingV2Group || null;
 const V2_RENDER_METRICS = window.TimoTrainingV2RenderMetrics || null;
+const V2_RENDER_CALENDAR = window.TimoTrainingV2RenderCalendar || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8034,16 +8036,36 @@ function parseCalendarDateKey(dateKey) {
   const day = Number(match[3]);
   return new Date(year, monthIndex, day);
 }
-
-function buildCalendarCellHtml(date) {
-  if(!date) return `<div class="daycell inactive"></div>`;
-  const { info, dot, active, isToday } = getCalendarCellInfo(date);
-  const dayTypeClass = getCalendarDefaultDayType(date);
-  return `<div class="daycell ${dayTypeClass} ${active?'active':''} ${isToday?'today':''}" data-date="${formatCalendarDateKey(date)}">
-      <div class="d">${date.getDate()}</div>
-      <div class="w">${info ? DAY_LABEL[info.day].slice(0,3) : ""}</div>
+function buildDayCellMarkup(input) {
+  if(V2_RENDER_CALENDAR?.buildDayCellMarkup) return V2_RENDER_CALENDAR.buildDayCellMarkup(input);
+  if(input?.inactive) return `<div class="daycell inactive"></div>`;
+  const dayTypeClass = String(input?.dayTypeClass || "");
+  const activeClass = input?.active ? "active" : "";
+  const todayClass = input?.isToday ? "today" : "";
+  const dateKey = String(input?.dateKey || "");
+  const dayNumber = String(input?.dayNumber || "");
+  const weekdayLabel = String(input?.weekdayLabel || "");
+  const dot = String(input?.dot || "transparent");
+  return `<div class="daycell ${dayTypeClass} ${activeClass} ${todayClass}" data-date="${dateKey}">
+      <div class="d">${dayNumber}</div>
+      <div class="w">${weekdayLabel}</div>
       <div class="daydot" style="background:${dot}"></div>
     </div>`;
+}
+
+function buildCalendarCellHtml(date) {
+  if(!date) return buildDayCellMarkup({ inactive:true });
+  const { info, dot, active, isToday } = getCalendarCellInfo(date);
+  const dayTypeClass = getCalendarDefaultDayType(date);
+  return buildDayCellMarkup({
+    dayTypeClass,
+    active,
+    isToday,
+    dateKey: formatCalendarDateKey(date),
+    dayNumber: date.getDate(),
+    weekdayLabel: info ? DAY_LABEL[info.day].slice(0,3) : "",
+    dot
+  });
 }
 
 function selectCalendarDate(dateKey) {
