@@ -9644,8 +9644,10 @@ function updateAuthUi() {
 }
 async function signOutSupabase() {
   if(!sb) return;
-  const { error } = await sb.auth.signOut();
+  const { error } = await withTimeout(sb.auth.signOut({ scope: "local" }), 5000);
   if(error) throw error;
+  const { data } = await withTimeout(sb.auth.getSession(), 2500);
+  if(data?.session?.user) throw new Error("Sign out did not clear session.");
 }
 function getLocalUpdatedAt() {
   return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
@@ -9838,12 +9840,8 @@ async function initSupabaseApp() {
     try {
       setSyncStatus("Cloud: signing out…");
       await signOutSupabase();
-      setTimeout(() => {
-        if(currentUser) {
-          console.warn("SIGN OUT FALLBACK APPLIED");
-          applySignedOutUiState();
-        }
-      }, 1200);
+      applySignedOutUiState();
+      lastAuthStateKey = getAuthStateKey(null);
       showToast("Signed out");
     } catch (e) {
       console.error("SIGN OUT ERROR", e);
