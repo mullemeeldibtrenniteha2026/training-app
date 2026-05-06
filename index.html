@@ -8888,6 +8888,34 @@ function normalizeRestValue(value) {
   if(!raw) return "";
   return formatRestSeconds(parseRestSeconds(raw));
 }
+const SET_DELETE_HOLD_MS = 450;
+function setHoldDeleteVisual(el, active) {
+  if(!el) return;
+  el.style.opacity = active ? "0.72" : "";
+}
+function clearHoldDeleteTimer(el) {
+  if(!el?._holdDeleteTimer) {
+    if(el) setHoldDeleteVisual(el, false);
+    return false;
+  }
+  clearTimeout(el._holdDeleteTimer);
+  el._holdDeleteTimer = null;
+  const fired = !!el._holdDeleteFired;
+  el._holdDeleteFired = false;
+  setHoldDeleteVisual(el, false);
+  return fired;
+}
+function armHoldDeleteTimer(el, onDelete) {
+  clearHoldDeleteTimer(el);
+  setHoldDeleteVisual(el, true);
+  el._holdDeleteFired = false;
+  el._holdDeleteTimer = setTimeout(() => {
+    el._holdDeleteTimer = null;
+    el._holdDeleteFired = true;
+    setHoldDeleteVisual(el, false);
+    onDelete();
+  }, SET_DELETE_HOLD_MS);
+}
 
 function bindExerciseEvents(all) {
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -8938,15 +8966,35 @@ function bindExerciseEvents(all) {
       appendWorkoutSet(ex);
     }, { renderMode:"exercises", toast:"Set added" });
   });
-  document.querySelectorAll("[data-role='delete-set']").forEach(el => el.onclick = e => {
-    const ex = e.currentTarget.dataset.ex;
-    const idx = Number(e.currentTarget.dataset.idx);
-    commitStateUpdate(() => {
-      removeWorkoutSet(ex, idx);
-    }, { renderMode:"exercises", toast:"Set removed" });
+  document.querySelectorAll("[data-role='delete-set']").forEach(el => {
+    const triggerDelete = () => {
+      const ex = el.dataset.ex;
+      const idx = Number(el.dataset.idx);
+      commitStateUpdate(() => {
+        removeWorkoutSet(ex, idx);
+      }, { renderMode:"exercises", toast:"Set removed" });
+    };
+    el.onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    el.onmousedown = e => {
+      if(e.button !== 0) return;
+      if(Date.now() < (el._ignoreMouseUntil || 0)) return;
+      armHoldDeleteTimer(el, triggerDelete);
+    };
+    el.onmouseup = () => { clearHoldDeleteTimer(el); };
+    el.onmouseleave = () => { clearHoldDeleteTimer(el); };
+    el.ontouchstart = () => {
+      el._ignoreMouseUntil = Date.now() + 800;
+      armHoldDeleteTimer(el, triggerDelete);
+    };
+    el.ontouchend = () => { clearHoldDeleteTimer(el); };
+    el.ontouchcancel = () => { clearHoldDeleteTimer(el); };
   });
   document.querySelectorAll("[data-role='delete']").forEach(el => el.onclick = e => {
     const ex = e.currentTarget.dataset.ex;
+    if(!window.confirm("Delete this exercise?")) return;
     commitStateUpdate(() => {
       deleteExercise(ui.week, ui.day, ex);
     }, { renderMode:"exercises", toast:"Exercise removed" });
