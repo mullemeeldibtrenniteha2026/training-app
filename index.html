@@ -6248,6 +6248,7 @@ textarea.exercise-name{
 <script src="./v2/format-helpers.js"></script>
 <script src="./v2/input-value-helpers.js"></script>
 <script src="./v2/workout-summary-helpers.js"></script>
+<script src="./v2/exercise-search-helpers.js"></script>
 </head>
 <body>
 
@@ -6564,6 +6565,7 @@ const V2_CALENDAR = window.TimoTrainingV2Calendar || null;
 const V2_FORMAT = window.TimoTrainingV2Format || null;
 const V2_INPUT = window.TimoTrainingV2Input || null;
 const V2_SUMMARY = window.TimoTrainingV2Summary || null;
+const V2_SEARCH = window.TimoTrainingV2Search || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -7467,6 +7469,24 @@ function buildSetSummary(sets) {
   if(V2_SUMMARY?.buildSetSummary) return V2_SUMMARY.buildSetSummary(sets);
   return (Array.isArray(sets) ? sets : []).map(formatSetSummaryLine).join(" • ");
 }
+function countTotalSets(sets) {
+  if(V2_SUMMARY?.countTotalSets) return V2_SUMMARY.countTotalSets(sets);
+  return Array.isArray(sets) ? sets.length : 0;
+}
+function countCompletedSets(sets) {
+  if(V2_SUMMARY?.countCompletedSets) return V2_SUMMARY.countCompletedSets(sets);
+  return (Array.isArray(sets) ? sets : []).reduce((sum, set) => {
+    return sum + (String(set?.done || "") === "1" ? 1 : 0);
+  }, 0);
+}
+function sumExerciseVolume(sets) {
+  if(V2_SUMMARY?.sumExerciseVolume) return V2_SUMMARY.sumExerciseVolume(sets);
+  return (Array.isArray(sets) ? sets : []).reduce((sum, set) => {
+    const volume = setVolume(set);
+    if(!volume) return sum;
+    return sum + (Number(volume) || 0);
+  }, 0);
+}
 function exerciseSetsSummary(week,day,ex) {
   const sets=[], c=setCountOf(week,day,ex);
   for(let i=0;i<c;i++) sets.push(getSet(week,day,ex,i));
@@ -7519,16 +7539,33 @@ function historyPreview(displayName) {
     note: noteOf(hist.week,hist.day,hist.ex)
   };
 }
-function matchesExerciseSearchQuery(name, exId, code, query) {
-  const q = String(query || "").trim().toLowerCase();
+function normalizeQuery(query) {
+  if(V2_SEARCH?.normalizeQuery) return V2_SEARCH.normalizeQuery(query);
+  return String(query || "").trim().toLowerCase();
+}
+function matchExerciseName(name, query) {
+  if(V2_SEARCH?.matchExerciseName) return V2_SEARCH.matchExerciseName(name, query);
+  const q = normalizeQuery(query);
   if(!q) return true;
   const nameLower = String(name || "").trim().toLowerCase();
   return nameLower.startsWith(q);
 }
+function filterExercises(list, query) {
+  if(V2_SEARCH?.filterExercises) return V2_SEARCH.filterExercises(list, query);
+  const q = normalizeQuery(query);
+  if(!q) return Array.isArray(list) ? list.slice() : [];
+  return (Array.isArray(list) ? list : []).filter(item => {
+    const name = typeof item === "string" ? item : item?.name;
+    return matchExerciseName(name, q);
+  });
+}
+function matchesExerciseSearchQuery(name, exId, code, query) {
+  return matchExerciseName(name, query);
+}
 
 function searchExercisesGlobal(query) {
 
-  const q = String(query || "").trim().toLowerCase();
+  const q = normalizeQuery(query);
   if(!q) return [];
   const out = [];
   for(const week of getWeeks()) for(const day of DAY_ORDER) {
@@ -7543,7 +7580,7 @@ function searchExercisesGlobal(query) {
       });
     }
   }
-  return out.sort((a,b) => a.date - b.date).slice(0,12);
+  return filterExercises(out, q).sort((a,b) => a.date - b.date).slice(0,12);
 }
 
 function copyHistoryTo(week,day,exId,preview,mode) {
@@ -7696,11 +7733,14 @@ let pendingExerciseViewportRestore = null;
 let workoutWakeLock = null;
 
 function getFilteredExercisesForCurrentDay() {
-  const q = ui.search.trim().toLowerCase();
-  return getExercisesForWeekDay(ui.week,ui.day).filter(ex => {
-    if(!q) return true;
-    return matchesExerciseSearchQuery(exerciseName(ui.week,ui.day,ex), ex, codeOf(ui.week,ui.day,ex), q);
-  });
+  const q = normalizeQuery(ui.search);
+  const dayExercises = getExercisesForWeekDay(ui.week,ui.day).map(ex => ({
+    ex,
+    name: exerciseName(ui.week,ui.day,ex),
+    code: codeOf(ui.week,ui.day,ex)
+  }));
+  if(!q) return dayExercises.map(item => item.ex);
+  return filterExercises(dayExercises, q).map(item => item.ex);
 }
 function getFilteredWorkoutGroupCount() {
   return getWorkoutGroups(getFilteredExercisesForCurrentDay()).length;
@@ -7846,18 +7886,20 @@ function getCurrentDayExercises() {
 function hasRenderableWorkout() {
   return getCurrentDayExercises().length > 0;
 }
+function getExerciseSetsForDay(week, day, ex) {
+  const count = Math.max(0, Number(setCountOf(week, day, ex) || 0));
+  const sets = [];
+  for (let i = 0; i < count; i++) sets.push(getSet(week, day, ex, i));
+  return sets;
+}
 function getWorkoutStatsSafe() {
   const exs = getCurrentDayExercises();
   let totalSets = 0, doneSets = 0, totalVol = 0;
   exs.forEach(ex => {
-    const count = Math.max(0, Number(setCountOf(ui.week, ui.day, ex) || 0));
-    totalSets += count;
-    for (let i = 0; i < count; i++) {
-      const s = getSet(ui.week, ui.day, ex, i);
-      if (String(s.done || "") === "1") doneSets += 1;
-      const v = setVolume(s);
-      if (v) totalVol += Number(v);
-    }
+    const sets = getExerciseSetsForDay(ui.week, ui.day, ex);
+    totalSets += countTotalSets(sets);
+    doneSets += countCompletedSets(sets);
+    totalVol += sumExerciseVolume(sets);
     if (blockDoneOf(ui.week, ui.day, ex) && isRecoveryLike(ui.week, ui.day, ex)) {
       doneSets = Math.max(doneSets, 1);
     }
@@ -7872,16 +7914,13 @@ function getWorkoutStatsSafe() {
 // ============================================================
 function renderMetrics() {
   const exs = getExercisesForWeekDay(ui.week,ui.day);
-  const totalSets = exs.reduce((sum,ex)=>sum+setCountOf(ui.week,ui.day,ex),0);
+  const totalSets = exs.reduce((sum,ex)=>sum+countTotalSets(getExerciseSetsForDay(ui.week,ui.day,ex)),0);
   const doneSets = exs.reduce((sum,ex)=> {
-    let c=0; for(let i=0;i<setCountOf(ui.week,ui.day,ex);i++) if(String(getSet(ui.week,ui.day,ex,i).done||"")==="1") c++;
+    let c = countCompletedSets(getExerciseSetsForDay(ui.week,ui.day,ex));
     if(blockDoneOf(ui.week,ui.day,ex) && isRecoveryLike(ui.week,ui.day,ex)) c=Math.max(c,1);
     return sum+c;
   },0);
-  const totalVol = exs.reduce((sum,ex)=> {
-    let v=0; for(let i=0;i<setCountOf(ui.week,ui.day,ex);i++) { const x=setVolume(getSet(ui.week,ui.day,ex,i)); if(x) v+=x; }
-    return sum+v;
-  },0);
+  const totalVol = exs.reduce((sum,ex)=> sum + sumExerciseVolume(getExerciseSetsForDay(ui.week,ui.day,ex)), 0);
   const groups = new Set(exs.map(ex => (codeOf(ui.week,ui.day,ex).match(/^([A-Z])/)||["","•"])[1])).size;
   document.getElementById("metrics").innerHTML = `
     <div class="metric"><div class="k">Week</div><div class="v">W${ui.week}</div><div class="s">${weekRangeLabel(ui.week)}</div></div>
@@ -8255,12 +8294,9 @@ function getWorkoutSummaryStats(week,day){
   let totalVolume = 0;
   all.forEach(ex => {
     if(isRecoveryLike(week,day,ex)) return;
-    const c = setCountOf(week,day,ex);
-    totalSets += c;
-    for(let i=0;i<c;i++){
-      const v = setVolume(getSet(week,day,ex,i));
-      if(v) totalVolume += Number(v) || 0;
-    }
+    const sets = getExerciseSetsForDay(week,day,ex);
+    totalSets += countTotalSets(sets);
+    totalVolume += sumExerciseVolume(sets);
   });
   return { exercises: all.length, sets: totalSets, volume: totalVolume };
 }
@@ -8320,12 +8356,14 @@ function finishWorkoutNow(){
 // ===== RENDER: EXERCISE LIST =====
 function renderExercises() {
   clampActiveExerciseIndex();
-  const q = ui.search.trim().toLowerCase();
+  const q = normalizeQuery(ui.search);
   const dayExercises = getExercisesForWeekDay(ui.week,ui.day);
-  const filteredDayExercises = dayExercises.filter(ex => {
-    if(!q) return true;
-    return matchesExerciseSearchQuery(exerciseName(ui.week,ui.day,ex), ex, codeOf(ui.week,ui.day,ex), q);
-  });
+  const dayExerciseItems = dayExercises.map(ex => ({
+    ex,
+    name: exerciseName(ui.week,ui.day,ex),
+    code: codeOf(ui.week,ui.day,ex)
+  }));
+  const filteredDayExercises = q ? filterExercises(dayExerciseItems, q).map(item => item.ex) : dayExercises;
   const searchMatches = q ? searchExercisesGlobal(q) : [];
   const all = filteredDayExercises;
   const allGroups = getWorkoutGroups(all);
