@@ -6250,6 +6250,7 @@ textarea.exercise-name{
 <script src="./v2/workout-summary-helpers.js"></script>
 <script src="./v2/exercise-search-helpers.js"></script>
 <script src="./v2/superset-helpers.js"></script>
+<script src="./v2/exercise-render-helpers.js"></script>
 </head>
 <body>
 
@@ -6568,6 +6569,7 @@ const V2_INPUT = window.TimoTrainingV2Input || null;
 const V2_SUMMARY = window.TimoTrainingV2Summary || null;
 const V2_SEARCH = window.TimoTrainingV2Search || null;
 const V2_SUPERSET = window.TimoTrainingV2Superset || null;
+const V2_RENDER = window.TimoTrainingV2Render || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8283,6 +8285,16 @@ function getSupersetGroup(exercises, index) {
   }
   return { block, items: out };
 }
+function formatExerciseHeaderDisplay(input) {
+  if(V2_RENDER?.formatExerciseHeaderDisplay) return V2_RENDER.formatExerciseHeaderDisplay(input);
+  const displayName = String(input?.name || "");
+  const metaText = [
+    input?.supersetLabel ? `Superset item ${input.supersetLabel}` : (input?.code ? `Block item ${input.code}` : ""),
+    input?.recovery ? "Recovery / conditioning" : "",
+    input?.weighted ? "Weighted" : ""
+  ].filter(Boolean).join(" • ");
+  return { displayName, metaText };
+}
 
 
 // ============================================================
@@ -8442,6 +8454,13 @@ function renderExercises() {
         const last = findLastOccurrence(ui.week,ui.day,name);
         const c = setCountOf(ui.week,ui.day,ex);
         const cfg = getExerciseConfig(name);
+        const headerDisplay = formatExerciseHeaderDisplay({
+          name,
+          code,
+          supersetLabel,
+          recovery,
+          weighted: cfg.weight
+        });
         const setsHtml = recovery ? "" : Array.from({length:c}, (_,i) => {
           const s = getSet(ui.week,ui.day,ex,i);
           const setRowDisplay = formatSetRowDisplay(s, i);
@@ -8459,8 +8478,8 @@ function renderExercises() {
             <div class="left-main">
               <input class="codebox" data-role="code" data-ex="${ex}" value="${esc(code)}" />
               <div style="min-width:0;width:100%">
-                <input class="exercise-name field" type="text" data-role="name" data-ex="${ex}" value="${esc(name)}" />
-                <div class="exercise-meta">${[ supersetLabel ? `Superset item ${supersetLabel}` : code ? `Block item ${code}` : "", recovery ? "Recovery / conditioning" : "", cfg.weight ? "Weighted" : ""].filter(Boolean).join(" • ")}</div>
+                <input class="exercise-name field" type="text" data-role="name" data-ex="${ex}" value="${esc(headerDisplay.displayName)}" />
+                <div class="exercise-meta">${headerDisplay.metaText}</div>
               </div>
             </div>
           </div>
