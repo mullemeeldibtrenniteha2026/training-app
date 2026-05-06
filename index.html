@@ -6259,6 +6259,7 @@ textarea.exercise-name{
 <script src="./v2/render-exercise-shell-boundary.js"></script>
 <script src="./v2/render-exercise-details-boundary.js"></script>
 <script src="./v2/render-exercise-compare-boundary.js"></script>
+<script src="./v2/render-exercise-actions-boundary.js"></script>
 </head>
 <body>
 
@@ -6586,6 +6587,7 @@ const V2_RENDER_WORKOUT_CONTAINER = window.TimoTrainingV2RenderWorkoutContainer 
 const V2_RENDER_EXERCISE = window.TimoTrainingV2RenderExercise || null;
 const V2_RENDER_EXERCISE_DETAILS = window.TimoTrainingV2RenderExerciseDetails || null;
 const V2_RENDER_EXERCISE_COMPARE = window.TimoTrainingV2RenderExerciseCompare || null;
+const V2_RENDER_EXERCISE_ACTIONS = window.TimoTrainingV2RenderExerciseActions || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8006,6 +8008,17 @@ function buildExerciseCompareMarkup(input) {
   if(!dateLabel && !summaryText && !metaText) return "";
   return `<div class="compare compact-last"><div class="last-time-card"><div class="last-time-head"><div class="last-time-title"><span class="dot"></span><span class="k">Last time</span></div><div class="last-time-date">${dateLabel}</div></div><div class="last-time-summary">${summaryText}</div><div class="last-time-meta">${metaText}</div></div></div>`;
 }
+function buildExerciseActionsMarkup(input) {
+  if(V2_RENDER_EXERCISE_ACTIONS?.buildExerciseActionsMarkup) return V2_RENDER_EXERCISE_ACTIONS.buildExerciseActionsMarkup(input);
+  const exerciseId = String(input?.exerciseId || "");
+  const primaryButtonClass = String(input?.primaryButtonClass || "btn");
+  const primaryButtonRole = String(input?.primaryButtonRole || "");
+  const primaryButtonLabel = String(input?.primaryButtonLabel || "");
+  return `<div class="exercise-actions">
+	            <button class="${primaryButtonClass}" data-role="${primaryButtonRole}" data-ex="${exerciseId}">${primaryButtonLabel}</button>
+	            <button class="btn" data-role="delete" data-ex="${exerciseId}">Delete exercise</button>
+	          </div>`;
+}
 
 // ===== RENDER: METRICS =====
 
@@ -8658,10 +8671,12 @@ function renderExercises() {
           recoveryMarkup: recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : "",
           setsMarkup: setsHtml ? `<div class="sets">${setsHtml}</div>` : ""
         });
-        const actionsMarkup = `<div class="exercise-actions">
-	            ${recovery ? `<button class="btn gold" data-role="toggle-block" data-ex="${ex}">${done ? "Set as not done" : "Set as done"}</button>` : `<button class="btn" data-role="add-set" data-ex="${ex}">+ Set</button>`}
-	            <button class="btn" data-role="delete" data-ex="${ex}">Delete exercise</button>
-	          </div>`;
+        const actionsMarkup = buildExerciseActionsMarkup({
+          exerciseId: ex,
+          primaryButtonClass: recovery ? "btn gold" : "btn",
+          primaryButtonRole: recovery ? "toggle-block" : "add-set",
+          primaryButtonLabel: recovery ? (done ? "Set as not done" : "Set as done") : "+ Set"
+        });
         return buildExerciseShellMarkup({
           exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
           exerciseId: ex,
