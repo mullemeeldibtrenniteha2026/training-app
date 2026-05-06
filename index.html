@@ -6096,6 +6096,62 @@ body{
   border-color:rgba(242,201,76,.30) !important;
 }
 
+/* =========================================
+   ITER68 — WORKOUT FOCUS MODE POLISH
+   Scope: workout-mode visual hierarchy only
+   - make set rows dominant
+   - quiet down compare/rest/notes blocks
+   - keep finish/global actions intact
+========================================= */
+.exercise.active-workout .exercise-meta{
+  color:rgba(255,255,255,.54) !important;
+}
+.exercise.active-workout .sets{
+  gap:12px;
+  margin-top:4px;
+}
+.exercise.active-workout .setrow{
+  border-color:rgba(255,255,255,.12);
+  box-shadow:
+    0 12px 26px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+.exercise.active-workout .setcol .k{
+  color:rgba(255,255,255,.62) !important;
+  letter-spacing:.08em;
+}
+.exercise.active-workout .setinput{
+  font-size:17px;
+  font-weight:680;
+}
+.exercise.active-workout .donebtn{
+  border-color:rgba(255,255,255,.16);
+  color:#f2f6fb;
+  box-shadow:0 8px 18px rgba(0,0,0,.10);
+}
+.exercise.active-workout .compare.compact-last,
+.exercise.active-workout .field-grid,
+.exercise.active-workout .info-box{
+  box-shadow:none !important;
+}
+.exercise.active-workout .compare.compact-last{
+  opacity:.72;
+}
+.exercise.active-workout .last-time-summary{
+  color:rgba(255,255,255,.74) !important;
+}
+.exercise.active-workout .last-time-meta,
+.exercise.active-workout .field-grid .label,
+.exercise.active-workout .info-box .k{
+  color:rgba(255,255,255,.46) !important;
+}
+.exercise.active-workout .field-grid .field,
+.exercise.active-workout .field-grid .textarea,
+.exercise.active-workout .info-box{
+  background:rgba(10,20,34,.52) !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
 
 
 /* =========================================
