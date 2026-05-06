@@ -6060,6 +6060,42 @@ body{
   box-shadow:0 0 0 3px rgba(255,194,71,.18), 0 10px 24px rgba(255,159,10,.22), inset 0 1px 0 rgba(255,255,255,.22) !important;
 }
 
+/* =========================================
+   ITER67 — WORKOUT ACTION HIERARCHY CLEANUP
+   Scope: workout-mode button emphasis only
+   - finish stays primary
+   - inline add-set becomes supporting action
+   - destructive exercise delete feels secondary
+========================================= */
+.exercise.active-workout .exercise-actions .workout-inline-addset{
+  background:linear-gradient(180deg, rgba(19,35,60,.96), rgba(12,25,44,.98)) !important;
+  border-color:rgba(127,178,255,.26) !important;
+  color:#d7e6ff !important;
+  font-weight:760 !important;
+  box-shadow:none !important;
+}
+.exercise.active-workout .exercise-actions .workout-delete-btn{
+  background:transparent !important;
+  border-color:rgba(255,255,255,.10) !important;
+  border-style:dashed !important;
+  color:rgba(255,255,255,.58) !important;
+  box-shadow:none !important;
+}
+.exercise.active-workout .exercise-actions .workout-delete-btn:hover,
+.exercise.active-workout .exercise-actions .workout-delete-btn:focus-visible{
+  border-color:rgba(235,87,87,.24) !important;
+  color:#efc8cf !important;
+}
+.workout-end-actions .workout-footer-secondary{
+  background:linear-gradient(180deg, rgba(14,28,48,.96), rgba(10,22,39,.98)) !important;
+  border-color:rgba(255,255,255,.10) !important;
+  color:rgba(255,255,255,.78) !important;
+  box-shadow:none !important;
+}
+.workout-end-actions .workout-footer-primary{
+  border-color:rgba(242,201,76,.30) !important;
+}
+
 
 
 /* =========================================
@@ -8021,9 +8057,10 @@ function buildExerciseActionsMarkup(input) {
   const primaryButtonClass = String(input?.primaryButtonClass || "btn");
   const primaryButtonRole = String(input?.primaryButtonRole || "");
   const primaryButtonLabel = String(input?.primaryButtonLabel || "");
+  const deleteButtonClass = String(input?.deleteButtonClass || "btn");
   return `<div class="exercise-actions">
 	            <button class="${primaryButtonClass}" data-role="${primaryButtonRole}" data-ex="${exerciseId}">${primaryButtonLabel}</button>
-	            <button class="btn" data-role="delete" data-ex="${exerciseId}">Delete exercise</button>
+	            <button class="${deleteButtonClass}" data-role="delete" data-ex="${exerciseId}">Delete exercise</button>
 	          </div>`;
 }
 function getSetDisplayIndex(set, index) {
@@ -8722,9 +8759,10 @@ function renderExercises() {
         });
         const actionsMarkup = buildExerciseActionsMarkup({
           exerciseId: ex,
-          primaryButtonClass: recovery ? "btn gold" : "btn",
+          primaryButtonClass: recovery ? "btn gold" : (ui.workoutMode ? "btn workout-inline-addset" : "btn"),
           primaryButtonRole: recovery ? "toggle-block" : "add-set",
-          primaryButtonLabel: recovery ? (done ? "Set as not done" : "Set as done") : "+ Set"
+          primaryButtonLabel: recovery ? (done ? "Set as not done" : "Set as done") : "+ Set",
+          deleteButtonClass: ui.workoutMode ? "btn workout-delete-btn" : "btn"
         });
         return buildExerciseShellMarkup({
           exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
@@ -8739,7 +8777,7 @@ function renderExercises() {
         const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
         const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
         return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
-      }).join("") + `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn" id="bottomTimerBtn">⏱ Timer</button><button class="btn" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``;
+      }).join("") + `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn workout-footer-secondary" id="bottomTimerBtn">⏱ Timer</button><button class="btn workout-footer-secondary" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary workout-footer-primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``;
   wrap.innerHTML = buildWorkoutContainerMarkup({
     headerMarkup: focus,
     contentMarkup,
