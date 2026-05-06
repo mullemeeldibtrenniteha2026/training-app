@@ -8948,12 +8948,12 @@ function focusWorkoutField(ex, idx, role) {
   try { target.focus({ preventScroll: true }); } catch { try { target.focus(); } catch {} }
   return true;
 }
-function appendWorkoutSetWithFocus(ex) {
+function appendWorkoutSetWithFocus(ex, role="kg") {
   let newIdx = null;
   const ok = commitStateUpdate(() => {
     newIdx = appendWorkoutSet(ex);
   }, { renderMode:"exercises", toast:"Set added" });
-  if(ok && Number.isFinite(newIdx)) queueWorkoutFieldFocus(getWorkoutFieldSelector(ex, newIdx, "reps"));
+  if(ok && Number.isFinite(newIdx)) queueWorkoutFieldFocus(getWorkoutFieldSelector(ex, newIdx, role));
   return ok;
 }
 function handleWorkoutSetAdvance(input) {
@@ -8962,12 +8962,12 @@ function handleWorkoutSetAdvance(input) {
   const ex = input.dataset.ex;
   const idx = Number(input.dataset.idx);
   if(!role || !ex || Number.isNaN(idx)) return false;
-  if(role === "reps") {
-    return focusWorkoutField(ex, idx, "kg");
-  }
   if(role === "kg") {
-    if(focusWorkoutField(ex, idx + 1, "reps")) return true;
-    return appendWorkoutSetWithFocus(ex);
+    return focusWorkoutField(ex, idx, "reps");
+  }
+  if(role === "reps") {
+    if(focusWorkoutField(ex, idx + 1, "kg")) return true;
+    return appendWorkoutSetWithFocus(ex, "kg");
   }
   return false;
 }
@@ -9074,7 +9074,7 @@ function bindExerciseEvents(all) {
       saveStateQuiet("Autosaved draft locally.");
       handleWorkoutSetAdvance(el);
     };
-    el.enterKeyHint = el.dataset.role === "reps" ? "next" : "done";
+    el.enterKeyHint = "next";
     el.oninput = e => {
       const cleanValue = sanitizeSetInputValue(e.target.dataset.role, e.target.value);
       if(e.target.value !== cleanValue) e.target.value = cleanValue;
@@ -9126,7 +9126,7 @@ function bindExerciseEvents(all) {
   });
   document.querySelectorAll("[data-role='add-set']").forEach(el => el.onclick = e => {
     const ex = e.target.dataset.ex;
-    appendWorkoutSetWithFocus(ex);
+    appendWorkoutSetWithFocus(ex, "kg");
   });
   document.querySelectorAll("[data-role='delete-set']").forEach(el => {
     const triggerDelete = () => {
