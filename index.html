@@ -8791,7 +8791,10 @@ function renderExercises() {
     requestRender("exercises");
   });
   const finishWorkoutBtnInline = document.getElementById("finishWorkoutBtnInline");
-  if(finishWorkoutBtnInline) finishWorkoutBtnInline.onclick = () => finishWorkoutNow();
+  if(finishWorkoutBtnInline) finishWorkoutBtnInline.onclick = () => {
+    if(!window.confirm("Finish workout and mark remaining sets as done?")) return;
+    finishWorkoutNow();
+  };
 
   const bottomTimerBtn = document.getElementById("bottomTimerBtn");
   if(bottomTimerBtn) bottomTimerBtn.onclick = () => openTimer();
