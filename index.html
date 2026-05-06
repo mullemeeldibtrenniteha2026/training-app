@@ -6261,6 +6261,7 @@ textarea.exercise-name{
 <script src="./v2/render-exercise-compare-boundary.js"></script>
 <script src="./v2/render-exercise-actions-boundary.js"></script>
 <script src="./v2/render-set-helpers.js"></script>
+<script src="./v2/render-set-markup-boundary.js"></script>
 </head>
 <body>
 
@@ -6590,6 +6591,7 @@ const V2_RENDER_EXERCISE_DETAILS = window.TimoTrainingV2RenderExerciseDetails ||
 const V2_RENDER_EXERCISE_COMPARE = window.TimoTrainingV2RenderExerciseCompare || null;
 const V2_RENDER_EXERCISE_ACTIONS = window.TimoTrainingV2RenderExerciseActions || null;
 const V2_SET = window.TimoTrainingV2Set || null;
+const V2_RENDER_SET = window.TimoTrainingV2RenderSet || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8037,6 +8039,24 @@ function getSetWeightValue(set) {
   if(V2_SET?.getSetWeightValue) return V2_SET.getSetWeightValue(set);
   return set?.kg ?? "";
 }
+function buildSetMarkup(input) {
+  if(V2_RENDER_SET?.buildSetMarkup) return V2_RENDER_SET.buildSetMarkup(input);
+  const exerciseId = String(input?.exerciseId || "");
+  const setIndex = Number(input?.setIndex) || 0;
+  const displayIndex = String(input?.displayIndex || "");
+  const weightValue = String(input?.weightValue || "");
+  const repsValue = String(input?.repsValue || "");
+  const volumeValue = String(input?.volumeValue || "");
+  const doneState = String(input?.doneState || "");
+  return `<div class="setrow" data-setrow="${exerciseId}_${setIndex}">
+            <div class="setn">${displayIndex}</div>
+            <div class="setcol"><div class="k">kg</div><input class="setinput" type="text" step="0.01" min="0" inputmode="decimal" data-role="kg" data-ex="${exerciseId}" data-idx="${setIndex}" value="${weightValue}" /></div>
+            <div class="setcol"><div class="k">reps</div><input class="setinput" type="text" step="1" min="0" inputmode="decimal" data-role="reps" data-ex="${exerciseId}" data-idx="${setIndex}" value="${repsValue}" /></div>
+            <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${volumeValue}" disabled /></div>
+            <button class="setdeletebtn" type="button" data-role="delete-set" data-ex="${exerciseId}" data-idx="${setIndex}" aria-label="Delete set">✕</button>
+	            <button class="donebtn ${doneState==='1'?'on':''}" data-role="toggle-set" data-ex="${exerciseId}" data-idx="${setIndex}">${doneState==='1'?'✓':'·'}</button>
+	          </div>`;
+}
 
 // ===== RENDER: METRICS =====
 
@@ -8674,14 +8694,15 @@ function renderExercises() {
 	          const s = getSet(ui.week,ui.day,ex,i);
 	          const setRowDisplay = formatSetRowDisplay(s, i);
             const setDoneState = getSetDoneState(s);
-          return `<div class="setrow" data-setrow="${ex}_${i}">
-            <div class="setn">${getSetDisplayIndex(s, i)}</div>
-            <div class="setcol"><div class="k">kg</div><input class="setinput" type="text" step="0.01" min="0" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(getSetWeightValue(s))}" /></div>
-            <div class="setcol"><div class="k">reps</div><input class="setinput" type="text" step="1" min="0" inputmode="decimal" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(getSetRepsValue(s))}" /></div>
-            <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setRowDisplay.volume}" disabled /></div>
-            <button class="setdeletebtn" type="button" data-role="delete-set" data-ex="${ex}" data-idx="${i}" aria-label="Delete set">✕</button>
-	            <button class="donebtn ${setDoneState==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${setDoneState==='1'?'✓':'·'}</button>
-	          </div>`;
+          return buildSetMarkup({
+            exerciseId: ex,
+            setIndex: i,
+            displayIndex: getSetDisplayIndex(s, i),
+            weightValue: esc(getSetWeightValue(s)),
+            repsValue: esc(getSetRepsValue(s)),
+            volumeValue: setRowDisplay.volume,
+            doneState: setDoneState
+          });
 	        }).join("");
         const detailsMarkup = buildExerciseDetailsMarkup({
           exerciseId: ex,
