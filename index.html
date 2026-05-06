@@ -6251,6 +6251,7 @@ textarea.exercise-name{
 <script src="./v2/exercise-search-helpers.js"></script>
 <script src="./v2/superset-helpers.js"></script>
 <script src="./v2/exercise-render-helpers.js"></script>
+<script src="./v2/render-grouping-helpers.js"></script>
 </head>
 <body>
 
@@ -6570,6 +6571,7 @@ const V2_SUMMARY = window.TimoTrainingV2Summary || null;
 const V2_SEARCH = window.TimoTrainingV2Search || null;
 const V2_SUPERSET = window.TimoTrainingV2Superset || null;
 const V2_RENDER = window.TimoTrainingV2Render || null;
+const V2_GROUP = window.TimoTrainingV2Group || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8295,6 +8297,47 @@ function formatExerciseHeaderDisplay(input) {
   ].filter(Boolean).join(" • ");
   return { displayName, metaText };
 }
+function isSupersetStart(exercises, index) {
+  const items = (Array.isArray(exercises) ? exercises : []).map(ex => ({
+    ex,
+    code: codeOf(ui.week,ui.day,ex)
+  }));
+  if(V2_GROUP?.isSupersetStart) return V2_GROUP.isSupersetStart(items, index);
+  const current = items[index];
+  if(!current) return false;
+  if(!/\d$/.test(String(current.code || "").trim())) return false;
+  if(index <= 0) return true;
+  const prevBlock = (String(items[index - 1]?.code || "").match(/^([A-Z])/) || [null,"•"])[1];
+  const currentBlock = (String(current.code || "").match(/^([A-Z])/) || [null,"•"])[1];
+  return prevBlock !== currentBlock;
+}
+function getGroupIndices(exercises, index) {
+  const items = (Array.isArray(exercises) ? exercises : []).map(ex => ({
+    ex,
+    code: codeOf(ui.week,ui.day,ex)
+  }));
+  if(V2_GROUP?.getGroupIndices) return V2_GROUP.getGroupIndices(items, index);
+  const start = items[index];
+  if(!start) return [];
+  const block = (String(start.code || "").match(/^([A-Z])/) || [null,"•"])[1];
+  const out = [];
+  for(let i=index;i<items.length;i++) {
+    const itemBlock = (String(items[i]?.code || "").match(/^([A-Z])/) || [null,"•"])[1];
+    if(itemBlock !== block) break;
+    out.push(i);
+  }
+  return out;
+}
+function getGroupLength(exercises, index) {
+  if(V2_GROUP?.getGroupLength) {
+    const items = (Array.isArray(exercises) ? exercises : []).map(ex => ({
+      ex,
+      code: codeOf(ui.week,ui.day,ex)
+    }));
+    return V2_GROUP.getGroupLength(items, index);
+  }
+  return getGroupIndices(exercises, index).length;
+}
 
 
 // ============================================================
@@ -8304,13 +8347,15 @@ function getWorkoutGroups(exercises){
   const groups = [];
   let index = 0;
   while(index < exercises.length) {
-    const group = getSupersetGroup(exercises, index);
-    if(!group.items.length) {
+    const groupIndices = getGroupIndices(exercises, index);
+    const groupLength = getGroupLength(exercises, index);
+    if(!groupIndices.length || !groupLength) {
       index += 1;
       continue;
     }
+    const group = getSupersetGroup(exercises, index);
     groups.push(group);
-    index += group.items.length;
+    index += groupLength;
   }
   return groups;
 }
@@ -8442,7 +8487,7 @@ function renderExercises() {
   wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
   wrap.innerHTML = focus + (groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
-    const isSupersetBlock = group.items.some(ex => isSuperset(ex)) && group.items.length > 1;
+    const isSupersetBlock = group.items.length > 1 && isSupersetStart(group.items, 0);
     const groupInner = group.items.map(ex => {
         const code = codeOf(ui.week,ui.day,ex);
         const supersetLabel = getSupersetLabel(ex);
