@@ -6257,6 +6257,7 @@ textarea.exercise-name{
 <script src="./v2/render-workout-header-boundary.js"></script>
 <script src="./v2/render-workout-container-boundary.js"></script>
 <script src="./v2/render-exercise-shell-boundary.js"></script>
+<script src="./v2/render-exercise-details-boundary.js"></script>
 </head>
 <body>
 
@@ -6582,6 +6583,7 @@ const V2_RENDER_CALENDAR = window.TimoTrainingV2RenderCalendar || null;
 const V2_RENDER_WORKOUT_HEADER = window.TimoTrainingV2RenderWorkoutHeader || null;
 const V2_RENDER_WORKOUT_CONTAINER = window.TimoTrainingV2RenderWorkoutContainer || null;
 const V2_RENDER_EXERCISE = window.TimoTrainingV2RenderExercise || null;
+const V2_RENDER_EXERCISE_DETAILS = window.TimoTrainingV2RenderExerciseDetails || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -7975,6 +7977,25 @@ function buildExerciseShellMarkup(input) {
   const actionsMarkup = String(input?.actionsMarkup || "");
   return `<div class="exercise ${exerciseClass}" data-exercise-card="${exerciseId}">${mainMarkup}${compareMarkup}${detailsMarkup}${actionsMarkup}</div>`;
 }
+function buildExerciseDetailsMarkup(input) {
+  if(V2_RENDER_EXERCISE_DETAILS?.buildExerciseDetailsMarkup) return V2_RENDER_EXERCISE_DETAILS.buildExerciseDetailsMarkup(input);
+  const exerciseId = String(input?.exerciseId || "");
+  const restValue = String(input?.restValue || "");
+  const noteValue = String(input?.noteValue || "");
+  const recoveryMarkup = String(input?.recoveryMarkup || "");
+  const setsMarkup = String(input?.setsMarkup || "");
+  return `<div class="field-grid field-grid-rest">
+            <div class="label">Rest</div>
+            <input class="field" data-role="rest" data-ex="${exerciseId}" value="${restValue}" placeholder="2:00" />
+          </div>
+          <div class="field-grid">
+            <div class="label">Notes</div>
+            <textarea class="textarea" rows="1" data-role="note" data-ex="${exerciseId}">${noteValue}</textarea>
+          </div>
+
+          ${recoveryMarkup}
+          ${setsMarkup}`;
+}
 
 // ===== RENDER: METRICS =====
 
@@ -8616,17 +8637,13 @@ function renderExercises() {
 	            <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
 	          </div>`;
 	        }).join("");
-        const detailsMarkup = `<div class="field-grid field-grid-rest">
-	            <div class="label">Rest</div>
-	            <input class="field" data-role="rest" data-ex="${ex}" value="${esc(normalizeRestValue(rest))}" placeholder="2:00" />
-	          </div>
-	          <div class="field-grid">
-	            <div class="label">Notes</div>
-	            <textarea class="textarea" rows="1" data-role="note" data-ex="${ex}">${esc(note)}</textarea>
-	          </div>
-
-	          ${recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : ""}
-	          ${setsHtml ? `<div class="sets">${setsHtml}</div>` : ""}`;
+        const detailsMarkup = buildExerciseDetailsMarkup({
+          exerciseId: ex,
+          restValue: esc(normalizeRestValue(rest)),
+          noteValue: esc(note),
+          recoveryMarkup: recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : "",
+          setsMarkup: setsHtml ? `<div class="sets">${setsHtml}</div>` : ""
+        });
         const actionsMarkup = `<div class="exercise-actions">
 	            ${recovery ? `<button class="btn gold" data-role="toggle-block" data-ex="${ex}">${done ? "Set as not done" : "Set as done"}</button>` : `<button class="btn" data-role="add-set" data-ex="${ex}">+ Set</button>`}
 	            <button class="btn" data-role="delete" data-ex="${ex}">Delete exercise</button>
