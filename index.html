@@ -7489,6 +7489,13 @@ function sumExerciseVolume(sets) {
     return sum + (Number(volume) || 0);
   }, 0);
 }
+function formatSetRowDisplay(set, index) {
+  if(V2_SUMMARY?.formatSetRowDisplay) return V2_SUMMARY.formatSetRowDisplay(set, index);
+  return {
+    setNumber: String(Number(index) + 1),
+    volume: String(setVolume(set) || "")
+  };
+}
 function exerciseSetsSummary(week,day,ex) {
   const sets=[], c=setCountOf(week,day,ex);
   for(let i=0;i<c;i++) sets.push(getSet(week,day,ex,i));
@@ -8437,11 +8444,12 @@ function renderExercises() {
         const cfg = getExerciseConfig(name);
         const setsHtml = recovery ? "" : Array.from({length:c}, (_,i) => {
           const s = getSet(ui.week,ui.day,ex,i);
+          const setRowDisplay = formatSetRowDisplay(s, i);
           return `<div class="setrow" data-setrow="${ex}_${i}">
-            <div class="setn">${i+1}</div>
+            <div class="setn">${setRowDisplay.setNumber}</div>
             <div class="setcol"><div class="k">kg</div><input class="setinput" type="text" step="0.01" min="0" inputmode="decimal" data-role="kg" data-ex="${ex}" data-idx="${i}" value="${esc(s.kg)}" /></div>
             <div class="setcol"><div class="k">reps</div><input class="setinput" type="text" step="1" min="0" inputmode="decimal" data-role="reps" data-ex="${ex}" data-idx="${i}" value="${esc(s.reps)}" /></div>
-            <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setVolume(s)}" disabled /></div>
+            <div class="setcol"><div class="k">volume</div><input class="setinput" data-role="volume" value="${setRowDisplay.volume}" disabled /></div>
             <button class="setdeletebtn" type="button" data-role="delete-set" data-ex="${ex}" data-idx="${i}" aria-label="Delete set">✕</button>
             <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
           </div>`;

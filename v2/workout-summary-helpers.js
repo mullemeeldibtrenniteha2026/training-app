@@ -43,11 +43,19 @@
     }, 0);
   }
 
+  function formatSetRowDisplay(set, index) {
+    return {
+      setNumber: String(Number(index) + 1),
+      volume: String(setVolume(set) || "")
+    };
+  }
+
   global.TimoTrainingV2Summary = {
     formatSetSummaryLine,
     buildSetSummary,
     countTotalSets,
     countCompletedSets,
-    sumExerciseVolume
+    sumExerciseVolume,
+    formatSetRowDisplay
   };
 })(window);
