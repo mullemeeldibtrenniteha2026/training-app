@@ -6249,6 +6249,7 @@ textarea.exercise-name{
 <script src="./v2/input-value-helpers.js"></script>
 <script src="./v2/workout-summary-helpers.js"></script>
 <script src="./v2/exercise-search-helpers.js"></script>
+<script src="./v2/superset-helpers.js"></script>
 </head>
 <body>
 
@@ -6566,6 +6567,7 @@ const V2_FORMAT = window.TimoTrainingV2Format || null;
 const V2_INPUT = window.TimoTrainingV2Input || null;
 const V2_SUMMARY = window.TimoTrainingV2Summary || null;
 const V2_SEARCH = window.TimoTrainingV2Search || null;
+const V2_SUPERSET = window.TimoTrainingV2Superset || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8240,22 +8242,57 @@ function renderHistoryPreview() {
   box.innerHTML = ``;
 }
 
+function isSuperset(ex) {
+  const code = codeOf(ui.week,ui.day,ex);
+  if(V2_SUPERSET?.isSuperset) return V2_SUPERSET.isSuperset(code);
+  return /\d$/.test(String(code || "").trim());
+}
+function getSupersetLabel(ex, index) {
+  const code = codeOf(ui.week,ui.day,ex);
+  if(V2_SUPERSET?.getSupersetLabel) return V2_SUPERSET.getSupersetLabel(code, index);
+  return isSuperset(ex) ? code : "";
+}
+function getSupersetGroup(exercises, index) {
+  const items = (Array.isArray(exercises) ? exercises : []).map(ex => ({
+    ex,
+    code: codeOf(ui.week,ui.day,ex)
+  }));
+  if(V2_SUPERSET?.getSupersetGroup) {
+    const group = V2_SUPERSET.getSupersetGroup(items, index);
+    return {
+      block: group?.block ?? "•",
+      items: Array.isArray(group?.items) ? group.items.map(item => item.ex) : []
+    };
+  }
+  const start = items[index];
+  if(!start) return { block:"•", items:[] };
+  const block = (String(start.code || "").match(/^([A-Z])/) || [null,"•"])[1];
+  const out = [];
+  for(let i=index;i<items.length;i++) {
+    const item = items[i];
+    const itemBlock = (String(item.code || "").match(/^([A-Z])/) || [null,"•"])[1];
+    if(itemBlock !== block) break;
+    out.push(item.ex);
+  }
+  return { block, items: out };
+}
+
 
 // ============================================================
 // WORKOUT RENDER + FINISH FLOW ZONE
 // ============================================================
 function getWorkoutGroups(exercises){
   const groups = [];
-  let currentKey = null;
-  exercises.forEach(ex => {
-    const code = codeOf(ui.week,ui.day,ex);
-    const block = (code.match(/^([A-Z])/) || [null,"•"])[1];
-    if(block !== currentKey){
-      currentKey = block;
-      groups.push({ block, items: [] });
+  let index = 0;
+  while(index < exercises.length) {
+    const group = getSupersetGroup(exercises, index);
+    if(!group.items.length) {
+      index += 1;
+      continue;
     }
-    groups[groups.length-1].items.push(ex);
-  });
+    groups.push(group);
+    index += group.items.length;
+  }
   return groups;
 }
 function getSupersetIntegrityIssuesForDay(week, day, exercises) {
@@ -8386,9 +8423,10 @@ function renderExercises() {
   wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
   wrap.innerHTML = focus + (groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
-    const isSupersetBlock = blockKinds.some(c => /\d$/.test(c)) && group.items.length > 1;
+    const isSupersetBlock = group.items.some(ex => isSuperset(ex)) && group.items.length > 1;
     const groupInner = group.items.map(ex => {
         const code = codeOf(ui.week,ui.day,ex);
+        const supersetLabel = getSupersetLabel(ex);
         const name = exerciseName(ui.week,ui.day,ex);
         const note = noteOf(ui.week,ui.day,ex);
         const rest = restOf(ui.week,ui.day,ex);
@@ -8408,13 +8446,13 @@ function renderExercises() {
             <button class="donebtn ${String(s.done||'')==='1'?'on':''}" data-role="toggle-set" data-ex="${ex}" data-idx="${i}">${String(s.done||'')==='1'?'✓':'·'}</button>
           </div>`;
         }).join("");
-        return `<div class="exercise ${/\d$/.test(code)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}" data-exercise-card="${ex}">
+        return `<div class="exercise ${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}" data-exercise-card="${ex}">
           <div class="exercise-main">
             <div class="left-main">
               <input class="codebox" data-role="code" data-ex="${ex}" value="${esc(code)}" />
               <div style="min-width:0;width:100%">
                 <input class="exercise-name field" type="text" data-role="name" data-ex="${ex}" value="${esc(name)}" />
-                <div class="exercise-meta">${[ /\d$/.test(code) ? `Superset item ${code}` : code ? `Block item ${code}` : "", recovery ? "Recovery / conditioning" : "", cfg.weight ? "Weighted" : ""].filter(Boolean).join(" • ")}</div>
+                <div class="exercise-meta">${[ supersetLabel ? `Superset item ${supersetLabel}` : code ? `Block item ${code}` : "", recovery ? "Recovery / conditioning" : "", cfg.weight ? "Weighted" : ""].filter(Boolean).join(" • ")}</div>
               </div>
             </div>
           </div>
