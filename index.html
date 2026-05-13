@@ -6399,7 +6399,7 @@ textarea.exercise-name{
   </div>
 </div>
 
-<div class="app" id="mainApp">
+<div class="app" id="mainApp" style="display:none" aria-hidden="true">
   <div class="topbar">
     <div class="topbar-inner">
       <div class="topbar-main">
@@ -9909,9 +9909,11 @@ async function initSupabaseApp() {
     const nextUser = session?.user || null;
     const authStateKey = getAuthStateKey(nextUser);
     currentUser = nextUser;
+    pinScopeResolved = true;
 
     if(authStateKey === lastAuthStateKey && initialSyncResolved) {
       updateAuthUi();
+      refreshLockScreenForResolvedScope();
       return;
     }
 
@@ -9920,10 +9922,11 @@ async function initSupabaseApp() {
     } else {
       lastAuthStateKey = authStateKey;
       applySignedOutUiState({
-        lockAppView: isAuthViewLocked(),
-        showAuthScreen: isAuthViewLocked()
+        lockAppView: true,
+        showAuthScreen: true
       });
     }
+    refreshLockScreenForResolvedScope();
   });
 
   try {
@@ -9936,15 +9939,17 @@ async function initSupabaseApp() {
     currentUser = null;
     lastAuthStateKey = getAuthStateKey(null);
   }
+  pinScopeResolved = true;
 
   if(currentUser) {
     applySignedInUiState(currentUser, { startBootstrap: true });
   } else {
     applySignedOutUiState({
-      lockAppView: isAuthViewLocked(),
-      showAuthScreen: isAuthViewLocked()
+      lockAppView: true,
+      showAuthScreen: true
     });
   }
+  refreshLockScreenForResolvedScope();
 }
 
 
@@ -10108,36 +10113,81 @@ window.addEventListener("focus", () => {
 const PIN_KEY = "timo_training_pin_v1";
 const PIN_SESSION_KEY = "timo_training_pin_session_v1";
 const PIN_STAGE_KEY = "timo_training_pin_stage_v1";
+const PIN_USER_SCOPE_DELIMITER = "__user__";
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
 let pinBuffer = "";
 let pinTemp = "";
 let pinMode = "unlock";
 let appUnlocked = false;
 let lastActiveAt = Date.now();
+let pinScopeResolved = false;
 
 
 // ============================================================
 // PIN / LOCK / DEVICE SESSION ZONE
 // ============================================================
 function nowTs() { return Date.now(); }
-function getStoredPin() { return localStorage.getItem(PIN_KEY) || ""; }
-function setStoredPin(pin) { localStorage.setItem(PIN_KEY, pin); }
+function getScopedPinKey(baseKey, user=currentUser) {
+  const userId = user && user.id ? String(user.id) : "";
+  return userId ? `${baseKey}${PIN_USER_SCOPE_DELIMITER}${userId}` : baseKey;
+}
+function getPinStorageKey(user=currentUser) {
+  return getScopedPinKey(PIN_KEY, user);
+}
+function getPinSessionStorageKey(user=currentUser) {
+  return getScopedPinKey(PIN_SESSION_KEY, user);
+}
+function getPinStageStorageKey(user=currentUser) {
+  return getScopedPinKey(PIN_STAGE_KEY, user);
+}
+function getStoredPin() { return localStorage.getItem(getPinStorageKey()) || ""; }
+function setStoredPin(pin) { localStorage.setItem(getPinStorageKey(), pin); }
 function clearStoredPin() {
-  localStorage.removeItem(PIN_KEY);
-  localStorage.removeItem(PIN_SESSION_KEY);
-  localStorage.removeItem(PIN_STAGE_KEY);
+  localStorage.removeItem(getPinStorageKey());
+  sessionStorage.removeItem(getPinSessionStorageKey());
+  localStorage.removeItem(getPinStageStorageKey());
 }
 function markSessionActive() {
-  sessionStorage.setItem(PIN_SESSION_KEY, String(nowTs()));
+  sessionStorage.setItem(getPinSessionStorageKey(), String(nowTs()));
   lastActiveAt = nowTs();
 }
 function isSessionFresh() {
-  const raw = sessionStorage.getItem(PIN_SESSION_KEY);
+  const raw = sessionStorage.getItem(getPinSessionStorageKey());
   const ts = raw ? Number(raw) : 0;
   return !!ts && nowTs() - ts < LOCK_TIMEOUT_MS;
 }
 function shouldStartLocked() {
   return !isSessionFresh();
+}
+function refreshLockScreenForResolvedScope() {
+  if(!pinScopeResolved) return;
+  if(!currentUser) {
+    const overlay = document.getElementById("lockOverlay");
+    const app = document.getElementById("mainApp");
+    const authOverlay = document.getElementById("authOverlay");
+    const appVisible = !!app && app.style.display !== "none";
+    const authVisible = !!authOverlay && authOverlay.style.display === "flex";
+    if(appVisible && !authVisible) {
+      pinTemp = "";
+      pinBuffer = "";
+      updateLockTexts();
+      if(shouldStartLocked()) openLockScreen();
+      else closeLockScreen();
+      return;
+    }
+    if(overlay) overlay.style.display = "none";
+    if(app) app.classList.remove("locked");
+    appUnlocked = true;
+    pinTemp = "";
+    pinBuffer = "";
+    renderPinDots();
+    return;
+  }
+  pinTemp = "";
+  pinBuffer = "";
+  updateLockTexts();
+  if(shouldStartLocked()) openLockScreen();
+  else closeLockScreen();
 }
 function setLockMessage(text, isError=false) {
   const el = document.getElementById("pinMessage");
@@ -10253,7 +10303,6 @@ function renderPinPad() {
 }
 function setupLockScreen() {
   renderPinPad();
-  updateLockTexts();
   const resetBtn = document.getElementById("pinResetBtn");
   if(resetBtn) {
     resetBtn.onclick = () => {
@@ -10266,10 +10315,11 @@ function setupLockScreen() {
     };
   }
   document.addEventListener("visibilitychange", () => {
+    if(!pinScopeResolved) return;
     if(document.visibilityState === "hidden") {
       markSessionActive();
     } else {
-      const raw = sessionStorage.getItem(PIN_SESSION_KEY);
+      const raw = sessionStorage.getItem(getPinSessionStorageKey());
       const ts = raw ? Number(raw) : 0;
       if(ts && nowTs() - ts >= LOCK_TIMEOUT_MS) openLockScreen();
       else if(!appUnlocked && shouldStartLocked()) openLockScreen();
@@ -10279,8 +10329,6 @@ function setupLockScreen() {
   ["click","input","touchstart","keydown","scroll"].forEach(evt => {
     document.addEventListener(evt, () => { if(appUnlocked) markSessionActive(); }, {passive:true});
   });
-  if(shouldStartLocked()) openLockScreen();
-  else closeLockScreen();
 }
 
 const bottomTimerBtn = document.getElementById("bottomTimerBtn");
@@ -10461,6 +10509,8 @@ function bootApp() {
   installReleaseReadinessListeners();
   installBackupActions();
   resetTimer();
+  setMainAppVisibility(false);
+  showAuth();
   initSupabaseApp();
   setupLockScreen();
   restoreSelectedDayOnBoot();
