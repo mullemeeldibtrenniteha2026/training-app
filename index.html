@@ -6611,6 +6611,7 @@ textarea.exercise-name{
         <div class="backup-actions">
           <button class="btn" id="exportBackupBtn">Export JSON</button>
           <button class="btn" id="importBackupBtn">Import JSON</button>
+          <button class="btn" id="restoreSnapshotBtn">Restore Snapshot</button>
         </div>
         <div class="account-actions" id="accountActionsRow">
           <button class="btn signout-btn" id="signOutBtn" type="button">Sign out</button>
@@ -7372,10 +7373,11 @@ function writeLocalSafetySnapshot(reason="manual") {
     return false;
   }
 }
-function createLocalStateSnapshot(reason="manual", candidateState=state) {
+function createLocalStateSnapshot(reason="manual", candidateState=state, options={}) {
   try {
     const snapshotState = normalizeAppState(candidateState);
     if (!hasWorkoutData(snapshotState)) return null;
+    const { enforceRetention = true } = options || {};
     const stamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
     const safeReason = String(reason || "manual")
       .trim()
@@ -7384,18 +7386,75 @@ function createLocalStateSnapshot(reason="manual", candidateState=state) {
       .replace(/^_+|_+$/g, "") || "manual";
     const snapshotKey = `${LOCAL_STATE_SNAPSHOT_PREFIX}${stamp}__${safeReason}`;
     localStorage.setItem(snapshotKey, JSON.stringify(snapshotState));
-    Object.keys(localStorage)
-      .filter(key => key.startsWith(LOCAL_STATE_SNAPSHOT_PREFIX))
-      .sort()
-      .reverse()
-      .slice(5)
-      .forEach(key => localStorage.removeItem(key));
+    if (enforceRetention) {
+      Object.keys(localStorage)
+        .filter(key => key.startsWith(LOCAL_STATE_SNAPSHOT_PREFIX))
+        .sort()
+        .reverse()
+        .slice(5)
+        .forEach(key => localStorage.removeItem(key));
+    }
     console.info("Local state snapshot created:", snapshotKey);
     return snapshotKey;
   } catch (err) {
     console.error("Local state snapshot failed", err);
     return null;
   }
+}
+function getAvailableLocalStateSnapshots() {
+  return Object.keys(localStorage)
+    .filter(key => key.startsWith(LOCAL_STATE_SNAPSHOT_PREFIX))
+    .sort()
+    .reverse()
+    .map(key => {
+      const suffix = key.slice(LOCAL_STATE_SNAPSHOT_PREFIX.length);
+      const [timestamp = "", reason = "snapshot"] = suffix.split("__");
+      return { key, timestamp, reason };
+    });
+}
+function loadLocalStateSnapshot(snapshotKey) {
+  if (!snapshotKey || !snapshotKey.startsWith(LOCAL_STATE_SNAPSHOT_PREFIX)) return null;
+  try {
+    const raw = localStorage.getItem(snapshotKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const normalized = normalizeAppState(parsed);
+    if (!hasWorkoutData(normalized)) return null;
+    return normalized;
+  } catch {
+    return null;
+  }
+}
+function restoreLocalStateSnapshot() {
+  const snapshots = getAvailableLocalStateSnapshots();
+  if (!snapshots.length) {
+    showToast("No snapshots found");
+    return;
+  }
+  const optionsText = snapshots
+    .map((snapshot, index) => `${index + 1}. ${snapshot.timestamp} - ${snapshot.reason}`)
+    .join("\n");
+  const selectionRaw = prompt(`Choose snapshot to restore:\n\n${optionsText}`);
+  if (selectionRaw == null) return;
+  const selection = Number(selectionRaw);
+  if (!Number.isInteger(selection) || selection < 1 || selection > snapshots.length) {
+    showToast("Restore cancelled");
+    return;
+  }
+  const chosenSnapshot = snapshots[selection - 1];
+  const restoredState = loadLocalStateSnapshot(chosenSnapshot.key);
+  if (!restoredState) {
+    showToast("Snapshot unavailable");
+    return;
+  }
+  const confirmed = confirm(`Restore snapshot from ${chosenSnapshot.timestamp} (${chosenSnapshot.reason}) on this device?`);
+  if (!confirmed) return;
+  createLocalStateSnapshot("before_restore", state, { enforceRetention: false });
+  state = restoredState;
+  persistLocalStateNow();
+  renderApp();
+  safeSetText("saveStatus", `Snapshot restored from ${chosenSnapshot.timestamp}.`);
+  showToast("Snapshot restored");
 }
 function getWorkoutDayCountFromState(candidateState) {
   const source = candidateState && typeof candidateState === "object" ? candidateState : {};
@@ -10661,9 +10720,11 @@ async function importBackupFile(file) {
 function installBackupActions() {
   const exportBtn = ensureElement("exportBackupBtn");
   const importBtn = ensureElement("importBackupBtn");
+  const restoreBtn = ensureElement("restoreSnapshotBtn");
   const input = ensureElement("backupImportFile");
   if (exportBtn) exportBtn.onclick = () => exportBackupNow();
   if (importBtn && input) importBtn.onclick = () => input.click();
+  if (restoreBtn) restoreBtn.onclick = () => restoreLocalStateSnapshot();
   if (input) input.onchange = async (e) => {
     const file = e.target.files?.[0];
     await importBackupFile(file);
