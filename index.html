@@ -7452,6 +7452,7 @@ function restoreLocalStateSnapshot() {
   createLocalStateSnapshot("before_restore", state, { enforceRetention: false });
   state = restoredState;
   persistLocalStateNow();
+  setSyncStatus("Local restore — save to cloud needed");
   renderApp();
   safeSetText("saveStatus", `Snapshot restored from ${chosenSnapshot.timestamp}.`);
   showToast("Snapshot restored");
@@ -9778,9 +9779,18 @@ function setSyncStatus(text) {
   const value = String(text || "");
   let label = value;
   let cls = "sync-pill";
-  if(/synced|loaded|ready/i.test(value)) { label = "✔ Synced"; cls += " ok"; }
-  else if(/syncing|connecting|loading/i.test(value)) { label = "⟳ Syncing"; cls += " info"; }
-  else if(/failed|unavailable|error/i.test(value)) { label = "⚠ Offline"; cls += " warn"; }
+  if(/Cloud: loaded/i.test(value)) { label = "Loaded from cloud"; cls += " ok"; }
+  else if(/Cloud: synced/i.test(value)) { label = "Saved to cloud"; cls += " ok"; }
+  else if(/Cloud: syncing/i.test(value)) { label = "Saving to cloud..."; cls += " info"; }
+  else if(/Cloud: loading/i.test(value)) { label = "Loading from cloud..."; cls += " info"; }
+  else if(/Cloud: connecting/i.test(value)) { label = "Connecting cloud..."; cls += " info"; }
+  else if(/Cloud: empty/i.test(value)) { label = "No cloud data yet"; cls += " info"; }
+  else if(/Cloud: local scoped/i.test(value)) { label = "Local signed-in state"; cls += " info"; }
+  else if(/Cloud: local imported/i.test(value)) { label = "Local import loaded"; cls += " info"; }
+  else if(/Cloud: save blocked/i.test(value)) { label = "Cloud save blocked"; cls += " warn"; }
+  else if(/Cloud: unavailable/i.test(value)) { label = "Cloud unavailable"; cls += " warn"; }
+  else if(/Cloud: save failed/i.test(value)) { label = "Cloud save failed"; cls += " warn"; }
+  else if(/Cloud: offline/i.test(value)) { label = "Offline"; cls += " warn"; }
   else if(/local only/i.test(value)) { label = "Signed out · Local"; cls += " info"; }
   else if(/sign in/i.test(value)) { label = "Sign in"; }
   el.className = cls;
