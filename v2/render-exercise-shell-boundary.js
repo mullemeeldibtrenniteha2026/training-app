@@ -15,8 +15,13 @@
     return buildExerciseShellMarkup(input);
   }
 
+  function renderSupersetExerciseCard(input) {
+    return buildExerciseShellMarkup(input);
+  }
+
   global.TimoTrainingV2RenderExercise = {
     buildExerciseShellMarkup,
-    renderSingleExerciseCard
+    renderSingleExerciseCard,
+    renderSupersetExerciseCard
   };
 })(window);

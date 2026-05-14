@@ -9171,9 +9171,14 @@ function renderExercises() {
           actionsMarkup
         };
         const shouldUseSingleExerciseCardHelper = !ui.workoutMode && !isSuperset(ex);
-        return shouldUseSingleExerciseCardHelper && V2_RENDER_EXERCISE?.renderSingleExerciseCard
-          ? V2_RENDER_EXERCISE.renderSingleExerciseCard(exerciseShellInput)
-          : buildExerciseShellMarkup(exerciseShellInput);
+        const shouldUseSupersetExerciseCardHelper = !ui.workoutMode && isSuperset(ex);
+        if(shouldUseSingleExerciseCardHelper && V2_RENDER_EXERCISE?.renderSingleExerciseCard) {
+          return V2_RENDER_EXERCISE.renderSingleExerciseCard(exerciseShellInput);
+        }
+        if(shouldUseSupersetExerciseCardHelper && V2_RENDER_EXERCISE?.renderSupersetExerciseCard) {
+          return V2_RENDER_EXERCISE.renderSupersetExerciseCard(exerciseShellInput);
+        }
+        return buildExerciseShellMarkup(exerciseShellInput);
 	      }).join("");
     const blockLabel = group.block && group.block !== "•" ? group.block : "Single";
         const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
