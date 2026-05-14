@@ -6416,6 +6416,7 @@ textarea.exercise-name{
 <script src="./v2/render-sets-container-boundary.js"></script>
 <script src="./v2/render-search-results-boundary.js"></script>
 <script src="./v2/render-group-header-boundary.js"></script>
+<script src="./v2/render-group-composer-boundary.js"></script>
 <script src="./v2/sync-status-helpers.js"></script>
 <script src="./v2/empty-state-render-helpers.js"></script>
 <script src="./v2/onboarding-helpers.js"></script>
@@ -6758,6 +6759,7 @@ const V2_RENDER_SET = window.TimoTrainingV2RenderSet || null;
 const V2_RENDER_SETS_CONTAINER = window.TimoTrainingV2RenderSetsContainer || null;
 const V2_RENDER_SEARCH_RESULTS = window.TimoTrainingV2RenderSearchResults || null;
 const V2_RENDER_GROUP_HEADER = window.TimoTrainingV2RenderGroupHeader || null;
+const V2_RENDER_GROUP_COMPOSER = window.TimoTrainingV2RenderGroupComposer || null;
 const V2_SYNC_STATUS = window.TimoTrainingV2SyncStatus || null;
 const V2_EMPTY_STATE = window.TimoTrainingV2EmptyState || null;
 const V2_ONBOARDING = window.TimoTrainingV2Onboarding || null;
@@ -9113,6 +9115,11 @@ function renderExercises() {
     const blockMeta = String(input?.blockMeta || "");
     return `<div class="block-header"><div class="block-title"><div class="block-chip">${blockLabel}</div><div>${blockMeta}</div></div></div>`;
   };
+  const renderExerciseGroupFallback = input => {
+    const groupHeaderMarkup = String(input?.groupHeaderMarkup || "");
+    const groupInnerMarkup = String(input?.groupInnerMarkup || "");
+    return `<div class="block-group">${groupHeaderMarkup}<div class="workout-group-stack">${groupInnerMarkup}</div></div>`;
+  };
   const searchResultsItemMarkup = searchMatches.map(m => {
     const input = {
       week: m.week,
@@ -9248,7 +9255,7 @@ function renderExercises() {
 	      }).join("");
     const blockLabel = group.block && group.block !== "•" ? group.block : "Single";
         const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
-        const groupHeader = ui.workoutMode ? `` : (V2_RENDER_GROUP_HEADER?.renderExerciseGroupHeader
+        const groupHeaderMarkup = ui.workoutMode ? `` : (V2_RENDER_GROUP_HEADER?.renderExerciseGroupHeader
           ? V2_RENDER_GROUP_HEADER.renderExerciseGroupHeader({
               blockLabel: esc(blockLabel),
               blockMeta
@@ -9257,7 +9264,17 @@ function renderExercises() {
               blockLabel: esc(blockLabel),
               blockMeta
             }));
-        return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
+        return ui.workoutMode
+          ? `<div class="block-group">${groupHeaderMarkup}<div class="workout-group-stack">${groupInner}</div></div>`
+          : (V2_RENDER_GROUP_COMPOSER?.renderExerciseGroup
+              ? V2_RENDER_GROUP_COMPOSER.renderExerciseGroup({
+                  groupHeaderMarkup,
+                  groupInnerMarkup: groupInner
+                })
+              : renderExerciseGroupFallback({
+                  groupHeaderMarkup,
+                  groupInnerMarkup: groupInner
+                }));
       }).join("") : ``;
   const workoutModeBodyMarkup = ui.workoutMode
     ? (V2_WORKOUT_MODE?.renderWorkoutModeBody
