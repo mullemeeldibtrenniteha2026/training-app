@@ -1,8 +1,8 @@
 # 🧠 Timo Training
 
-A focused, mobile-first training app designed for clarity, consistency, and real progress.
+A focused, mobile-first training app for real workout use.
 
-Built as a lightweight PWA with a clean UX and real-world usability in mind — not just tracking, but helping you stay in flow during workouts.
+Built as a lightweight PWA with a calm, practical UX: fast logging during training, reliable local handling on-device, and optional Supabase-backed cloud sync for signed-in users.
 
 ---
 
@@ -55,15 +55,21 @@ https://mullemeeldibtrenniteha2026.github.io/training-app/
 
 ---
 
-## ✨ Core Features
+## ✨ Current App Features
 
-- 📅 Weekly training planning
-- 🏋️ Exercise tracking with sets, reps, and weights
-- ⏱ Built-in timer for rest periods
-- 🧠 Muscle balance radar (Day / Week / Lifetime)
-- 🔄 Cloud sync (Supabase)
-- 📲 Installable as a mobile app (PWA)
-- 🔒 Local autosave
+- Auth-first sign-in flow for cloud users
+- User-scoped 4-digit PIN on each device after sign-in
+- Signed-in scoped workout state and UI selection
+- Supabase cloud sync for signed-in users
+- Local fallback and local-only mode when signed out or offline
+- Empty cloud overwrite protection for safer persistence
+- Automatic local snapshot backups before risky writes
+- Restore flow for local snapshots on the same device
+- Clean new-user calendar state without inherited default markers
+- First-workout CTA for signed-in users with an empty training state
+- Mobile-first workout execution with sets, reps, weights, and timer
+- Muscle balance radar (Day / Week / Lifetime)
+- Installable as a mobile app (PWA)
 
 ---
 
@@ -72,8 +78,9 @@ https://mullemeeldibtrenniteha2026.github.io/training-app/
 - Clarity over complexity  
 - Speed over features  
 - Focus over noise  
+- Safe state handling over clever shortcuts
 
-Designed to reduce friction during workouts.
+Designed to reduce friction during workouts while keeping user data predictable and isolated.
 
 ---
 
@@ -86,21 +93,28 @@ Designed to reduce friction during workouts.
 
 ---
 
-## 🧠 Why I Built This
+## 🧠 Current Product Story
 
-Most training apps are overloaded or slow.
+Most training apps are overloaded, slow, or unclear when you actually try to use them in the middle of a workout.
 
-This one is built for one thing:
+This app is being shaped around a narrower goal:
 
-**Stay focused and train without friction.**
+**Open fast, understand your state immediately, and train without losing data or flow.**
+
+The current baseline prioritizes:
+- reliable auth-first access for signed-in users
+- calm cloud/local state handling
+- mobile-friendly workout execution
+- safe recovery paths through local snapshots and guarded cloud writes
 
 ---
 
-## 🔄 Roadmap
+## 🔄 Next Focus
 
-- Improve workout mode  
-- Better timer UX  
-- More data insights  
+- Smoother new-user onboarding after first sign-in
+- Continued cloud/local safety hardening
+- Small usability improvements around workout execution
+- Cleanup only after the current baseline remains stable
 
 ---
 
