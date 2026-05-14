@@ -9871,6 +9871,17 @@ async function loadCloudState() {
 async function saveCloudStateNow() {
   if(!currentUser || applyingCloudState || !initialSyncResolved) return false;
   try {
+    const localHasWorkoutState = hasWorkoutData(state);
+    const existingCloudRow = await fetchCloudRow();
+    const existingCloudState = existingCloudRow && existingCloudRow.state_json && typeof existingCloudRow.state_json === "object"
+      ? normalizeAppState(existingCloudRow.state_json)
+      : null;
+    const cloudHasWorkoutState = hasWorkoutData(existingCloudState);
+    if(!localHasWorkoutState && cloudHasWorkoutState) {
+      console.warn("Blocked cloud save: local state is empty while existing cloud state has workout data.");
+      setSyncStatus("Cloud: save blocked");
+      return false;
+    }
     const iso = new Date().toISOString();
     stampLocalUpdatedAt(iso);
     localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
