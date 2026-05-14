@@ -9054,6 +9054,21 @@ function renderExercises() {
     const actionPanelMarkup = String(input?.actionPanelMarkup || "");
     return hasContent ? `${contentMarkup}${actionPanelMarkup}` : emptyMarkup;
   };
+  const renderExerciseHeaderMetaFallback = input => {
+    const exerciseId = String(input?.exerciseId || "");
+    const codeValue = String(input?.codeValue || "");
+    const displayName = String(input?.displayName || "");
+    const metaText = String(input?.metaText || "");
+    return `<div class="exercise-main">
+            <div class="left-main">
+              <input class="codebox" data-role="code" data-ex="${exerciseId}" value="${codeValue}" />
+              <div style="min-width:0;width:100%">
+                <input class="exercise-name field" type="text" data-role="name" data-ex="${exerciseId}" value="${displayName}" />
+                <div class="exercise-meta">${metaText}</div>
+              </div>
+            </div>
+          </div>`;
+  };
   const focus = ui.workoutMode ? (V2_WORKOUT_MODE?.renderWorkoutHeader
     ? V2_WORKOUT_MODE.renderWorkoutHeader({
         dateDisplay: fmtFullDate(dayDate(ui.week,ui.day)),
@@ -9119,15 +9134,15 @@ function renderExercises() {
 	          recovery,
 	          weighted: cfg.weight
 	        });
-        const mainMarkup = `<div class="exercise-main">
-            <div class="left-main">
-              <input class="codebox" data-role="code" data-ex="${ex}" value="${esc(code)}" />
-              <div style="min-width:0;width:100%">
-                <input class="exercise-name field" type="text" data-role="name" data-ex="${ex}" value="${esc(headerDisplay.displayName)}" />
-                <div class="exercise-meta">${headerDisplay.metaText}</div>
-              </div>
-            </div>
-          </div>`;
+        const exerciseHeaderMetaInput = {
+          exerciseId: ex,
+          codeValue: esc(code),
+          displayName: esc(headerDisplay.displayName),
+          metaText: headerDisplay.metaText
+        };
+        const mainMarkup = !ui.workoutMode && V2_RENDER?.renderExerciseHeaderMetaMarkup
+          ? V2_RENDER.renderExerciseHeaderMetaMarkup(exerciseHeaderMetaInput)
+          : renderExerciseHeaderMetaFallback(exerciseHeaderMetaInput);
         const compareMarkup = last ? buildExerciseCompareMarkup({
           dateLabel: fmtShortDate(last.date),
           summaryText: esc(exerciseSetsSummary(last.week,last.day,last.ex)),
