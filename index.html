@@ -9162,14 +9162,18 @@ function renderExercises() {
           primaryButtonLabel: recovery ? (done ? "Set as not done" : "Set as done") : "+ Set",
           deleteButtonClass: ui.workoutMode ? "btn workout-delete-btn" : "btn"
         });
-        return buildExerciseShellMarkup({
+        const exerciseShellInput = {
           exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
           exerciseId: ex,
           mainMarkup,
           compareMarkup: ui.workoutMode ? "" : compareMarkup,
           detailsMarkup: ui.workoutMode ? `${detailsMarkup}${compareMarkup}` : detailsMarkup,
           actionsMarkup
-        });
+        };
+        const shouldUseSingleExerciseCardHelper = !ui.workoutMode && !isSuperset(ex);
+        return shouldUseSingleExerciseCardHelper && V2_RENDER_EXERCISE?.renderSingleExerciseCard
+          ? V2_RENDER_EXERCISE.renderSingleExerciseCard(exerciseShellInput)
+          : buildExerciseShellMarkup(exerciseShellInput);
 	      }).join("");
     const blockLabel = group.block && group.block !== "•" ? group.block : "Single";
         const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);

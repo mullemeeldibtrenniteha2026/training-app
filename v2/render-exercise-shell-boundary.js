@@ -11,7 +11,12 @@
     return `<div class="exercise ${exerciseClass}" data-exercise-card="${exerciseId}">${mainMarkup}${compareMarkup}${detailsMarkup}${actionsMarkup}</div>`;
   }
 
+  function renderSingleExerciseCard(input) {
+    return buildExerciseShellMarkup(input);
+  }
+
   global.TimoTrainingV2RenderExercise = {
-    buildExerciseShellMarkup
+    buildExerciseShellMarkup,
+    renderSingleExerciseCard
   };
 })(window);
