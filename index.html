@@ -9934,13 +9934,13 @@ async function fetchCloudRow() {
   return data || null;
 }
 async function loadCloudState() {
-  if(!currentUser) return false;
+  if(!currentUser) return "missing";
   const data = await fetchCloudRow();
-  if(data && data.state_json) {
-    const incomingState = normalizeAppState(data.state_json);
+  if(data) {
+    const incomingState = normalizeAppState(data.state_json || SEED_DATA);
     if(!hasWorkoutData(incomingState)) {
       setSyncStatus("Cloud: empty");
-      return false;
+      return "empty";
     }
     const cloudIso = data.updated_at || null;
     writeLocalSafetySnapshot("before_cloud_replace");
@@ -9951,13 +9951,13 @@ async function loadCloudState() {
       state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
       localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
       setSyncStatus("Cloud: loaded");
-      return true;
+      return "loaded";
     } finally {
       applyingCloudState = false;
     }
   }
   setSyncStatus("Cloud: empty");
-  return false;
+  return "missing";
 }
 async function saveCloudStateNow() {
   if(!currentUser || applyingCloudState || !initialSyncResolved) return false;
@@ -10011,9 +10011,13 @@ async function startCloudBootstrap() {
   armBootGuard("Loading your cloud data…", 9000);
   setSyncStatus("Cloud: loading…");
   try {
-    const loadedFromCloud = await loadCloudState();
+    const cloudStateResult = await loadCloudState();
     if(bootstrapToken !== cloudBootstrapToken) return;
-    if(!loadedFromCloud) {
+    if(cloudStateResult !== "loaded") {
+      if (cloudStateResult === "empty") {
+        state = normalizeAppState(SEED_DATA);
+        setSyncStatus("Cloud: empty");
+      } else {
       const scopedState = getScopedStoredState(currentUser);
       if (scopedState && hasWorkoutData(scopedState)) {
         state = normalizeAppState(scopedState);
@@ -10023,6 +10027,7 @@ async function startCloudBootstrap() {
       } else {
         state = normalizeAppState(SEED_DATA);
         setSyncStatus("Cloud: empty");
+      }
       }
     }
     finalizeSignedInBootstrapView();
