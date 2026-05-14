@@ -6667,6 +6667,9 @@ textarea.exercise-name{
 // ===== APP CONSTANTS =====
 const SEED_DATA = {};
 const STORAGE_KEY = "timo_training_v81_real";
+const STATE_USER_SCOPE_DELIMITER = "__user__";
+const PRIMARY_USER_EMAIL = "timo.anis@gmail.com";
+const PRIMARY_STATE_IMPORT_FLAG_PREFIX = "timo_training_primary_state_import_v1";
 const V2_CALENDAR = window.TimoTrainingV2Calendar || null;
 const V2_FORMAT = window.TimoTrainingV2Format || null;
 const V2_INPUT = window.TimoTrainingV2Input || null;
@@ -7163,6 +7166,67 @@ function normalizeUiState() {
 //   - done states (set.done === "1" or "")
 // NOTE: Schema marker is stored under state.__meta.schema for migration/version checks
 const CURRENT_SCHEMA = "3.8";
+function resolveScopedUser(user) {
+  if (user && typeof user === "object") return user;
+  return null;
+}
+function getStateStorageKey(user) {
+  const scopedUser = resolveScopedUser(user);
+  if (scopedUser?.id) return `${STORAGE_KEY}${STATE_USER_SCOPE_DELIMITER}${scopedUser.id}`;
+  return STORAGE_KEY;
+}
+function getUiSelectionStorageKey(user) {
+  const scopedUser = resolveScopedUser(user);
+  if (scopedUser?.id) return `${UI_SELECTION_KEY}${STATE_USER_SCOPE_DELIMITER}${scopedUser.id}`;
+  return UI_SELECTION_KEY;
+}
+function getPrimaryStateImportFlagKey(user) {
+  const scopedUser = resolveScopedUser(user);
+  if (!scopedUser?.id) return "";
+  return `${PRIMARY_STATE_IMPORT_FLAG_PREFIX}${STATE_USER_SCOPE_DELIMITER}${scopedUser.id}`;
+}
+function isPrimaryUser(user) {
+  const scopedUser = resolveScopedUser(user);
+  const candidates = [];
+  const pushCandidate = value => {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (normalized) candidates.push(normalized);
+  };
+  pushCandidate(scopedUser?.email);
+  pushCandidate(scopedUser?.user_metadata?.email);
+  if (Array.isArray(scopedUser?.identities)) {
+    scopedUser.identities.forEach(identity => {
+      pushCandidate(identity?.identity_data?.email);
+      pushCandidate(identity?.email);
+    });
+  }
+  return candidates.some(value => value === PRIMARY_USER_EMAIL);
+}
+function loadStateFromStorageKey(storageKey) {
+  const saved = localStorage.getItem(storageKey);
+  if(!saved) return normalizeAppState(SEED_DATA);
+  try {
+    const original = JSON.parse(saved);
+    let migrated = original;
+
+    if (original?.__meta?.schema !== CURRENT_SCHEMA) {
+      migrated = normalizeAppState(original);
+      migrated = runMigrations(migrated);
+    }
+    verifyMigrationIntegrity(original, migrated);
+    try {
+      const prev = localStorage.getItem(storageKey);
+      if (prev) {
+        localStorage.setItem(
+          storageKey + "_backup_" + Date.now(),
+          prev
+        );
+      }
+    } catch (e) {}
+    localStorage.setItem(storageKey, JSON.stringify(migrated));
+    return migrated;
+  } catch { return normalizeAppState(SEED_DATA); }
+}
 function migrate_3_6_to_3_7(state) {
   // no data changes, only schema bump
   state.__meta.schema = "3.7";
@@ -7216,33 +7280,8 @@ function runMigrations(state) {
 
   return current;
 }
-function loadState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if(!saved) return normalizeAppState(SEED_DATA);
-  try {
-    const original = JSON.parse(saved);
-    let migrated = original;
-
-    if (original?.__meta?.schema !== CURRENT_SCHEMA) {
-      migrated = normalizeAppState(original);
-      migrated = runMigrations(migrated);
-    }
-    // Verify migration integrity — logs warnings only, does not block
-    verifyMigrationIntegrity(original, migrated);
-    // Pre-migration backup
-    try {
-      const prev = localStorage.getItem(STORAGE_KEY);
-      if (prev) {
-        localStorage.setItem(
-          STORAGE_KEY + "_backup_" + Date.now(),
-          prev
-        );
-      }
-    } catch (e) {}
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-    // MIGRATION: Write back migrated state — preserves all data fields unchanged
-    return migrated;
-  } catch { return normalizeAppState(SEED_DATA); }
+function loadState(user) {
+  return loadStateFromStorageKey(getStateStorageKey(user));
 }
 function validateSupersetPairs(day) {
   if (!day || !Array.isArray(day.exercises)) return [];
@@ -7331,17 +7370,75 @@ function writeLocalSafetySnapshot(reason="manual") {
     return false;
   }
 }
+function getWorkoutDayCountFromState(candidateState) {
+  const source = candidateState && typeof candidateState === "object" ? candidateState : {};
+  const daySet = new Set();
+  Object.keys(source).forEach(key => {
+    const match = key.match(/^sc_(w\d+_[a-z]{3})_/);
+    if (match && Number(source[key]) > 0) daySet.add(match[1]);
+  });
+  return daySet.size;
+}
+function hasWorkoutData(candidateState) {
+  if (!candidateState || typeof candidateState !== "object") return false;
+  if (!isCandidateStateUsable(candidateState)) return false;
+  return getWorkoutDayCountFromState(candidateState) > 0;
+}
+function getScopedStoredState(user) {
+  if (!resolveScopedUser(user)?.id) return null;
+  const storageKey = getStateStorageKey(user);
+  const saved = localStorage.getItem(storageKey);
+  if (!saved) return null;
+  return loadState(user);
+}
+function getGlobalStoredState() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return null;
+  return loadStateFromStorageKey(STORAGE_KEY);
+}
+function importPrimaryLegacyStateIfNeeded(user) {
+  if (!isPrimaryUser(user)) return false;
+  const scopedUser = resolveScopedUser(user);
+  if (!scopedUser?.id) return false;
+  if (getScopedStoredState(scopedUser)) return false;
+  const importFlagKey = getPrimaryStateImportFlagKey(scopedUser);
+  if (importFlagKey && localStorage.getItem(importFlagKey) === "1") return false;
+
+  const legacyState = getGlobalStoredState();
+  if (!hasWorkoutData(legacyState)) return false;
+
+  const scopedStateKey = getStateStorageKey(scopedUser);
+  localStorage.setItem(scopedStateKey, JSON.stringify(legacyState));
+
+  const globalSelectionRaw = localStorage.getItem(UI_SELECTION_KEY);
+  if (globalSelectionRaw) {
+    try {
+      const parsedSelection = JSON.parse(globalSelectionRaw);
+      const normalizedSelection = normalizePersistedUiSelectionValue(parsedSelection);
+      if (normalizedSelection) {
+        localStorage.setItem(
+          getUiSelectionStorageKey(scopedUser),
+          JSON.stringify(normalizedSelection)
+        );
+      }
+    } catch {}
+  }
+
+  if (importFlagKey) localStorage.setItem(importFlagKey, "1");
+  state = normalizeAppState(legacyState);
+  return true;
+}
 
 function saveState() {
   state = normalizeAppState(state);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
   safeSetText("saveStatus", "Saved locally on this device.");
   scheduleCloudSave();
   requestRender("app");
 }
 function saveStateQuiet(message="Saved locally on this device.") {
   state = normalizeAppState(state);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
   safeSetText("saveStatus", message);
   scheduleCloudSave();
 }
@@ -7367,7 +7464,7 @@ function commitStateUpdate(mutator, options={}) {
   }
   state = normalizeAppState(state);
   normalizeUiState();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
   safeSetText("saveStatus", opts.message || "Saved locally on this device.");
   scheduleCloudSave();
   if (opts.toast) showToast(opts.toast);
@@ -7832,9 +7929,9 @@ function getInitialUiSelectionState(persistedSelection) {
     month: new Date(initialDate.getFullYear(), initialDate.getMonth(), 1)
   };
 }
-function loadPersistedUiSelection() {
+function loadPersistedUiSelection(user) {
   try {
-    const saved = localStorage.getItem(UI_SELECTION_KEY);
+    const saved = localStorage.getItem(getUiSelectionStorageKey(user));
     if(!saved) return null;
     const parsed = JSON.parse(saved);
     return normalizePersistedUiSelectionValue(parsed);
@@ -7844,11 +7941,20 @@ function loadPersistedUiSelection() {
 }
 function persistUiSelection() {
   try {
-    localStorage.setItem(UI_SELECTION_KEY, JSON.stringify({
+    localStorage.setItem(getUiSelectionStorageKey(currentUser), JSON.stringify({
       week: Number(ui.week) || getInitialWeek(),
       day: DAY_ORDER.includes(ui.day) ? ui.day : getFirstDay(Number(ui.week) || getInitialWeek())
     }));
   } catch {}
+}
+function applyPersistedUiSelectionForUser(user) {
+  const persistedSelection = loadPersistedUiSelection(user);
+  const nextSelection = getInitialUiSelectionState(persistedSelection);
+  ui.week = nextSelection.initialWeek;
+  ui.day = nextSelection.initialDay;
+  ui.month = nextSelection.month;
+  ui.activeExerciseIndex = 0;
+  normalizeUiState();
 }
 const persistedUiSelection = loadPersistedUiSelection();
 const initialUiSelection = getInitialUiSelectionState(persistedUiSelection);
@@ -9504,7 +9610,7 @@ if(importFile) importFile.onchange = async e => {
 };
 
 window.addEventListener("beforeunload", () => {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+  try { localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state)); } catch {}
 });
 
 
@@ -9650,6 +9756,13 @@ function applySignedOutUiState({ lockAppView = false, showAuthScreen = false } =
 function getAuthStateKey(user) {
   return user && user.id ? `user:${user.id}` : "anon";
 }
+function finalizeSignedInBootstrapView() {
+  applyPersistedUiSelectionForUser(currentUser);
+  setMainAppVisibility(true);
+  hideAuth();
+  updateAuthUi();
+  requestRender("app");
+}
 function applySignedInUiState(user, { startBootstrap = false } = {}) {
   currentUser = user || null;
   if(!currentUser) {
@@ -9658,14 +9771,20 @@ function applySignedInUiState(user, { startBootstrap = false } = {}) {
   }
   setAuthViewLocked(false);
   lastAuthStateKey = getAuthStateKey(currentUser);
-  setMainAppVisibility(true);
+  setMainAppVisibility(false);
   hideAuth();
   updateAuthUi();
   setAuthMessage("");
   cloudReady = true;
   initialSyncResolved = true;
   setSyncStatus("Cloud: connecting…");
-  if(startBootstrap) startCloudBootstrap();
+  if(startBootstrap) {
+    startCloudBootstrap();
+    return;
+  }
+  const scopedState = getScopedStoredState(currentUser);
+  state = scopedState && hasWorkoutData(scopedState) ? normalizeAppState(scopedState) : normalizeAppState(SEED_DATA);
+  finalizeSignedInBootstrapView();
 }
 function updateAuthUi() {
   const signOutBtn = document.getElementById("signOutBtn");
@@ -9727,32 +9846,23 @@ async function loadCloudState() {
   if(!currentUser) return false;
   const data = await fetchCloudRow();
   if(data && data.state_json) {
-    const cloudIso = data.updated_at || null;
-    const localIso = getLocalUpdatedAt();
-    const shouldUseCloud = !localIso || (cloudIso && cloudIso >= localIso);
-    if(shouldUseCloud) {
-      const incomingState = normalizeAppState(data.state_json);
-      if(!isCandidateStateUsable(incomingState)) {
-        console.warn("Rejected unusable cloud state", getStateIntegrityReport(data.state_json));
-        setSyncStatus("Cloud: unavailable");
-        return false;
-      }
-      writeLocalSafetySnapshot("before_cloud_replace");
-      applyingCloudState = true;
-      try {
-        state = incomingState;
-        if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
-        state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        requestRender("app");
-        setSyncStatus("Cloud: loaded");
-        return true;
-      } finally {
-        applyingCloudState = false;
-      }
-    } else {
-      setSyncStatus("Cloud: local is newer");
+    const incomingState = normalizeAppState(data.state_json);
+    if(!hasWorkoutData(incomingState)) {
+      setSyncStatus("Cloud: empty");
       return false;
+    }
+    const cloudIso = data.updated_at || null;
+    writeLocalSafetySnapshot("before_cloud_replace");
+    applyingCloudState = true;
+    try {
+      state = incomingState;
+      if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
+      state._cloudMeta.updated_at = cloudIso || new Date().toISOString();
+      localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
+      setSyncStatus("Cloud: loaded");
+      return true;
+    } finally {
+      applyingCloudState = false;
     }
   }
   setSyncStatus("Cloud: empty");
@@ -9763,7 +9873,7 @@ async function saveCloudStateNow() {
   try {
     const iso = new Date().toISOString();
     stampLocalUpdatedAt(iso);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
     const payload = {
       user_id: currentUser.id,
       state_json: state,
@@ -9801,12 +9911,25 @@ async function startCloudBootstrap() {
     const loadedFromCloud = await loadCloudState();
     if(bootstrapToken !== cloudBootstrapToken) return;
     if(!loadedFromCloud) {
-      await saveCloudStateNow();
+      const scopedState = getScopedStoredState(currentUser);
+      if (scopedState && hasWorkoutData(scopedState)) {
+        state = normalizeAppState(scopedState);
+        setSyncStatus("Cloud: local scoped");
+      } else if (importPrimaryLegacyStateIfNeeded(currentUser)) {
+        setSyncStatus("Cloud: local imported");
+      } else {
+        state = normalizeAppState(SEED_DATA);
+        setSyncStatus("Cloud: empty");
+      }
     }
+    finalizeSignedInBootstrapView();
   } catch (e) {
     console.error("CLOUD BOOTSTRAP ERROR", e);
     if(bootstrapToken === cloudBootstrapToken) {
       setSyncStatus("Cloud: unavailable");
+      const scopedState = getScopedStoredState(currentUser);
+      state = scopedState && hasWorkoutData(scopedState) ? normalizeAppState(scopedState) : normalizeAppState(SEED_DATA);
+      finalizeSignedInBootstrapView();
       showToast("Using local data");
     }
   } finally {
@@ -10392,7 +10515,7 @@ if(calendarToggleBtn) calendarToggleBtn.onclick = () => { ui.calendarCollapsed =
 // ============================================================
 function persistLocalStateNow() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
     return true;
   } catch (e) {
     console.error("Local persist failed", e);
