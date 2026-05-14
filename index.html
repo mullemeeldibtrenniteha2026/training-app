@@ -9696,6 +9696,7 @@ function handleAddExerciseClick() {
   if(ui.addBusy) return;
   const payload = getAddExercisePayload();
   if(!payload.rawName || !payload.resolvedName) return;
+  const startingFirstWorkout = !hasWorkoutData(state);
   const signature = [ui.week, ui.day, payload.scope, payload.resolvedName.toLowerCase(), payload.historyMode].join("|");
   if(isRapidDuplicateAdd(signature)) {
     showToast("Exercise already added");
@@ -9709,7 +9710,15 @@ function handleAddExerciseClick() {
       if(payload.nameInput) payload.nameInput.value = "";
       if(payload.historyModeInput) payload.historyModeInput.value = "empty";
     }, { renderMode:"app", message:"Exercise saved locally on this device." });
-    if(payload.nameInput) payload.nameInput.focus();
+    if(startingFirstWorkout) {
+      showToast("Workout started");
+      requestAnimationFrame(() => {
+        const targetCard = document.querySelector("[data-exercise-card]");
+        if(targetCard) targetCard.scrollIntoView({ block:"center", behavior:"smooth" });
+      });
+    } else if(payload.nameInput) {
+      payload.nameInput.focus();
+    }
   } finally {
     setTimeout(() => { ui.addBusy = false; }, 150);
   }
