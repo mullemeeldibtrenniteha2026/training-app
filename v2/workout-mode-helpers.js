@@ -20,7 +20,12 @@
     return `<div class="card workout-focus-card"><div class="workout-date-big">${dateDisplay}</div><div class="section-title"><h3>${title}</h3></div>${progressMarkup}${navMarkup}</div>`;
   }
 
+  function renderWorkoutActionPanel() {
+    return `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn workout-footer-secondary" id="bottomTimerBtn">⏱ Timer</button><button class="btn workout-footer-secondary" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary workout-footer-primary" id="bottomAddSetBtn">+ Set</button></div></div></div>`;
+  }
+
   global.TimoTrainingV2WorkoutMode = {
-    renderWorkoutHeader
+    renderWorkoutHeader,
+    renderWorkoutActionPanel
   };
 })(window);

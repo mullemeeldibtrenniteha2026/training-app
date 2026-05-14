@@ -9043,6 +9043,7 @@ function renderExercises() {
     const progressItems = Array.isArray(input?.progressItems) ? input.progressItems : [];
     return `<div class="card workout-focus-card"><div class="workout-date-big">${dateDisplay}</div><div class="section-title"><h3>${title}</h3></div><div class="workout-progress-row">${progressItems.map(item => `<button class="workout-progress-pill ${String(item?.className || "").trim()}" type="button" data-workout-jump="${Number(item?.index) || 0}">${String(item?.label || "")}</button>`).join("")}</div><div class="workout-nav-row"><button class="btn" id="prevExerciseBtn">← Previous</button><button class="btn" id="nextExerciseBtn">Next →</button></div></div>`;
   };
+  const renderWorkoutActionPanelFallback = () => `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn workout-footer-secondary" id="bottomTimerBtn">⏱ Timer</button><button class="btn workout-footer-secondary" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary workout-footer-primary" id="bottomAddSetBtn">+ Set</button></div></div></div>`;
   const focus = ui.workoutMode ? (V2_WORKOUT_MODE?.renderWorkoutHeader
     ? V2_WORKOUT_MODE.renderWorkoutHeader({
         dateDisplay: fmtFullDate(dayDate(ui.week,ui.day)),
@@ -9056,6 +9057,11 @@ function renderExercises() {
         title: focusMeta,
         progressItems: workoutProgressItems
       })) : "";
+  const workoutActionPanelMarkup = ui.workoutMode
+    ? (V2_WORKOUT_MODE?.renderWorkoutActionPanel
+        ? V2_WORKOUT_MODE.renderWorkoutActionPanel()
+        : renderWorkoutActionPanelFallback())
+    : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
   const showFirstWorkoutCta = V2_ONBOARDING?.shouldShowFirstWorkoutCta
@@ -9159,7 +9165,7 @@ function renderExercises() {
         const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);
         const groupHeader = ui.workoutMode ? `` : `<div class="block-header"><div class="block-title"><div class="block-chip">${esc(blockLabel)}</div><div>${blockMeta}</div></div></div>`;
         return `<div class="block-group">${groupHeader}<div class="workout-group-stack">${groupInner}</div></div>`;
-      }).join("") + `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn workout-footer-secondary" id="bottomTimerBtn">⏱ Timer</button><button class="btn workout-footer-secondary" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary workout-footer-primary" id="bottomAddSetBtn">+ Set</button></div></div></div>` : ``;
+      }).join("") + workoutActionPanelMarkup : ``;
   wrap.innerHTML = buildWorkoutContainerMarkup({
     headerMarkup: focus,
     contentMarkup,
