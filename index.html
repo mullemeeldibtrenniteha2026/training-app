@@ -7210,6 +7210,7 @@ function loadStateFromStorageKey(storageKey) {
     let migrated = original;
 
     if (original?.__meta?.schema !== CURRENT_SCHEMA) {
+      createLocalStateSnapshot("before_migration_write", original);
       migrated = normalizeAppState(original);
       migrated = runMigrations(migrated);
     }
@@ -7356,6 +7357,7 @@ function runSupersetGuardrailFromState(currentState, week, day) {
 }
 let state = loadState();
 const LOCAL_SAFETY_SNAPSHOT_KEY = "timo_training_local_safety_snapshot";
+const LOCAL_STATE_SNAPSHOT_PREFIX = "timo_training_snapshot_v1__";
 function writeLocalSafetySnapshot(reason="manual") {
   try {
     const payload = {
@@ -7368,6 +7370,31 @@ function writeLocalSafetySnapshot(reason="manual") {
   } catch (err) {
     console.error("Safety snapshot failed", err);
     return false;
+  }
+}
+function createLocalStateSnapshot(reason="manual", candidateState=state) {
+  try {
+    const snapshotState = normalizeAppState(candidateState);
+    if (!hasWorkoutData(snapshotState)) return null;
+    const stamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+    const safeReason = String(reason || "manual")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "manual";
+    const snapshotKey = `${LOCAL_STATE_SNAPSHOT_PREFIX}${stamp}__${safeReason}`;
+    localStorage.setItem(snapshotKey, JSON.stringify(snapshotState));
+    Object.keys(localStorage)
+      .filter(key => key.startsWith(LOCAL_STATE_SNAPSHOT_PREFIX))
+      .sort()
+      .reverse()
+      .slice(5)
+      .forEach(key => localStorage.removeItem(key));
+    console.info("Local state snapshot created:", snapshotKey);
+    return snapshotKey;
+  } catch (err) {
+    console.error("Local state snapshot failed", err);
+    return null;
   }
 }
 function getWorkoutDayCountFromState(candidateState) {
@@ -9897,6 +9924,7 @@ async function saveCloudStateNow() {
       setSyncStatus("Cloud: save blocked");
       return false;
     }
+    if (existingCloudRow) createLocalStateSnapshot("before_cloud_save");
     const iso = new Date().toISOString();
     stampLocalUpdatedAt(iso);
     localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state));
@@ -10617,6 +10645,7 @@ async function importBackupFile(file) {
       console.warn("Rejected unusable backup", report);
       throw new Error("Invalid backup");
     }
+    createLocalStateSnapshot("before_backup_import");
     writeLocalSafetySnapshot("before_backup_import");
     state = normalized;
     persistLocalStateNow();
