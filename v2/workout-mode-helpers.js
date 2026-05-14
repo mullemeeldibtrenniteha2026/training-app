@@ -28,9 +28,18 @@
     return `<div class="end-panel-shell"><div class="workout-end-panel"><div class="finish-workout-inline-row"><button id="finishWorkoutBtnInline" class="finish-workout-inline-btn" type="button">Finish workout</button></div><div class="workout-end-actions" id="bottomBarInline"><button class="btn workout-footer-secondary" id="bottomTimerBtn">⏱ Timer</button><button class="btn workout-footer-secondary" id="bottomAddExerciseBtn">+ Exercise</button><button class="btn primary workout-footer-primary" id="bottomAddSetBtn">+ Set</button></div></div></div>`;
   }
 
+  function renderWorkoutModeBody(input) {
+    const hasContent = !!input?.hasContent;
+    const contentMarkup = String(input?.contentMarkup || "");
+    const emptyMarkup = String(input?.emptyMarkup || "");
+    const actionPanelMarkup = String(input?.actionPanelMarkup || "");
+    return hasContent ? `${contentMarkup}${actionPanelMarkup}` : emptyMarkup;
+  }
+
   global.TimoTrainingV2WorkoutMode = {
     renderWorkoutHeader,
     renderWorkoutProgressPills,
-    renderWorkoutActionPanel
+    renderWorkoutActionPanel,
+    renderWorkoutModeBody
   };
 })(window);
