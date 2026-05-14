@@ -6510,7 +6510,7 @@ textarea.exercise-name{
 
       <div class="card compact-search-card search-card">
         <div class="section-title"><h3>Search exercise</h3></div>
-        <input class="field" id="searchInput" placeholder="" />
+        <input class="field" id="searchInput" placeholder="Search saved exercises" />
       </div>
       <div id="searchResultsHost"></div>
 
@@ -6654,13 +6654,13 @@ textarea.exercise-name{
           <datalist id="exerciseSuggestions"></datalist>
         </div>
         <div class="add-grid">
-          <input class="field" id="addExerciseName" list="exerciseSuggestions" placeholder="Exercise name" />
+          <input class="field" id="addExerciseName" list="exerciseSuggestions" placeholder="Enter exercise name" autocapitalize="words" />
           <select class="select" id="addHistoryMode">
             <option value="empty">Start empty</option>
             <option value="copy_last">Copy last time</option>
             <option value="copy_increase">Copy + increase</option>
           </select>
-          <button class="btn primary" id="addExerciseBtn">Add</button>
+          <button class="btn primary" id="addExerciseBtn">Add exercise</button>
         </div>
 
       </div>
