@@ -6416,6 +6416,7 @@ textarea.exercise-name{
 <script src="./v2/render-sets-container-boundary.js"></script>
 <script src="./v2/sync-status-helpers.js"></script>
 <script src="./v2/empty-state-render-helpers.js"></script>
+<script src="./v2/onboarding-helpers.js"></script>
 </head>
 <body>
 
@@ -6753,6 +6754,7 @@ const V2_RENDER_SET = window.TimoTrainingV2RenderSet || null;
 const V2_RENDER_SETS_CONTAINER = window.TimoTrainingV2RenderSetsContainer || null;
 const V2_SYNC_STATUS = window.TimoTrainingV2SyncStatus || null;
 const V2_EMPTY_STATE = window.TimoTrainingV2EmptyState || null;
+const V2_ONBOARDING = window.TimoTrainingV2Onboarding || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -9037,7 +9039,13 @@ function renderExercises() {
   }) : "";
   const searchBox = q ? `<div class="card search-results-card"><div class="section-title"><h3>Search results</h3><div class="meta">${searchMatches.length} match${searchMatches.length===1?'':'es'}</div></div>${searchMatches.length ? `<div class="search-results">${searchMatches.map(m => `<button class="search-item" type="button" data-jump-week="${m.week}" data-jump-day="${m.day}" data-jump-ex="${m.ex}"><div><div class="name">${esc(m.name)}</div><div class="meta">${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}</div></div><div class="search-open">Open</div></button>`).join("")}</div>` : `<div class="empty-state">No matching exercises found yet.</div>`}</div>` : "";
   if(searchHost) searchHost.innerHTML = searchBox;
-  const showFirstWorkoutCta = !!(currentUser && !q && !hasWorkoutData(state));
+  const showFirstWorkoutCta = V2_ONBOARDING?.shouldShowFirstWorkoutCta
+    ? V2_ONBOARDING.shouldShowFirstWorkoutCta({
+        currentUser,
+        hasSearchQuery: !!q,
+        hasWorkoutData: hasWorkoutData(state)
+      })
+    : !!(currentUser && !q && !hasWorkoutData(state));
   const renderFirstWorkoutEmptyStateFallback = input => {
     const title = String(input?.title || "");
     const metaMarkup = String(input?.metaMarkup || "");
