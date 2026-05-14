@@ -6417,6 +6417,7 @@ textarea.exercise-name{
 <script src="./v2/sync-status-helpers.js"></script>
 <script src="./v2/empty-state-render-helpers.js"></script>
 <script src="./v2/onboarding-helpers.js"></script>
+<script src="./v2/feedback-helpers.js"></script>
 </head>
 <body>
 
@@ -6755,6 +6756,7 @@ const V2_RENDER_SETS_CONTAINER = window.TimoTrainingV2RenderSetsContainer || nul
 const V2_SYNC_STATUS = window.TimoTrainingV2SyncStatus || null;
 const V2_EMPTY_STATE = window.TimoTrainingV2EmptyState || null;
 const V2_ONBOARDING = window.TimoTrainingV2Onboarding || null;
+const V2_FEEDBACK = window.TimoTrainingV2Feedback || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -9738,7 +9740,10 @@ function handleAddExerciseClick() {
       if(payload.historyModeInput) payload.historyModeInput.value = "empty";
     }, { renderMode:"app", message:"Exercise saved locally on this device." });
     if(startingFirstWorkout) {
-      showToast("Workout started");
+      const firstWorkoutMessage = V2_FEEDBACK?.getFirstWorkoutCreatedMessage
+        ? V2_FEEDBACK.getFirstWorkoutCreatedMessage({ isFirstWorkout: true })
+        : "Workout started";
+      if(firstWorkoutMessage) showToast(firstWorkoutMessage);
       requestAnimationFrame(() => {
         const targetCard = document.querySelector("[data-exercise-card]");
         if(targetCard) targetCard.scrollIntoView({ block:"center", behavior:"smooth" });
