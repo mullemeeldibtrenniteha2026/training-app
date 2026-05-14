@@ -8327,19 +8327,26 @@ function buildCalendarCells(monthDate) {
   return cells;
 }
 
+function shouldSuppressDefaultCalendarMarkers() {
+  return !!(currentUser && !isPrimaryUser(currentUser) && !hasWorkoutData(state));
+}
+
 function getCalendarCellInfo(date) {
   const info = dateToProgramDay(date);
   const status = info ? info.status : "";
   const weekday = date.getDay();
+  const suppressDefaultMarkers = shouldSuppressDefaultCalendarMarkers();
   const dot = status === "done"
     ? "var(--green)"
-    : weekday === 3
-      ? "var(--gold)"
-      : (status === "recovery" || status === "rest" || weekday === 0 || weekday === 6)
-        ? "var(--red)"
-        : info
-          ? "var(--blue)"
-          : "transparent";
+    : suppressDefaultMarkers
+      ? "transparent"
+      : weekday === 3
+        ? "var(--gold)"
+        : (status === "recovery" || status === "rest" || weekday === 0 || weekday === 6)
+          ? "var(--red)"
+          : info
+            ? "var(--blue)"
+            : "transparent";
   const check = status==="done";
   const active = info && info.week===ui.week && info.day===ui.day;
   const isToday = date.getFullYear()===TODAY.getFullYear() && date.getMonth()===TODAY.getMonth() && date.getDate()===TODAY.getDate();
@@ -8347,6 +8354,7 @@ function getCalendarCellInfo(date) {
 }
 
 function getCalendarDefaultDayType(date) {
+  if(shouldSuppressDefaultCalendarMarkers()) return "";
   const weekday = date.getDay();
   if(weekday === 3) return "day-active-recovery";
   if(weekday === 0 || weekday === 6) return "day-recovery";
@@ -8391,13 +8399,14 @@ function buildCalendarCellHtml(date) {
   if(!date) return buildDayCellMarkup({ inactive:true });
   const { info, dot, active, isToday } = getCalendarCellInfo(date);
   const dayTypeClass = getCalendarDefaultDayType(date);
+  const weekdayLabel = DAY_LABEL[DAY_ORDER[(date.getDay() + 6) % 7]].slice(0,3);
   return buildDayCellMarkup({
     dayTypeClass,
     active,
     isToday,
     dateKey: formatCalendarDateKey(date),
     dayNumber: date.getDate(),
-    weekdayLabel: info ? DAY_LABEL[info.day].slice(0,3) : "",
+    weekdayLabel,
     dot
   });
 }
