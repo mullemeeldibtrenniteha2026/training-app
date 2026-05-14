@@ -6380,7 +6380,7 @@ textarea.exercise-name{
   <div class="boot-card">
     <div class="boot-spinner"></div>
     <h2>Timo Training</h2>
-    <p id="bootMessage">Loading your data…</p>
+    <p id="bootMessage">Preparing your training…</p>
   </div>
 </div>
 
@@ -9727,7 +9727,7 @@ let lastAuthStateKey = "__unknown__";
 // ============================================================
 // CLOUD / AUTH / SESSION ZONE
 // ============================================================
-function showBoot(message="Loading your data…") {
+function showBoot(message="Preparing your training…") {
   const overlay = document.getElementById("bootOverlay");
   const msg = document.getElementById("bootMessage");
   if(msg) msg.textContent = message;
@@ -9739,7 +9739,7 @@ function clearBootGuard() {
     bootGuardTimer = null;
   }
 }
-function armBootGuard(message="Loading your data…", ms=9000) {
+function armBootGuard(message="Preparing your training…", ms=9000) {
   showBoot(message);
   clearBootGuard();
   bootGuardTimer = setTimeout(() => {
@@ -9747,7 +9747,7 @@ function armBootGuard(message="Loading your data…", ms=9000) {
     hideBoot();
     if(currentUser) {
       setSyncStatus("Cloud: unavailable");
-      showToast("Cloud timeout — using local data");
+      showToast("Cloud took too long - using local mode");
     } else {
       showAuth();
       setSyncStatus("Cloud: local only");
@@ -9771,19 +9771,22 @@ function setSyncStatus(text) {
   const value = String(text || "");
   let label = value;
   let cls = "sync-pill";
-  if(/Cloud: loaded/i.test(value)) { label = "Loaded from cloud"; cls += " ok"; }
-  else if(/Cloud: synced/i.test(value)) { label = "Saved to cloud"; cls += " ok"; }
-  else if(/Cloud: syncing/i.test(value)) { label = "Saving to cloud..."; cls += " info"; }
-  else if(/Cloud: loading/i.test(value)) { label = "Loading from cloud..."; cls += " info"; }
-  else if(/Cloud: connecting/i.test(value)) { label = "Connecting cloud..."; cls += " info"; }
-  else if(/Cloud: empty/i.test(value)) { label = "No cloud data yet"; cls += " info"; }
-  else if(/Cloud: local scoped/i.test(value)) { label = "Local signed-in state"; cls += " info"; }
-  else if(/Cloud: local imported/i.test(value)) { label = "Local import loaded"; cls += " info"; }
-  else if(/Cloud: save blocked/i.test(value)) { label = "Cloud save blocked"; cls += " warn"; }
+  if(/Cloud: loaded/i.test(value)) { label = "Cloud loaded"; cls += " ok"; }
+  else if(/Cloud: synced/i.test(value)) { label = "Cloud synced"; cls += " ok"; }
+  else if(/Cloud: syncing/i.test(value)) { label = "Saving to cloud"; cls += " info"; }
+  else if(/Cloud: loading/i.test(value)) { label = "Preparing your training"; cls += " info"; }
+  else if(/Cloud: connecting/i.test(value)) { label = "Connecting your cloud"; cls += " info"; }
+  else if(/Cloud: empty/i.test(value)) { label = "No cloud training yet"; cls += " info"; }
+  else if(/Cloud: local scoped/i.test(value)) { label = "Using local training"; cls += " info"; }
+  else if(/Cloud: local imported/i.test(value)) { label = "Using imported training"; cls += " info"; }
+  else if(/Cloud: save blocked/i.test(value)) { label = "Saved locally only"; cls += " warn"; }
   else if(/Cloud: unavailable/i.test(value)) { label = "Cloud unavailable"; cls += " warn"; }
-  else if(/Cloud: save failed/i.test(value)) { label = "Cloud save failed"; cls += " warn"; }
+  else if(/Cloud: save failed/i.test(value)) { label = "Saved locally only"; cls += " warn"; }
   else if(/Cloud: offline/i.test(value)) { label = "Offline"; cls += " warn"; }
-  else if(/local only/i.test(value)) { label = "Signed out · Local"; cls += " info"; }
+  else if(/local restore/i.test(value)) { label = "Restored locally"; cls += " info"; }
+  else if(/local only/i.test(value)) { label = "Using local mode"; cls += " info"; }
+  else if(/signing out/i.test(value)) { label = "Signing out"; cls += " info"; }
+  else if(/sign out failed/i.test(value)) { label = "Sign out failed"; cls += " warn"; }
   else if(/sign in/i.test(value)) { label = "Sign in"; }
   el.className = cls;
   el.textContent = label;
@@ -10017,7 +10020,7 @@ async function startCloudBootstrap() {
   if(!currentUser || cloudBootstrapInFlight) return;
   cloudBootstrapInFlight = true;
   const bootstrapToken = ++cloudBootstrapToken;
-  armBootGuard("Loading your cloud data…", 9000);
+  armBootGuard("Preparing your training…", 9000);
   setSyncStatus("Cloud: loading…");
   try {
     const cloudStateResult = await loadCloudState();
@@ -10089,10 +10092,10 @@ async function initSupabaseApp() {
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
     if(!email || !password) {
-      setAuthMessage("Enter email and password.", "error");
+      setAuthMessage("Enter your email and password.", "error");
       return;
     }
-    setAuthMessage("Signing in…");
+    setAuthMessage("Signing you in...");
     try {
       const result = await signInSupabase(email, password);
       const signedInUser = result?.session?.user || result?.user || null;
@@ -10108,13 +10111,13 @@ async function initSupabaseApp() {
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
     if(!email || !password) {
-      setAuthMessage("Enter email and password.", "error");
+      setAuthMessage("Enter your email and password.", "error");
       return;
     }
-    setAuthMessage("Creating account…");
+    setAuthMessage("Creating your account...");
     try {
       const result = await signUpSupabase(email, password);
-      if(result?.user && !result?.session) setAuthMessage("Account created. Check your email and then sign in.", "ok");
+      if(result?.user && !result?.session) setAuthMessage("Account created. Check your email, then sign in.", "ok");
       else setAuthMessage("Account created. You can continue.", "ok");
     } catch (e) {
       console.error("SIGN UP ERROR", e);
@@ -10170,7 +10173,7 @@ async function initSupabaseApp() {
   });
 
   try {
-    armBootGuard("Checking your session…", 7000);
+    armBootGuard("Checking your sign-in…", 7000);
     const { data } = await withTimeout(sb.auth.getSession(), 2500);
     currentUser = data?.session?.user || null;
     lastAuthStateKey = getAuthStateKey(currentUser);
