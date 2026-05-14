@@ -43,6 +43,7 @@ See:
 
 - [Pre-V2 Stabilization Plan](./docs:/PRE_V2_STABILIZATION.md)
 - [Pre-V2 Stabilization Checklist](./docs:/PRE_V2_STABILIZATION_CHECKLIST.md)
+- [Current Baseline](./CURRENT_BASELINE.md)
 
 Until an explicit switch is made, **MVP1 remains the source of truth**.
 
