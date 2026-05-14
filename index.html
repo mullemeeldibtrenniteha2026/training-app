@@ -9694,23 +9694,6 @@ if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
   const card = document.querySelector(`[data-exercise-card="${active}"]`);
   if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
 };
-const exportBtn = document.getElementById("exportBtn");
-if(exportBtn) exportBtn.onclick = () => {
-  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="timo_training_v81_export.json";
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
-const importFile = document.getElementById("importFile");
-if(importFile) importFile.onchange = async e => {
-  const file=e.target.files?.[0];
-  if(!file) return;
-  try { state=JSON.parse(await file.text()); saveState(); } catch { alert("Import failed."); }
-  e.target.value="";
-};
-
 window.addEventListener("beforeunload", () => {
   try { localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state)); } catch {}
 });
@@ -9923,9 +9906,6 @@ async function signOutSupabase() {
     await new Promise(resolve => setTimeout(resolve, 120));
   }
   throw new Error("Sign out did not clear session.");
-}
-function getLocalUpdatedAt() {
-  return state && state._cloudMeta && state._cloudMeta.updated_at ? state._cloudMeta.updated_at : null;
 }
 function stampLocalUpdatedAt(iso) {
   if(!state._cloudMeta || typeof state._cloudMeta !== "object") state._cloudMeta = {};
