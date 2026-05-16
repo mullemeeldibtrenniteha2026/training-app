@@ -9140,6 +9140,10 @@ function renderExercises() {
     const groupInnerMarkup = String(input?.groupInnerMarkup || "");
     return `<div class="block-group">${groupHeaderMarkup}<div class="workout-group-stack">${groupInnerMarkup}</div></div>`;
   };
+  const buildExerciseShellInputFallback = input => ({
+    exerciseClass: String(input?.exerciseClass || ""),
+    exerciseId: String(input?.exerciseId || "")
+  });
   const buildExerciseDetailsInputFallback = input => ({
     exerciseId: String(input?.exerciseId || ""),
     prioritizeSets: !!input?.prioritizeSets,
@@ -9362,10 +9366,20 @@ function renderExercises() {
           primaryButtonLabel: recovery ? (done ? "Set as not done" : "Set as done") : "+ Set",
           deleteButtonClass: ui.workoutMode ? "btn workout-delete-btn" : "btn"
         });
-        const exerciseShellInputBase = {
-          exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
-          exerciseId: ex,
-        };
+        const exerciseShellInputBase = !ui.workoutMode
+          ? (V2_RENDER_EXERCISE?.buildExerciseShellInput
+              ? V2_RENDER_EXERCISE.buildExerciseShellInput({
+                  exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
+                  exerciseId: ex
+                })
+              : buildExerciseShellInputFallback({
+                  exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
+                  exerciseId: ex
+                }))
+          : {
+              exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
+              exerciseId: ex,
+            };
         const normalExerciseCardMarkup = V2_RENDER_EXERCISE?.renderNormalExerciseCard
           ? V2_RENDER_EXERCISE.renderNormalExerciseCard({
               exerciseShellInput: exerciseShellInputBase,
