@@ -9725,6 +9725,49 @@ function armHoldDeleteTimer(el, onDelete) {
   }, SET_DELETE_HOLD_MS);
 }
 
+function bindExerciseTextFieldEvents() {
+  document.querySelectorAll("[data-role='name']").forEach(el => {
+    const autosizeName = node => {
+      if(!(node instanceof HTMLTextAreaElement)) return;
+      node.style.height = 'auto';
+      node.style.height = Math.max(52, node.scrollHeight) + 'px';
+    };
+    autosizeName(el);
+    el.oninput = e => {
+      autosizeName(e.target);
+      updateWorkoutExerciseField(e.target.dataset.ex, 'exname', e.target.value);
+      saveStateQuiet("Autosaved draft locally.");
+    };
+    el.onchange = e => {
+      const normalizedName = normalizeExerciseDisplayName(e.target.value);
+      e.target.value = updateWorkoutExerciseField(e.target.dataset.ex, 'exname', normalizedName);
+      autosizeName(e.target);
+      commitTextFieldWithoutRender();
+    };
+  });
+  document.querySelectorAll("[data-role='code']").forEach(el => {
+    el.oninput = e => {
+      updateWorkoutExerciseField(e.target.dataset.ex, 'excode', String(e.target.value||"").toUpperCase().trim());
+      saveStateQuiet("Autosaved draft locally.");
+    };
+    el.onchange = e => {
+      const normalizedCode = String(e.target.value||"").toUpperCase().trim();
+      e.target.value = updateWorkoutExerciseField(e.target.dataset.ex, 'excode', normalizedCode);
+      commitTextFieldWithoutRender();
+    };
+  });
+  document.querySelectorAll("[data-role='note']").forEach(el => {
+    el.oninput = e => {
+      updateWorkoutExerciseField(e.target.dataset.ex, 'note', e.target.value);
+      saveStateQuiet("Autosaved draft locally.");
+    };
+    el.onchange = e => {
+      updateWorkoutExerciseField(e.target.dataset.ex, 'note', e.target.value);
+      commitTextFieldWithoutRender();
+    };
+  });
+}
+
 function bindExerciseEvents(all) {
   ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -9878,36 +9921,7 @@ function bindExerciseEvents(all) {
       deleteExercise(ui.week, ui.day, ex);
     }, { renderMode:"exercises", toast:"Exercise removed" });
   });
-  document.querySelectorAll("[data-role='name']").forEach(el => {
-    const autosizeName = node => {
-      if(!(node instanceof HTMLTextAreaElement)) return;
-      node.style.height = 'auto';
-      node.style.height = Math.max(52, node.scrollHeight) + 'px';
-    };
-    autosizeName(el);
-    el.oninput = e => {
-      autosizeName(e.target);
-      updateWorkoutExerciseField(e.target.dataset.ex, 'exname', e.target.value);
-      saveStateQuiet("Autosaved draft locally.");
-    };
-    el.onchange = e => {
-      const normalizedName = normalizeExerciseDisplayName(e.target.value);
-      e.target.value = updateWorkoutExerciseField(e.target.dataset.ex, 'exname', normalizedName);
-      autosizeName(e.target);
-      commitTextFieldWithoutRender();
-    };
-  });
-  document.querySelectorAll("[data-role='code']").forEach(el => {
-    el.oninput = e => {
-      updateWorkoutExerciseField(e.target.dataset.ex, 'excode', String(e.target.value||"").toUpperCase().trim());
-      saveStateQuiet("Autosaved draft locally.");
-    };
-    el.onchange = e => {
-      const normalizedCode = String(e.target.value||"").toUpperCase().trim();
-      e.target.value = updateWorkoutExerciseField(e.target.dataset.ex, 'excode', normalizedCode);
-      commitTextFieldWithoutRender();
-    };
-  });
+  bindExerciseTextFieldEvents();
   document.querySelectorAll("[data-role='rest']").forEach(el => {
     el.oninput = e => {
       updateWorkoutExerciseField(e.target.dataset.ex, 'rest', e.target.value);
@@ -9931,16 +9945,6 @@ function bindExerciseEvents(all) {
       const normalized = normalizeRestValue(e.target.value);
       e.target.value = normalized;
       updateWorkoutExerciseField(e.target.dataset.ex, 'rest', normalized);
-      commitTextFieldWithoutRender();
-    };
-  });
-  document.querySelectorAll("[data-role='note']").forEach(el => {
-    el.oninput = e => {
-      updateWorkoutExerciseField(e.target.dataset.ex, 'note', e.target.value);
-      saveStateQuiet("Autosaved draft locally.");
-    };
-    el.onchange = e => {
-      updateWorkoutExerciseField(e.target.dataset.ex, 'note', e.target.value);
       commitTextFieldWithoutRender();
     };
   });
