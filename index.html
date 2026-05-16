@@ -9810,6 +9810,16 @@ function bindToggleBlockButtons() {
   });
 }
 
+function bindDeleteExerciseButtons() {
+  document.querySelectorAll("[data-role='delete']").forEach(el => el.onclick = e => {
+    const ex = e.currentTarget.dataset.ex;
+    if(!window.confirm("Delete this exercise?")) return;
+    commitStateUpdate(() => {
+      deleteExercise(ui.week, ui.day, ex);
+    }, { renderMode:"exercises", toast:"Exercise removed" });
+  });
+}
+
 function bindExerciseEvents(all) {
   ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -9947,13 +9957,7 @@ function bindExerciseEvents(all) {
     el.ontouchend = () => { clearHoldDeleteTimer(el); };
     el.ontouchcancel = () => { clearHoldDeleteTimer(el); };
   });
-  document.querySelectorAll("[data-role='delete']").forEach(el => el.onclick = e => {
-    const ex = e.currentTarget.dataset.ex;
-    if(!window.confirm("Delete this exercise?")) return;
-    commitStateUpdate(() => {
-      deleteExercise(ui.week, ui.day, ex);
-    }, { renderMode:"exercises", toast:"Exercise removed" });
-  });
+  bindDeleteExerciseButtons();
   bindExerciseTextFieldEvents();
   document.querySelectorAll("[data-role='rest']").forEach(el => {
     el.oninput = e => {
