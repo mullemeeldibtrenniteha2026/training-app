@@ -51,10 +51,56 @@
     }
   }
 
+  function renderTimerView(input) {
+    const elapsedSeconds = Math.max(0, Math.floor(Number(input?.elapsedSeconds) || 0));
+    const running = !!input?.running;
+    const hasValue = !!input?.hasValue;
+    const refs = input?.refs && typeof input.refs === "object" ? input.refs : {};
+    const format = typeof input?.formatTimer === "function"
+      ? input.formatTimer
+      : value => String(value ?? "");
+
+    const display = refs.display || null;
+    const bottomTimerBtn = refs.bottomTimerBtn || null;
+    const startBtn = refs.startBtn || null;
+    const pauseBtn = refs.pauseBtn || null;
+    const resetBtn = refs.resetBtn || null;
+    const hint = refs.hint || null;
+    const sheet = refs.sheet || null;
+
+    if(display) {
+      display.textContent = format(elapsedSeconds);
+      display.classList.toggle("is-live", running);
+      display.classList.toggle("is-paused", !running && hasValue);
+    }
+
+    if(sheet) sheet.classList.toggle("is-live", running);
+
+    if(bottomTimerBtn) {
+      bottomTimerBtn.classList.toggle("timer-live", running || hasValue);
+      bottomTimerBtn.textContent = running
+        ? `⏱ ${format(elapsedSeconds)}`
+        : (hasValue ? `⏱ ${format(elapsedSeconds)}` : "⏱ Timer");
+    }
+
+    if(startBtn) startBtn.textContent = hasValue ? "Resume" : "Start";
+    if(startBtn) startBtn.disabled = !!running;
+
+    if(pauseBtn) pauseBtn.disabled = !running;
+    if(resetBtn) resetBtn.disabled = !hasValue && !running;
+
+    if(hint) {
+      hint.textContent = running
+        ? "Timer is running while you keep moving."
+        : (hasValue ? "Timer is paused. Resume or reset when you are ready." : "Starts from 00:00 and runs until you stop it.");
+    }
+  }
+
   global.TimoTrainingV2TimerRuntime = {
     getTimerElapsedMs,
     formatTimer,
     shouldHoldWorkoutWakeLock,
-    bindTimerOverlayControls
+    bindTimerOverlayControls,
+    renderTimerView
   };
 })(window);

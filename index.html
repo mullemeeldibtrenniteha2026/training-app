@@ -10835,6 +10835,24 @@ function renderTimer() {
   const sheet = document.querySelector(".timer-sheet");
   const elapsedSeconds = Math.floor(getTimerElapsedMs() / 1000);
   const hasValue = elapsedSeconds > 0;
+  if(V2_TIMER_RUNTIME?.renderTimerView) {
+    V2_TIMER_RUNTIME.renderTimerView({
+      elapsedSeconds,
+      running: timerState.running,
+      hasValue,
+      refs: {
+        display,
+        bottomTimerBtn: btn,
+        startBtn,
+        pauseBtn,
+        resetBtn,
+        hint,
+        sheet
+      },
+      formatTimer
+    });
+    return;
+  }
 
   if(display) {
     display.textContent = formatTimer(elapsedSeconds);
