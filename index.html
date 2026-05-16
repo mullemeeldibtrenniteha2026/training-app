@@ -9768,6 +9768,25 @@ function bindExerciseTextFieldEvents() {
   });
 }
 
+function bindSearchJumpEvents() {
+  document.querySelectorAll("[data-jump-week][data-jump-day][data-jump-ex]").forEach(el => el.onclick = e => {
+    const targetEx = e.currentTarget.dataset.jumpEx;
+    commitUiUpdate(() => {
+      ui.week = Number(e.currentTarget.dataset.jumpWeek);
+      ui.day = e.currentTarget.dataset.jumpDay;
+      ui.search = "";
+      const input = document.getElementById("searchInput");
+      if(input) input.value = "";
+      const currentDayExercises = getExercisesForWeekDay(ui.week, ui.day);
+      ui.activeExerciseIndex = Math.max(0, currentDayExercises.indexOf(targetEx));
+    }, "app");
+    requestAnimationFrame(() => {
+      const targetCard = document.querySelector(`[data-exercise-card="${targetEx}"]`);
+      if(targetCard) targetCard.scrollIntoView({block:"center", behavior:"smooth"});
+    });
+  });
+}
+
 function bindExerciseEvents(all) {
   ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -9948,22 +9967,7 @@ function bindExerciseEvents(all) {
       commitTextFieldWithoutRender();
     };
   });
-  document.querySelectorAll("[data-jump-week][data-jump-day][data-jump-ex]").forEach(el => el.onclick = e => {
-    const targetEx = e.currentTarget.dataset.jumpEx;
-    commitUiUpdate(() => {
-      ui.week = Number(e.currentTarget.dataset.jumpWeek);
-      ui.day = e.currentTarget.dataset.jumpDay;
-      ui.search = "";
-      const input = document.getElementById("searchInput");
-      if(input) input.value = "";
-      const currentDayExercises = getExercisesForWeekDay(ui.week, ui.day);
-      ui.activeExerciseIndex = Math.max(0, currentDayExercises.indexOf(targetEx));
-    }, "app");
-    requestAnimationFrame(() => {
-      const targetCard = document.querySelector(`[data-exercise-card="${targetEx}"]`);
-      if(targetCard) targetCard.scrollIntoView({block:"center", behavior:"smooth"});
-    });
-  });
+  bindSearchJumpEvents();
   const prev=document.getElementById("prevExerciseBtn"), next=document.getElementById("nextExerciseBtn");
   if(prev) prev.onclick=()=> commitUiUpdate(() => { ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); }, "exercises");
   if(next) next.onclick=()=> commitUiUpdate(() => { const count=getFilteredWorkoutGroupCount(); ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); }, "exercises");
