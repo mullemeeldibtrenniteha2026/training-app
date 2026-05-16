@@ -6423,6 +6423,7 @@ textarea.exercise-name{
 <script src="./v2/onboarding-helpers.js"></script>
 <script src="./v2/feedback-helpers.js"></script>
 <script src="./v2/workout-mode-helpers.js"></script>
+<script src="./v2/workout-runtime-helpers.js"></script>
 </head>
 <body>
 
@@ -6767,6 +6768,7 @@ const V2_EMPTY_STATE = window.TimoTrainingV2EmptyState || null;
 const V2_ONBOARDING = window.TimoTrainingV2Onboarding || null;
 const V2_FEEDBACK = window.TimoTrainingV2Feedback || null;
 const V2_WORKOUT_MODE = window.TimoTrainingV2WorkoutMode || null;
+const V2_WORKOUT_RUNTIME = window.TimoTrainingV2WorkoutRuntime || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -8144,8 +8146,15 @@ function getFilteredWorkoutGroupCount() {
   return getWorkoutGroups(getFilteredExercisesForCurrentDay()).length;
 }
 function clampActiveExerciseIndex() {
-  const max = Math.max(0, getFilteredWorkoutGroupCount() - 1);
-  ui.activeExerciseIndex = Math.min(max, Math.max(0, Number(ui.activeExerciseIndex) || 0));
+  ui.activeExerciseIndex = V2_WORKOUT_RUNTIME?.clampActiveWorkoutIndex
+    ? V2_WORKOUT_RUNTIME.clampActiveWorkoutIndex({
+        activeIndex: ui.activeExerciseIndex,
+        groupCount: getFilteredWorkoutGroupCount()
+      })
+    : Math.min(
+        Math.max(0, getFilteredWorkoutGroupCount() - 1),
+        Math.max(0, Number(ui.activeExerciseIndex) || 0)
+      );
 }
 
 function buildFocusRestoreSelector(el) {
@@ -9043,14 +9052,26 @@ function bindWorkoutActionPanelButtons(groupsForDay) {
   const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
   if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
     const exs = getExercisesForWeekDay(ui.week, ui.day);
-    let active = null;
-    if(ui.workoutMode){
-      const activeGroupForDay = groupsForDay[ui.activeExerciseIndex] || null;
-      active = activeGroupForDay?.items?.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || activeGroupForDay?.items?.[0] || null;
-    }
-    if(!active || isRecoveryLike(ui.week, ui.day, active)) {
-      active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
-    }
+    const active = V2_WORKOUT_RUNTIME?.getWorkoutAddSetTarget
+      ? V2_WORKOUT_RUNTIME.getWorkoutAddSetTarget({
+          groupsForDay,
+          dayExercises: exs,
+          activeExerciseIndex: ui.activeExerciseIndex,
+          week: ui.week,
+          day: ui.day,
+          isRecoveryLike
+        })
+      : (() => {
+          let fallbackActive = null;
+          if(ui.workoutMode){
+            const activeGroupForDay = groupsForDay[ui.activeExerciseIndex] || null;
+            fallbackActive = activeGroupForDay?.items?.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || activeGroupForDay?.items?.[0] || null;
+          }
+          if(!fallbackActive || isRecoveryLike(ui.week, ui.day, fallbackActive)) {
+            fallbackActive = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
+          }
+          return fallbackActive;
+        })();
     if(!active) {
       showToast("No strength exercise selected");
       return;
@@ -9085,22 +9106,50 @@ function renderExercises() {
   const searchMatches = q ? searchExercisesGlobal(q) : [];
   const all = filteredDayExercises;
   const allGroups = getWorkoutGroups(all);
-  if(ui.activeExerciseIndex > Math.max(0, allGroups.length - 1)) ui.activeExerciseIndex = Math.max(0, allGroups.length - 1);
-  const activeGroup = allGroups[ui.activeExerciseIndex] || null;
+  const nextActiveWorkoutIndex = V2_WORKOUT_RUNTIME?.clampActiveWorkoutIndex
+    ? V2_WORKOUT_RUNTIME.clampActiveWorkoutIndex({
+        activeIndex: ui.activeExerciseIndex,
+        groupCount: allGroups.length
+      })
+    : Math.min(Math.max(0, allGroups.length - 1), Math.max(0, Number(ui.activeExerciseIndex) || 0));
+  if(ui.activeExerciseIndex !== nextActiveWorkoutIndex) ui.activeExerciseIndex = nextActiveWorkoutIndex;
+  const activeGroup = V2_WORKOUT_RUNTIME?.getActiveWorkoutGroup
+    ? V2_WORKOUT_RUNTIME.getActiveWorkoutGroup({
+        groups: allGroups,
+        activeIndex: ui.activeExerciseIndex
+      })
+    : allGroups[ui.activeExerciseIndex] || null;
   const list = ui.workoutMode ? (activeGroup ? activeGroup.items : []) : all;
   const groups = ui.workoutMode ? (activeGroup ? [activeGroup] : []) : allGroups;
   const wrap = document.getElementById("exerciseList");
   const searchHost = document.getElementById("searchResultsHost");
-  const focusMeta = ui.workoutMode ? `Block ${Math.min(ui.activeExerciseIndex+1, Math.max(1,allGroups.length))} of ${Math.max(1,allGroups.length)}` : "";
-  const workoutProgressItems = ui.workoutMode ? allGroups.map((group, idx) => {
-    const done = group.items.every(ex => exerciseHasDone(ui.week,ui.day,ex));
-    const cls = idx===ui.activeExerciseIndex ? "active" : (done ? "done" : "");
-    return {
-      index: idx,
-      label: String(idx + 1),
-      className: cls
-    };
-  }) : [];
+  const focusMeta = ui.workoutMode
+    ? (V2_WORKOUT_RUNTIME?.buildWorkoutFocusMeta
+        ? V2_WORKOUT_RUNTIME.buildWorkoutFocusMeta({
+            activeIndex: ui.activeExerciseIndex,
+            groupCount: allGroups.length
+          })
+        : `Block ${Math.min(ui.activeExerciseIndex+1, Math.max(1,allGroups.length))} of ${Math.max(1,allGroups.length)}`)
+    : "";
+  const workoutProgressItems = ui.workoutMode
+    ? (V2_WORKOUT_RUNTIME?.buildWorkoutProgressItems
+        ? V2_WORKOUT_RUNTIME.buildWorkoutProgressItems({
+            groups: allGroups,
+            activeIndex: ui.activeExerciseIndex,
+            week: ui.week,
+            day: ui.day,
+            isExerciseDone: exerciseHasDone
+          })
+        : allGroups.map((group, idx) => {
+            const done = group.items.every(ex => exerciseHasDone(ui.week,ui.day,ex));
+            const cls = idx===ui.activeExerciseIndex ? "active" : (done ? "done" : "");
+            return {
+              index: idx,
+              label: String(idx + 1),
+              className: cls
+            };
+          }))
+    : [];
   const renderWorkoutHeaderFallback = input => {
     const dateDisplay = String(input?.dateDisplay || "");
     const title = String(input?.title || "");
