@@ -9898,8 +9898,7 @@ function bindDeleteSetButtons() {
   });
 }
 
-function bindExerciseEvents(all) {
-  ensureWorkoutInputAdvanceGuards();
+function bindWorkoutSetInputFields() {
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
     const clearPendingAdvanceFallback = () => {
       if(el._pendingAdvanceFallbackTimer) clearTimeout(el._pendingAdvanceFallbackTimer);
@@ -9990,6 +9989,11 @@ function bindExerciseEvents(all) {
       commitTextFieldWithoutRender();
     };
   });
+}
+
+function bindExerciseEvents(all) {
+  ensureWorkoutInputAdvanceGuards();
+  bindWorkoutSetInputFields();
   bindToggleSetButtons();
   bindToggleBlockButtons();
   bindAddSetButtons();
