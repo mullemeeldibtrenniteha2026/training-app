@@ -20,8 +20,28 @@
     return `<button class="search-item" type="button" data-jump-week="${week}" data-jump-day="${day}" data-jump-ex="${exerciseId}"><div><div class="name">${name}</div><div class="meta">${meta}</div></div><div class="search-open">${ctaLabel}</div></button>`;
   }
 
+  function buildSearchResultItemInput(input) {
+    const week = Number(input?.week) || 0;
+    const day = String(input?.day || "");
+    const exerciseId = String(input?.exerciseId || "");
+    const name = String(input?.name || "");
+    const dateLabel = String(input?.dateLabel || "");
+    const dayLabel = String(input?.dayLabel || "");
+    const code = String(input?.code || "");
+    const ctaLabel = String(input?.ctaLabel || "Open");
+    return {
+      week,
+      day,
+      exerciseId,
+      name,
+      meta: `${dateLabel} · ${dayLabel} · ${code || "No code"}`,
+      ctaLabel
+    };
+  }
+
   global.TimoTrainingV2RenderSearchResults = {
     renderSearchResultsCard,
-    renderSearchResultItem
+    renderSearchResultItem,
+    buildSearchResultItemInput
   };
 })(window);

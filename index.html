@@ -9112,6 +9112,24 @@ function renderExercises() {
     const countLabel = `${count} match${count === 1 ? "" : "es"}`;
     return `<div class="card search-results-card"><div class="section-title"><h3>${heading}</h3><div class="meta">${countLabel}</div></div>${count ? `<div class="search-results">${itemMarkup}</div>` : `<div class="empty-state">${emptyMessage}</div>`}</div>`;
   };
+  const buildSearchResultItemInputFallback = input => {
+    const week = Number(input?.week) || 0;
+    const day = String(input?.day || "");
+    const exerciseId = String(input?.exerciseId || "");
+    const name = String(input?.name || "");
+    const dateLabel = String(input?.dateLabel || "");
+    const dayLabel = String(input?.dayLabel || "");
+    const code = String(input?.code || "");
+    const ctaLabel = String(input?.ctaLabel || "Open");
+    return {
+      week,
+      day,
+      exerciseId,
+      name,
+      meta: `${dateLabel} · ${dayLabel} · ${code || "No code"}`,
+      ctaLabel
+    };
+  };
   const renderGroupHeaderFallback = input => {
     const blockLabel = String(input?.blockLabel || "");
     const blockMeta = String(input?.blockMeta || "");
@@ -9141,14 +9159,27 @@ function renderExercises() {
     return `<div class="card empty-workout-card"><div class="section-title"><h3>${title}</h3>${metaMarkup}</div><div class="empty-state">${body}</div></div>`;
   };
   const searchResultsItemMarkup = searchMatches.map(m => {
-    const input = {
-      week: m.week,
-      day: m.day,
-      exerciseId: m.ex,
-      name: esc(m.name),
-      meta: `${esc(m.dateLabel)} · ${DAY_LABEL[m.day]} · ${esc(m.code || 'No code')}`,
-      ctaLabel: "Open"
-    };
+    const input = V2_RENDER_SEARCH_RESULTS?.buildSearchResultItemInput
+      ? V2_RENDER_SEARCH_RESULTS.buildSearchResultItemInput({
+          week: m.week,
+          day: m.day,
+          exerciseId: m.ex,
+          name: esc(m.name),
+          dateLabel: esc(m.dateLabel),
+          dayLabel: DAY_LABEL[m.day],
+          code: esc(m.code || "No code"),
+          ctaLabel: "Open"
+        })
+      : buildSearchResultItemInputFallback({
+          week: m.week,
+          day: m.day,
+          exerciseId: m.ex,
+          name: esc(m.name),
+          dateLabel: esc(m.dateLabel),
+          dayLabel: DAY_LABEL[m.day],
+          code: esc(m.code || "No code"),
+          ctaLabel: "Open"
+        });
     return V2_RENDER_SEARCH_RESULTS?.renderSearchResultItem
       ? V2_RENDER_SEARCH_RESULTS.renderSearchResultItem(input)
       : renderSearchResultItemFallback(input);
