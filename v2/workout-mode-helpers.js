@@ -14,6 +14,16 @@
     return `<div class="card workout-focus-card"><div class="workout-date-big">${dateDisplay}</div><div class="section-title"><h3>${title}</h3></div>${progressMarkup}${navMarkup}</div>`;
   }
 
+  function buildWorkoutHeaderInput(input) {
+    return {
+      dateDisplay: String(input?.dateDisplay || ""),
+      title: String(input?.title || ""),
+      progressItems: Array.isArray(input?.progressItems) ? input.progressItems : [],
+      prevLabel: String(input?.prevLabel || "← Previous"),
+      nextLabel: String(input?.nextLabel || "Next →")
+    };
+  }
+
   function renderWorkoutProgressPills(input) {
     const items = Array.isArray(input?.items) ? input.items : [];
     return `<div class="workout-progress-row">${items.map(item => {
@@ -37,6 +47,7 @@
   }
 
   global.TimoTrainingV2WorkoutMode = {
+    buildWorkoutHeaderInput,
     renderWorkoutHeader,
     renderWorkoutProgressPills,
     renderWorkoutActionPanel,
