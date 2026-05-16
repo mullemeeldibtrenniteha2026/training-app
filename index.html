@@ -10274,36 +10274,6 @@ document.getElementById("addExerciseName").oninput = handleAddExerciseNameInput;
 document.getElementById("addExerciseName").onkeydown = handleAddExerciseNameKeydown;
 document.querySelectorAll("[data-radar-mode]").forEach(btn => btn.onclick = () => commitUiUpdate(() => { ui.radarMode = btn.dataset.radarMode; }, "radar"));
 document.getElementById("addExerciseBtn").onclick = handleAddExerciseClick;
-const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
-if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
-  const target = document.getElementById("addExerciseName");
-  if(target) {
-    target.scrollIntoView({block:"center", behavior:"smooth"});
-    setTimeout(() => target.focus(), 250);
-  }
-};
-const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
-if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
-  const exs = getExercisesForWeekDay(ui.week, ui.day);
-  let active = null;
-  if(ui.workoutMode){
-    active = exs[ui.activeExerciseIndex] || null;
-  }
-  if(!active || isRecoveryLike(ui.week, ui.day, active)) {
-    active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
-  }
-  if(!active) {
-    showToast("No strength exercise selected");
-    return;
-  }
-  const c = setCountOf(ui.week,ui.day,active);
-  commitStateUpdate(() => {
-    state[`w${ui.week}_${ui.day}_${active}_s${c}`] = {kg:"",reps:"",done:""};
-    state[`sc_w${ui.week}_${ui.day}_${active}`] = c+1;
-  }, { renderMode:"app", toast:"Set added", message:"Set saved locally on this device." });
-  const card = document.querySelector(`[data-exercise-card="${active}"]`);
-  if(card) card.scrollIntoView({block:"center", behavior:"smooth"});
-};
 window.addEventListener("beforeunload", () => {
   try { localStorage.setItem(getStateStorageKey(currentUser), JSON.stringify(state)); } catch {}
 });
@@ -11202,9 +11172,6 @@ function setupLockScreen() {
     document.addEventListener(evt, () => { if(appUnlocked) markSessionActive(); }, {passive:true});
   });
 }
-
-const bottomTimerBtn = document.getElementById("bottomTimerBtn");
-if(bottomTimerBtn) bottomTimerBtn.onclick = () => openTimer();
 const timerCloseBtn = document.getElementById("timerCloseBtn");
 if(timerCloseBtn) timerCloseBtn.onclick = () => closeTimer();
 const timerStartBtn = document.getElementById("timerStartBtn");
