@@ -9122,6 +9122,18 @@ function renderExercises() {
     const groupInnerMarkup = String(input?.groupInnerMarkup || "");
     return `<div class="block-group">${groupHeaderMarkup}<div class="workout-group-stack">${groupInnerMarkup}</div></div>`;
   };
+  const renderNormalExerciseCardFallback = input => {
+    const exerciseShellInput = input?.exerciseShellInput && typeof input.exerciseShellInput === "object"
+      ? input.exerciseShellInput
+      : {};
+    return buildExerciseShellMarkup({
+      ...exerciseShellInput,
+      mainMarkup: String(input?.mainMarkup || ""),
+      compareMarkup: String(input?.compareMarkup || ""),
+      detailsMarkup: String(input?.detailsMarkup || ""),
+      actionsMarkup: String(input?.actionsMarkup || "")
+    });
+  };
   const renderPlainEmptyStateFallback = input => {
     const title = String(input?.title || "");
     const metaMarkup = String(input?.metaMarkup || "");
@@ -9253,23 +9265,38 @@ function renderExercises() {
           primaryButtonLabel: recovery ? (done ? "Set as not done" : "Set as done") : "+ Set",
           deleteButtonClass: ui.workoutMode ? "btn workout-delete-btn" : "btn"
         });
-        const exerciseShellInput = {
+        const exerciseShellInputBase = {
           exerciseClass: `${isSuperset(ex)?'superset':''} ${ui.workoutMode ? 'active-workout' : ''}`,
           exerciseId: ex,
+        };
+        const normalExerciseCardMarkup = V2_RENDER_EXERCISE?.renderNormalExerciseCard
+          ? V2_RENDER_EXERCISE.renderNormalExerciseCard({
+              exerciseShellInput: exerciseShellInputBase,
+              mainMarkup,
+              compareMarkup,
+              detailsMarkup,
+              actionsMarkup,
+              setsMarkup: setsHtml
+            })
+          : renderNormalExerciseCardFallback({
+              exerciseShellInput: exerciseShellInputBase,
+              mainMarkup,
+              compareMarkup,
+              detailsMarkup,
+              actionsMarkup,
+              setsMarkup: setsHtml
+            });
+        const workoutExerciseShellInput = {
+          ...exerciseShellInputBase,
           mainMarkup,
-          compareMarkup: ui.workoutMode ? "" : compareMarkup,
-          detailsMarkup: ui.workoutMode ? `${detailsMarkup}${compareMarkup}` : detailsMarkup,
+          compareMarkup: "",
+          detailsMarkup: `${detailsMarkup}${compareMarkup}`,
           actionsMarkup
         };
-        const shouldUseSingleExerciseCardHelper = !ui.workoutMode && !isSuperset(ex);
-        const shouldUseSupersetExerciseCardHelper = !ui.workoutMode && isSuperset(ex);
-        if(shouldUseSingleExerciseCardHelper && V2_RENDER_EXERCISE?.renderSingleExerciseCard) {
-          return V2_RENDER_EXERCISE.renderSingleExerciseCard(exerciseShellInput);
+        if(!ui.workoutMode) {
+          return normalExerciseCardMarkup;
         }
-        if(shouldUseSupersetExerciseCardHelper && V2_RENDER_EXERCISE?.renderSupersetExerciseCard) {
-          return V2_RENDER_EXERCISE.renderSupersetExerciseCard(exerciseShellInput);
-        }
-        return buildExerciseShellMarkup(exerciseShellInput);
+        return buildExerciseShellMarkup(workoutExerciseShellInput);
 	      }).join("");
     const blockLabel = group.block && group.block !== "•" ? group.block : "Single";
         const blockMeta = isSupersetBlock ? `Superset • ${group.items.length} exercises` : (group.items.length > 1 ? `${group.items.length} exercises` : `1 exercise`);

@@ -11,6 +11,20 @@
     return `<div class="exercise ${exerciseClass}" data-exercise-card="${exerciseId}">${mainMarkup}${compareMarkup}${detailsMarkup}${actionsMarkup}</div>`;
   }
 
+  function renderNormalExerciseCard(input) {
+    const exerciseShellInput = input?.exerciseShellInput && typeof input.exerciseShellInput === "object"
+      ? input.exerciseShellInput
+      : {};
+    const nextInput = {
+      ...exerciseShellInput,
+      mainMarkup: String(input?.mainMarkup || ""),
+      compareMarkup: String(input?.compareMarkup || ""),
+      detailsMarkup: String(input?.detailsMarkup || ""),
+      actionsMarkup: String(input?.actionsMarkup || "")
+    };
+    return buildExerciseShellMarkup(nextInput);
+  }
+
   function renderSingleExerciseCard(input) {
     return buildExerciseShellMarkup(input);
   }
@@ -21,6 +35,7 @@
 
   global.TimoTrainingV2RenderExercise = {
     buildExerciseShellMarkup,
+    renderNormalExerciseCard,
     renderSingleExerciseCard,
     renderSupersetExerciseCard
   };
