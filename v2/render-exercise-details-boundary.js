@@ -20,7 +20,19 @@
     return prioritizeSets ? `${setsMarkup}${secondaryMarkup}` : `${secondaryMarkup}${setsMarkup}`;
   }
 
+  function buildExerciseDetailsInput(input) {
+    return {
+      exerciseId: String(input?.exerciseId || ""),
+      prioritizeSets: !!input?.prioritizeSets,
+      restValue: String(input?.restValue || ""),
+      noteValue: String(input?.noteValue || ""),
+      recoveryMarkup: String(input?.recoveryMarkup || ""),
+      setsMarkup: String(input?.setsMarkup || "")
+    };
+  }
+
   global.TimoTrainingV2RenderExerciseDetails = {
-    buildExerciseDetailsMarkup
+    buildExerciseDetailsMarkup,
+    buildExerciseDetailsInput
   };
 })(window);

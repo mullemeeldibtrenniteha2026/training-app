@@ -9140,6 +9140,14 @@ function renderExercises() {
     const groupInnerMarkup = String(input?.groupInnerMarkup || "");
     return `<div class="block-group">${groupHeaderMarkup}<div class="workout-group-stack">${groupInnerMarkup}</div></div>`;
   };
+  const buildExerciseDetailsInputFallback = input => ({
+    exerciseId: String(input?.exerciseId || ""),
+    prioritizeSets: !!input?.prioritizeSets,
+    restValue: String(input?.restValue || ""),
+    noteValue: String(input?.noteValue || ""),
+    recoveryMarkup: String(input?.recoveryMarkup || ""),
+    setsMarkup: String(input?.setsMarkup || "")
+  });
   const buildExerciseCompareInputFallback = input => {
     const dateLabel = String(input?.dateLabel || "");
     const summaryText = String(input?.summaryText || "");
@@ -9296,7 +9304,26 @@ function renderExercises() {
             doneState: setDoneState
           });
 	        }).join("");
-        const detailsMarkup = buildExerciseDetailsMarkup({
+        const detailsInput = !ui.workoutMode
+          ? (V2_RENDER_EXERCISE_DETAILS?.buildExerciseDetailsInput
+              ? V2_RENDER_EXERCISE_DETAILS.buildExerciseDetailsInput({
+                  exerciseId: ex,
+                  prioritizeSets: ui.workoutMode,
+                  restValue: esc(normalizeRestValue(rest)),
+                  noteValue: esc(note),
+                  recoveryMarkup: recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : "",
+                  setsMarkup: setsHtml ? buildSetsContainerMarkup({ setRowsMarkup: setsHtml }) : ""
+                })
+              : buildExerciseDetailsInputFallback({
+                  exerciseId: ex,
+                  prioritizeSets: ui.workoutMode,
+                  restValue: esc(normalizeRestValue(rest)),
+                  noteValue: esc(note),
+                  recoveryMarkup: recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : "",
+                  setsMarkup: setsHtml ? buildSetsContainerMarkup({ setRowsMarkup: setsHtml }) : ""
+                }))
+          : null;
+        const detailsMarkup = buildExerciseDetailsMarkup(detailsInput || {
           exerciseId: ex,
           prioritizeSets: ui.workoutMode,
           restValue: esc(normalizeRestValue(rest)),
