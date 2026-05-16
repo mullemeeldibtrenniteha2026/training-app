@@ -13,7 +13,18 @@
 	          </div>`;
   }
 
+  function buildExerciseActionsInput(input) {
+    return {
+      exerciseId: String(input?.exerciseId || ""),
+      primaryButtonClass: String(input?.primaryButtonClass || "btn"),
+      primaryButtonRole: String(input?.primaryButtonRole || ""),
+      primaryButtonLabel: String(input?.primaryButtonLabel || ""),
+      deleteButtonClass: String(input?.deleteButtonClass || "btn")
+    };
+  }
+
   global.TimoTrainingV2RenderExerciseActions = {
-    buildExerciseActionsMarkup
+    buildExerciseActionsMarkup,
+    buildExerciseActionsInput
   };
 })(window);

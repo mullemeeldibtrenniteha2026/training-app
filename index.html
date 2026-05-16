@@ -9148,6 +9148,13 @@ function renderExercises() {
     recoveryMarkup: String(input?.recoveryMarkup || ""),
     setsMarkup: String(input?.setsMarkup || "")
   });
+  const buildExerciseActionsInputFallback = input => ({
+    exerciseId: String(input?.exerciseId || ""),
+    primaryButtonClass: String(input?.primaryButtonClass || "btn"),
+    primaryButtonRole: String(input?.primaryButtonRole || ""),
+    primaryButtonLabel: String(input?.primaryButtonLabel || ""),
+    deleteButtonClass: String(input?.deleteButtonClass || "btn")
+  });
   const buildExerciseCompareInputFallback = input => {
     const dateLabel = String(input?.dateLabel || "");
     const summaryText = String(input?.summaryText || "");
@@ -9331,7 +9338,24 @@ function renderExercises() {
           recoveryMarkup: recovery ? `<div class="info-box" style="margin-top:12px"><div class="k">Completion</div><div class="v">${done ? "Done" : "Not done yet"}</div></div>` : "",
           setsMarkup: setsHtml ? buildSetsContainerMarkup({ setRowsMarkup: setsHtml }) : ""
         });
-        const actionsMarkup = buildExerciseActionsMarkup({
+        const actionsInput = !ui.workoutMode
+          ? (V2_RENDER_EXERCISE_ACTIONS?.buildExerciseActionsInput
+              ? V2_RENDER_EXERCISE_ACTIONS.buildExerciseActionsInput({
+                  exerciseId: ex,
+                  primaryButtonClass: recovery ? "btn gold" : (ui.workoutMode ? "btn workout-inline-addset" : "btn"),
+                  primaryButtonRole: recovery ? "toggle-block" : "add-set",
+                  primaryButtonLabel: recovery ? (done ? "Set as not done" : "Set as done") : "+ Set",
+                  deleteButtonClass: ui.workoutMode ? "btn workout-delete-btn" : "btn"
+                })
+              : buildExerciseActionsInputFallback({
+                  exerciseId: ex,
+                  primaryButtonClass: recovery ? "btn gold" : (ui.workoutMode ? "btn workout-inline-addset" : "btn"),
+                  primaryButtonRole: recovery ? "toggle-block" : "add-set",
+                  primaryButtonLabel: recovery ? (done ? "Set as not done" : "Set as done") : "+ Set",
+                  deleteButtonClass: ui.workoutMode ? "btn workout-delete-btn" : "btn"
+                }))
+          : null;
+        const actionsMarkup = buildExerciseActionsMarkup(actionsInput || {
           exerciseId: ex,
           primaryButtonClass: recovery ? "btn gold" : (ui.workoutMode ? "btn workout-inline-addset" : "btn"),
           primaryButtonRole: recovery ? "toggle-block" : "add-set",
