@@ -9787,6 +9787,19 @@ function bindSearchJumpEvents() {
   });
 }
 
+function bindWorkoutPrevNextButtons() {
+  const prev=document.getElementById("prevExerciseBtn"), next=document.getElementById("nextExerciseBtn");
+  if(prev) prev.onclick=()=> commitUiUpdate(() => { ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); }, "exercises");
+  if(next) next.onclick=()=> commitUiUpdate(() => { const count=getFilteredWorkoutGroupCount(); ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); }, "exercises");
+}
+
+function bindAddSetButtons() {
+  document.querySelectorAll("[data-role='add-set']").forEach(el => el.onclick = e => {
+    const ex = e.target.dataset.ex;
+    appendWorkoutSetWithFocus(ex, "kg");
+  });
+}
+
 function bindExerciseEvents(all) {
   ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -9903,10 +9916,7 @@ function bindExerciseEvents(all) {
       state[key] = state[key]==="1" ? "" : "1";
     }, { renderMode:"exercises" });
   });
-  document.querySelectorAll("[data-role='add-set']").forEach(el => el.onclick = e => {
-    const ex = e.target.dataset.ex;
-    appendWorkoutSetWithFocus(ex, "kg");
-  });
+  bindAddSetButtons();
   document.querySelectorAll("[data-role='delete-set']").forEach(el => {
     const triggerDelete = () => {
       const ex = el.dataset.ex;
@@ -9968,9 +9978,7 @@ function bindExerciseEvents(all) {
     };
   });
   bindSearchJumpEvents();
-  const prev=document.getElementById("prevExerciseBtn"), next=document.getElementById("nextExerciseBtn");
-  if(prev) prev.onclick=()=> commitUiUpdate(() => { ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); }, "exercises");
-  if(next) next.onclick=()=> commitUiUpdate(() => { const count=getFilteredWorkoutGroupCount(); ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); }, "exercises");
+  bindWorkoutPrevNextButtons();
 }
 function handleWorkoutModeKeydown(e){
   if(!ui.workoutMode) return;
