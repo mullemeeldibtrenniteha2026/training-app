@@ -9046,6 +9046,50 @@ function bindWorkoutActionPanelButtons(groupsForDay) {
     finishWorkoutNow();
   };
 
+  if(V2_WORKOUT_RUNTIME?.bindWorkoutBottomActionButtons) {
+    V2_WORKOUT_RUNTIME.bindWorkoutBottomActionButtons({
+      onOpenTimer() {
+        openTimer();
+      },
+      onAddExercise() {
+        const target = document.getElementById("addExerciseName");
+        if(target) {
+          target.scrollIntoView({block:"center", behavior:"smooth"});
+          setTimeout(() => target.focus(), 250);
+        }
+      },
+      onAddSet() {
+        const exs = getExercisesForWeekDay(ui.week, ui.day);
+        const active = V2_WORKOUT_RUNTIME?.getWorkoutAddSetTarget
+          ? V2_WORKOUT_RUNTIME.getWorkoutAddSetTarget({
+              groupsForDay,
+              dayExercises: exs,
+              activeExerciseIndex: ui.activeExerciseIndex,
+              week: ui.week,
+              day: ui.day,
+              isRecoveryLike
+            })
+          : (() => {
+              let fallbackActive = null;
+              if(ui.workoutMode){
+                const activeGroupForDay = groupsForDay[ui.activeExerciseIndex] || null;
+                fallbackActive = activeGroupForDay?.items?.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || activeGroupForDay?.items?.[0] || null;
+              }
+              if(!fallbackActive || isRecoveryLike(ui.week, ui.day, fallbackActive)) {
+                fallbackActive = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
+              }
+              return fallbackActive;
+            })();
+        if(!active) {
+          showToast("No strength exercise selected");
+          return;
+        }
+        appendWorkoutSetWithFocus(active);
+      }
+    });
+    return;
+  }
+
   const bottomTimerBtn = document.getElementById("bottomTimerBtn");
   if(bottomTimerBtn) bottomTimerBtn.onclick = () => openTimer();
 

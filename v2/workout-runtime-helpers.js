@@ -95,6 +95,20 @@
     if(next && onNext) next.onclick = () => onNext();
   }
 
+  function bindWorkoutBottomActionButtons(input) {
+    const onOpenTimer = typeof input?.onOpenTimer === "function" ? input.onOpenTimer : null;
+    const onAddExercise = typeof input?.onAddExercise === "function" ? input.onAddExercise : null;
+    const onAddSet = typeof input?.onAddSet === "function" ? input.onAddSet : null;
+
+    const bottomTimerBtn = global.document.getElementById("bottomTimerBtn");
+    const bottomAddExerciseBtn = global.document.getElementById("bottomAddExerciseBtn");
+    const bottomAddSetBtn = global.document.getElementById("bottomAddSetBtn");
+
+    if(bottomTimerBtn && onOpenTimer) bottomTimerBtn.onclick = () => onOpenTimer();
+    if(bottomAddExerciseBtn && onAddExercise) bottomAddExerciseBtn.onclick = () => onAddExercise();
+    if(bottomAddSetBtn && onAddSet) bottomAddSetBtn.onclick = () => onAddSet();
+  }
+
   global.TimoTrainingV2WorkoutRuntime = {
     clampActiveWorkoutIndex,
     getActiveWorkoutGroup,
@@ -102,6 +116,7 @@
     buildWorkoutFocusMeta,
     getWorkoutAddSetTarget,
     bindWorkoutProgressJumpButtons,
-    bindWorkoutPrevNextButtons
+    bindWorkoutPrevNextButtons,
+    bindWorkoutBottomActionButtons
   };
 })(window);
