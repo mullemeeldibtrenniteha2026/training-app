@@ -9869,6 +9869,35 @@ function bindRestFieldEvents() {
   });
 }
 
+function bindDeleteSetButtons() {
+  document.querySelectorAll("[data-role='delete-set']").forEach(el => {
+    const triggerDelete = () => {
+      const ex = el.dataset.ex;
+      const idx = Number(el.dataset.idx);
+      commitStateUpdate(() => {
+        removeWorkoutSet(ex, idx);
+      }, { renderMode:"exercises", toast:"Set removed" });
+    };
+    el.onclick = e => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    el.onmousedown = e => {
+      if(e.button !== 0) return;
+      if(Date.now() < (el._ignoreMouseUntil || 0)) return;
+      armHoldDeleteTimer(el, triggerDelete);
+    };
+    el.onmouseup = () => { clearHoldDeleteTimer(el); };
+    el.onmouseleave = () => { clearHoldDeleteTimer(el); };
+    el.ontouchstart = () => {
+      el._ignoreMouseUntil = Date.now() + 800;
+      armHoldDeleteTimer(el, triggerDelete);
+    };
+    el.ontouchend = () => { clearHoldDeleteTimer(el); };
+    el.ontouchcancel = () => { clearHoldDeleteTimer(el); };
+  });
+}
+
 function bindExerciseEvents(all) {
   ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -9964,32 +9993,7 @@ function bindExerciseEvents(all) {
   bindToggleSetButtons();
   bindToggleBlockButtons();
   bindAddSetButtons();
-  document.querySelectorAll("[data-role='delete-set']").forEach(el => {
-    const triggerDelete = () => {
-      const ex = el.dataset.ex;
-      const idx = Number(el.dataset.idx);
-      commitStateUpdate(() => {
-        removeWorkoutSet(ex, idx);
-      }, { renderMode:"exercises", toast:"Set removed" });
-    };
-    el.onclick = e => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-    el.onmousedown = e => {
-      if(e.button !== 0) return;
-      if(Date.now() < (el._ignoreMouseUntil || 0)) return;
-      armHoldDeleteTimer(el, triggerDelete);
-    };
-    el.onmouseup = () => { clearHoldDeleteTimer(el); };
-    el.onmouseleave = () => { clearHoldDeleteTimer(el); };
-    el.ontouchstart = () => {
-      el._ignoreMouseUntil = Date.now() + 800;
-      armHoldDeleteTimer(el, triggerDelete);
-    };
-    el.ontouchend = () => { clearHoldDeleteTimer(el); };
-    el.ontouchcancel = () => { clearHoldDeleteTimer(el); };
-  });
+  bindDeleteSetButtons();
   bindDeleteExerciseButtons();
   bindExerciseTextFieldEvents();
   bindRestFieldEvents();
