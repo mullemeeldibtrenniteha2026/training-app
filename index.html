@@ -9195,12 +9195,21 @@ function renderExercises() {
       actionsMarkup: String(input?.actionsMarkup || "")
     });
   };
+  const buildFirstWorkoutEmptyStateInputFallback = input => ({
+    title: String(input?.title || ""),
+    metaMarkup: String(input?.metaMarkup || "")
+  });
   const renderPlainEmptyStateFallback = input => {
     const title = String(input?.title || "");
     const metaMarkup = String(input?.metaMarkup || "");
     const body = String(input?.body || "");
     return `<div class="card empty-workout-card"><div class="section-title"><h3>${title}</h3>${metaMarkup}</div><div class="empty-state">${body}</div></div>`;
   };
+  const buildPlainEmptyStateInputFallback = input => ({
+    title: String(input?.title || ""),
+    metaMarkup: String(input?.metaMarkup || ""),
+    body: String(input?.body || "")
+  });
   const searchResultsItemMarkup = searchMatches.map(m => {
     const input = V2_RENDER_SEARCH_RESULTS?.buildSearchResultItemInput
       ? V2_RENDER_SEARCH_RESULTS.buildSearchResultItemInput({
@@ -9248,6 +9257,26 @@ function renderExercises() {
         hasWorkoutData: hasWorkoutData(state)
       })
     : !!(currentUser && !q && !hasWorkoutData(state));
+  const firstWorkoutEmptyStateInput = V2_EMPTY_STATE?.buildFirstWorkoutEmptyStateInput
+    ? V2_EMPTY_STATE.buildFirstWorkoutEmptyStateInput({
+        title: "No workout yet",
+        metaMarkup: `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`
+      })
+    : buildFirstWorkoutEmptyStateInputFallback({
+        title: "No workout yet",
+        metaMarkup: `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`
+      });
+  const plainEmptyStateInput = V2_RENDER_PLAIN_EMPTY_STATE?.buildPlainEmptyStateInput
+    ? V2_RENDER_PLAIN_EMPTY_STATE.buildPlainEmptyStateInput({
+        title: q ? "No exercises in this day view" : "No workout yet",
+        metaMarkup: q ? `<div class="meta">Search is active for ${DAY_LABEL[ui.day]}</div>` : `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`,
+        body: q ? "No exercises in this day match your current search. Clear search or open a result above." : `Add your first exercise below to create this workout day. Your calendar will build from your own training data.`
+      })
+    : buildPlainEmptyStateInputFallback({
+        title: q ? "No exercises in this day view" : "No workout yet",
+        metaMarkup: q ? `<div class="meta">Search is active for ${DAY_LABEL[ui.day]}</div>` : `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`,
+        body: q ? "No exercises in this day match your current search. Clear search or open a result above." : `Add your first exercise below to create this workout day. Your calendar will build from your own training data.`
+      });
   const renderFirstWorkoutEmptyStateFallback = input => {
     const title = String(input?.title || "");
     const metaMarkup = String(input?.metaMarkup || "");
@@ -9255,25 +9284,11 @@ function renderExercises() {
   };
   const emptyMessage = !groups.length ? showFirstWorkoutCta
     ? (V2_EMPTY_STATE?.renderFirstWorkoutEmptyState
-        ? V2_EMPTY_STATE.renderFirstWorkoutEmptyState({
-            title: "No workout yet",
-            metaMarkup: `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`
-          })
-        : renderFirstWorkoutEmptyStateFallback({
-            title: "No workout yet",
-            metaMarkup: `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`
-          }))
+        ? V2_EMPTY_STATE.renderFirstWorkoutEmptyState(firstWorkoutEmptyStateInput)
+        : renderFirstWorkoutEmptyStateFallback(firstWorkoutEmptyStateInput))
     : (V2_RENDER_PLAIN_EMPTY_STATE?.renderPlainEmptyStateCard
-        ? V2_RENDER_PLAIN_EMPTY_STATE.renderPlainEmptyStateCard({
-            title: q ? "No exercises in this day view" : "No workout yet",
-            metaMarkup: q ? `<div class="meta">Search is active for ${DAY_LABEL[ui.day]}</div>` : `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`,
-            body: q ? "No exercises in this day match your current search. Clear search or open a result above." : `Add your first exercise below to create this workout day. Your calendar will build from your own training data.`
-          })
-        : renderPlainEmptyStateFallback({
-            title: q ? "No exercises in this day view" : "No workout yet",
-            metaMarkup: q ? `<div class="meta">Search is active for ${DAY_LABEL[ui.day]}</div>` : `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`,
-            body: q ? "No exercises in this day match your current search. Clear search or open a result above." : `Add your first exercise below to create this workout day. Your calendar will build from your own training data.`
-          })) : "";
+        ? V2_RENDER_PLAIN_EMPTY_STATE.renderPlainEmptyStateCard(plainEmptyStateInput)
+        : renderPlainEmptyStateFallback(plainEmptyStateInput)) : "";
   wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
   const contentMarkup = groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
