@@ -76,11 +76,32 @@
     return active || null;
   }
 
+  function bindWorkoutProgressJumpButtons(input) {
+    const onJump = typeof input?.onJump === "function" ? input.onJump : null;
+    if(!onJump) return;
+    global.document.querySelectorAll("[data-workout-jump]").forEach(el => {
+      el.onclick = () => {
+        onJump(Number(el.dataset.workoutJump) || 0);
+      };
+    });
+  }
+
+  function bindWorkoutPrevNextButtons(input) {
+    const onPrev = typeof input?.onPrev === "function" ? input.onPrev : null;
+    const onNext = typeof input?.onNext === "function" ? input.onNext : null;
+    const prev = global.document.getElementById("prevExerciseBtn");
+    const next = global.document.getElementById("nextExerciseBtn");
+    if(prev && onPrev) prev.onclick = () => onPrev();
+    if(next && onNext) next.onclick = () => onNext();
+  }
+
   global.TimoTrainingV2WorkoutRuntime = {
     clampActiveWorkoutIndex,
     getActiveWorkoutGroup,
     buildWorkoutProgressItems,
     buildWorkoutFocusMeta,
-    getWorkoutAddSetTarget
+    getWorkoutAddSetTarget,
+    bindWorkoutProgressJumpButtons,
+    bindWorkoutPrevNextButtons
   };
 })(window);

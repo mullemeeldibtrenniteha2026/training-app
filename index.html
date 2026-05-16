@@ -9024,6 +9024,15 @@ function finishWorkoutNow(){
 }
 
 function bindWorkoutProgressJumpButtons() {
+  if(V2_WORKOUT_RUNTIME?.bindWorkoutProgressJumpButtons) {
+    V2_WORKOUT_RUNTIME.bindWorkoutProgressJumpButtons({
+      onJump(nextIndex) {
+        ui.activeExerciseIndex = nextIndex;
+        requestRender("exercises");
+      }
+    });
+    return;
+  }
   document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
     ui.activeExerciseIndex = Number(el.dataset.workoutJump);
     requestRender("exercises");
@@ -9837,6 +9846,17 @@ function bindSearchJumpEvents() {
 }
 
 function bindWorkoutPrevNextButtons() {
+  if(V2_WORKOUT_RUNTIME?.bindWorkoutPrevNextButtons) {
+    V2_WORKOUT_RUNTIME.bindWorkoutPrevNextButtons({
+      onPrev() {
+        commitUiUpdate(() => { ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); }, "exercises");
+      },
+      onNext() {
+        commitUiUpdate(() => { const count=getFilteredWorkoutGroupCount(); ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); }, "exercises");
+      }
+    });
+    return;
+  }
   const prev=document.getElementById("prevExerciseBtn"), next=document.getElementById("nextExerciseBtn");
   if(prev) prev.onclick=()=> commitUiUpdate(() => { ui.activeExerciseIndex=Math.max(0,ui.activeExerciseIndex-1); }, "exercises");
   if(next) next.onclick=()=> commitUiUpdate(() => { const count=getFilteredWorkoutGroupCount(); ui.activeExerciseIndex=Math.min(Math.max(0,count-1),ui.activeExerciseIndex+1); }, "exercises");
