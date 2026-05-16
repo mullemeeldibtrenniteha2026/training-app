@@ -6417,6 +6417,7 @@ textarea.exercise-name{
 <script src="./v2/render-search-results-boundary.js"></script>
 <script src="./v2/render-group-header-boundary.js"></script>
 <script src="./v2/render-group-composer-boundary.js"></script>
+<script src="./v2/render-plain-empty-state-boundary.js"></script>
 <script src="./v2/sync-status-helpers.js"></script>
 <script src="./v2/empty-state-render-helpers.js"></script>
 <script src="./v2/onboarding-helpers.js"></script>
@@ -6760,6 +6761,7 @@ const V2_RENDER_SETS_CONTAINER = window.TimoTrainingV2RenderSetsContainer || nul
 const V2_RENDER_SEARCH_RESULTS = window.TimoTrainingV2RenderSearchResults || null;
 const V2_RENDER_GROUP_HEADER = window.TimoTrainingV2RenderGroupHeader || null;
 const V2_RENDER_GROUP_COMPOSER = window.TimoTrainingV2RenderGroupComposer || null;
+const V2_RENDER_PLAIN_EMPTY_STATE = window.TimoTrainingV2RenderPlainEmptyState || null;
 const V2_SYNC_STATUS = window.TimoTrainingV2SyncStatus || null;
 const V2_EMPTY_STATE = window.TimoTrainingV2EmptyState || null;
 const V2_ONBOARDING = window.TimoTrainingV2Onboarding || null;
@@ -9120,6 +9122,12 @@ function renderExercises() {
     const groupInnerMarkup = String(input?.groupInnerMarkup || "");
     return `<div class="block-group">${groupHeaderMarkup}<div class="workout-group-stack">${groupInnerMarkup}</div></div>`;
   };
+  const renderPlainEmptyStateFallback = input => {
+    const title = String(input?.title || "");
+    const metaMarkup = String(input?.metaMarkup || "");
+    const body = String(input?.body || "");
+    return `<div class="card empty-workout-card"><div class="section-title"><h3>${title}</h3>${metaMarkup}</div><div class="empty-state">${body}</div></div>`;
+  };
   const searchResultsItemMarkup = searchMatches.map(m => {
     const input = {
       week: m.week,
@@ -9169,7 +9177,17 @@ function renderExercises() {
             title: "No workout yet",
             metaMarkup: `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`
           }))
-    : `<div class="card empty-workout-card"><div class="section-title"><h3>${q ? "No exercises in this day view" : "No workout yet"}</h3>${q ? `<div class="meta">Search is active for ${DAY_LABEL[ui.day]}</div>` : `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`}</div><div class="empty-state">${q ? "No exercises in this day match your current search. Clear search or open a result above." : `Add your first exercise below to create this workout day. Your calendar will build from your own training data.`}</div></div>` : "";
+    : (V2_RENDER_PLAIN_EMPTY_STATE?.renderPlainEmptyStateCard
+        ? V2_RENDER_PLAIN_EMPTY_STATE.renderPlainEmptyStateCard({
+            title: q ? "No exercises in this day view" : "No workout yet",
+            metaMarkup: q ? `<div class="meta">Search is active for ${DAY_LABEL[ui.day]}</div>` : `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`,
+            body: q ? "No exercises in this day match your current search. Clear search or open a result above." : `Add your first exercise below to create this workout day. Your calendar will build from your own training data.`
+          })
+        : renderPlainEmptyStateFallback({
+            title: q ? "No exercises in this day view" : "No workout yet",
+            metaMarkup: q ? `<div class="meta">Search is active for ${DAY_LABEL[ui.day]}</div>` : `<div class="meta">${fmtFullDate(dayDate(ui.week,ui.day))}</div>`,
+            body: q ? "No exercises in this day match your current search. Clear search or open a result above." : `Add your first exercise below to create this workout day. Your calendar will build from your own training data.`
+          })) : "";
   wrap.className = ui.workoutMode ? "exercise-list workout-mode-shell" : "exercise-list";
   const contentMarkup = groups.length ? groups.map(group => {
     const blockKinds = group.items.map(ex => codeOf(ui.week,ui.day,ex)).filter(Boolean);
