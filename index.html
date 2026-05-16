@@ -9140,6 +9140,12 @@ function renderExercises() {
     const groupInnerMarkup = String(input?.groupInnerMarkup || "");
     return `<div class="block-group">${groupHeaderMarkup}<div class="workout-group-stack">${groupInnerMarkup}</div></div>`;
   };
+  const buildExerciseCompareInputFallback = input => {
+    const dateLabel = String(input?.dateLabel || "");
+    const summaryText = String(input?.summaryText || "");
+    const metaText = String(input?.metaText || "");
+    return { dateLabel, summaryText, metaText };
+  };
   const renderNormalExerciseCardFallback = input => {
     const exerciseShellInput = input?.exerciseShellInput && typeof input.exerciseShellInput === "object"
       ? input.exerciseShellInput
@@ -9262,11 +9268,20 @@ function renderExercises() {
         const mainMarkup = !ui.workoutMode && V2_RENDER?.renderExerciseHeaderMetaMarkup
           ? V2_RENDER.renderExerciseHeaderMetaMarkup(exerciseHeaderMetaInput)
           : renderExerciseHeaderMetaFallback(exerciseHeaderMetaInput);
-        const compareMarkup = last ? buildExerciseCompareMarkup({
-          dateLabel: fmtShortDate(last.date),
-          summaryText: esc(exerciseSetsSummary(last.week,last.day,last.ex)),
-          metaText: "Use this as your quick reference before the next set."
-        }) : "";
+        const compareInput = last
+          ? (V2_RENDER_EXERCISE_COMPARE?.buildExerciseCompareInput
+              ? V2_RENDER_EXERCISE_COMPARE.buildExerciseCompareInput({
+                  dateLabel: fmtShortDate(last.date),
+                  summaryText: esc(exerciseSetsSummary(last.week,last.day,last.ex)),
+                  metaText: "Use this as your quick reference before the next set."
+                })
+              : buildExerciseCompareInputFallback({
+                  dateLabel: fmtShortDate(last.date),
+                  summaryText: esc(exerciseSetsSummary(last.week,last.day,last.ex)),
+                  metaText: "Use this as your quick reference before the next set."
+                }))
+          : null;
+        const compareMarkup = compareInput ? buildExerciseCompareMarkup(compareInput) : "";
  	        const setsHtml = recovery ? "" : Array.from({length:c}, (_,i) => {
 	          const s = getSet(ui.week,ui.day,ex,i);
 	          const setRowDisplay = formatSetRowDisplay(s, i);
