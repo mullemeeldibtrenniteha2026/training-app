@@ -9800,6 +9800,16 @@ function bindAddSetButtons() {
   });
 }
 
+function bindToggleBlockButtons() {
+  document.querySelectorAll("[data-role='toggle-block']").forEach(el => el.onclick = e => {
+    const btn = e.currentTarget;
+    const key = `blockdone_w${ui.week}_${ui.day}_${btn.dataset.ex}`;
+    commitStateUpdate(() => {
+      state[key] = state[key]==="1" ? "" : "1";
+    }, { renderMode:"exercises" });
+  });
+}
+
 function bindExerciseEvents(all) {
   ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -9909,13 +9919,7 @@ function bindExerciseEvents(all) {
       });
     }
   });
-  document.querySelectorAll("[data-role='toggle-block']").forEach(el => el.onclick = e => {
-    const btn = e.currentTarget;
-    const key = `blockdone_w${ui.week}_${ui.day}_${btn.dataset.ex}`;
-    commitStateUpdate(() => {
-      state[key] = state[key]==="1" ? "" : "1";
-    }, { renderMode:"exercises" });
-  });
+  bindToggleBlockButtons();
   bindAddSetButtons();
   document.querySelectorAll("[data-role='delete-set']").forEach(el => {
     const triggerDelete = () => {
