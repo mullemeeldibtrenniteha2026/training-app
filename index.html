@@ -9840,6 +9840,35 @@ function bindToggleSetButtons() {
   });
 }
 
+function bindRestFieldEvents() {
+  document.querySelectorAll("[data-role='rest']").forEach(el => {
+    el.oninput = e => {
+      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', e.target.value);
+      saveStateQuiet("Autosaved draft locally.");
+    };
+    el.onkeydown = e => {
+      if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const currentSeconds = parseRestSeconds(e.target.value);
+      const delta = e.key === 'ArrowUp' ? 15 : -15;
+      const nextValue = formatRestSeconds(Math.max(0, currentSeconds + delta));
+      e.target.value = nextValue;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', nextValue);
+      saveStateQuiet("Autosaved draft locally.");
+    };
+    el.onblur = e => {
+      const normalized = normalizeRestValue(e.target.value);
+      if(e.target.value !== normalized) e.target.value = normalized;
+    };
+    el.onchange = e => {
+      const normalized = normalizeRestValue(e.target.value);
+      e.target.value = normalized;
+      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', normalized);
+      commitTextFieldWithoutRender();
+    };
+  });
+}
+
 function bindExerciseEvents(all) {
   ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -9963,32 +9992,7 @@ function bindExerciseEvents(all) {
   });
   bindDeleteExerciseButtons();
   bindExerciseTextFieldEvents();
-  document.querySelectorAll("[data-role='rest']").forEach(el => {
-    el.oninput = e => {
-      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', e.target.value);
-      saveStateQuiet("Autosaved draft locally.");
-    };
-    el.onkeydown = e => {
-      if(e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-      e.preventDefault();
-      const currentSeconds = parseRestSeconds(e.target.value);
-      const delta = e.key === 'ArrowUp' ? 15 : -15;
-      const nextValue = formatRestSeconds(Math.max(0, currentSeconds + delta));
-      e.target.value = nextValue;
-      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', nextValue);
-      saveStateQuiet("Autosaved draft locally.");
-    };
-    el.onblur = e => {
-      const normalized = normalizeRestValue(e.target.value);
-      if(e.target.value !== normalized) e.target.value = normalized;
-    };
-    el.onchange = e => {
-      const normalized = normalizeRestValue(e.target.value);
-      e.target.value = normalized;
-      updateWorkoutExerciseField(e.target.dataset.ex, 'rest', normalized);
-      commitTextFieldWithoutRender();
-    };
-  });
+  bindRestFieldEvents();
   bindSearchJumpEvents();
   bindWorkoutPrevNextButtons();
 }
