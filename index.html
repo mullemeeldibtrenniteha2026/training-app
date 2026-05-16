@@ -9014,6 +9014,62 @@ function finishWorkoutNow(){
   openFinishSummary(stats);
 }
 
+function bindWorkoutProgressJumpButtons() {
+  document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
+    ui.activeExerciseIndex = Number(el.dataset.workoutJump);
+    requestRender("exercises");
+  });
+}
+
+function bindWorkoutActionPanelButtons(groupsForDay) {
+  const finishWorkoutBtnInline = document.getElementById("finishWorkoutBtnInline");
+  if(finishWorkoutBtnInline) finishWorkoutBtnInline.onclick = () => {
+    if(!window.confirm("Finish workout and mark remaining sets as done?")) return;
+    finishWorkoutNow();
+  };
+
+  const bottomTimerBtn = document.getElementById("bottomTimerBtn");
+  if(bottomTimerBtn) bottomTimerBtn.onclick = () => openTimer();
+
+  const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
+  if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
+    const target = document.getElementById("addExerciseName");
+    if(target) {
+      target.scrollIntoView({block:"center", behavior:"smooth"});
+      setTimeout(() => target.focus(), 250);
+    }
+  };
+
+  const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
+  if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
+    const exs = getExercisesForWeekDay(ui.week, ui.day);
+    let active = null;
+    if(ui.workoutMode){
+      const activeGroupForDay = groupsForDay[ui.activeExerciseIndex] || null;
+      active = activeGroupForDay?.items?.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || activeGroupForDay?.items?.[0] || null;
+    }
+    if(!active || isRecoveryLike(ui.week, ui.day, active)) {
+      active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
+    }
+    if(!active) {
+      showToast("No strength exercise selected");
+      return;
+    }
+    appendWorkoutSetWithFocus(active);
+  };
+}
+
+function bindEmptyStateAddWorkoutCta() {
+  const emptyStateAddWorkoutBtn = document.getElementById("emptyStateAddWorkoutBtn");
+  if(emptyStateAddWorkoutBtn) emptyStateAddWorkoutBtn.onclick = () => {
+    const target = document.getElementById("addExerciseName");
+    if(target) {
+      target.scrollIntoView({block:"center", behavior:"smooth"});
+      setTimeout(() => target.focus(), 250);
+    }
+  };
+}
+
 
 // ===== RENDER: EXERCISE LIST =====
 function renderExercises() {
@@ -9488,54 +9544,9 @@ function renderExercises() {
   });
   bindExerciseEvents(all);
   applySetRowGuidance();
-  document.querySelectorAll("[data-workout-jump]").forEach(el => el.onclick = () => {
-    ui.activeExerciseIndex = Number(el.dataset.workoutJump);
-    requestRender("exercises");
-  });
-  const finishWorkoutBtnInline = document.getElementById("finishWorkoutBtnInline");
-  if(finishWorkoutBtnInline) finishWorkoutBtnInline.onclick = () => {
-    if(!window.confirm("Finish workout and mark remaining sets as done?")) return;
-    finishWorkoutNow();
-  };
-
-  const bottomTimerBtn = document.getElementById("bottomTimerBtn");
-  if(bottomTimerBtn) bottomTimerBtn.onclick = () => openTimer();
-
-  const bottomAddExerciseBtn = document.getElementById("bottomAddExerciseBtn");
-  if(bottomAddExerciseBtn) bottomAddExerciseBtn.onclick = () => {
-    const target = document.getElementById("addExerciseName");
-    if(target) {
-      target.scrollIntoView({block:"center", behavior:"smooth"});
-      setTimeout(() => target.focus(), 250);
-    }
-  };
-  const emptyStateAddWorkoutBtn = document.getElementById("emptyStateAddWorkoutBtn");
-  if(emptyStateAddWorkoutBtn) emptyStateAddWorkoutBtn.onclick = () => {
-    const target = document.getElementById("addExerciseName");
-    if(target) {
-      target.scrollIntoView({block:"center", behavior:"smooth"});
-      setTimeout(() => target.focus(), 250);
-    }
-  };
-
-  const bottomAddSetBtn = document.getElementById("bottomAddSetBtn");
-  if(bottomAddSetBtn) bottomAddSetBtn.onclick = () => {
-    const exs = getExercisesForWeekDay(ui.week, ui.day);
-    const groupsForDay = getWorkoutGroups(getFilteredExercisesForCurrentDay());
-    let active = null;
-    if(ui.workoutMode){
-      const activeGroupForDay = groupsForDay[ui.activeExerciseIndex] || null;
-      active = activeGroupForDay?.items?.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || activeGroupForDay?.items?.[0] || null;
-    }
-    if(!active || isRecoveryLike(ui.week, ui.day, active)) {
-      active = exs.find(ex => !isRecoveryLike(ui.week, ui.day, ex)) || null;
-    }
-    if(!active) {
-      showToast("No strength exercise selected");
-      return;
-    }
-    appendWorkoutSetWithFocus(active);
-  };
+  bindWorkoutProgressJumpButtons();
+  bindWorkoutActionPanelButtons(getWorkoutGroups(getFilteredExercisesForCurrentDay()));
+  bindEmptyStateAddWorkoutCta();
 
   requestAnimationFrame(() => {
     restoreExerciseViewportContext();
