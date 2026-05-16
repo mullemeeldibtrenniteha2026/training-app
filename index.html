@@ -11189,15 +11189,32 @@ function setupLockScreen() {
     document.addEventListener(evt, () => { if(appUnlocked) markSessionActive(); }, {passive:true});
   });
 }
-const timerCloseBtn = document.getElementById("timerCloseBtn");
-if(timerCloseBtn) timerCloseBtn.onclick = () => closeTimer();
-const timerStartBtn = document.getElementById("timerStartBtn");
-if(timerStartBtn) timerStartBtn.onclick = () => startTimer();
-const timerPauseBtn = document.getElementById("timerPauseBtn");
-if(timerPauseBtn) timerPauseBtn.onclick = () => pauseTimer();
-const timerResetBtn = document.getElementById("timerResetBtn");
-if(timerResetBtn) timerResetBtn.onclick = () => resetTimer();
-document.getElementById("timerOverlay")?.addEventListener("click", e => { if(e.target.id === "timerOverlay") closeTimer(); });
+if(V2_TIMER_RUNTIME?.bindTimerOverlayControls) {
+  V2_TIMER_RUNTIME.bindTimerOverlayControls({
+    onClose() {
+      closeTimer();
+    },
+    onStart() {
+      startTimer();
+    },
+    onPause() {
+      pauseTimer();
+    },
+    onReset() {
+      resetTimer();
+    }
+  });
+} else {
+  const timerCloseBtn = document.getElementById("timerCloseBtn");
+  if(timerCloseBtn) timerCloseBtn.onclick = () => closeTimer();
+  const timerStartBtn = document.getElementById("timerStartBtn");
+  if(timerStartBtn) timerStartBtn.onclick = () => startTimer();
+  const timerPauseBtn = document.getElementById("timerPauseBtn");
+  if(timerPauseBtn) timerPauseBtn.onclick = () => pauseTimer();
+  const timerResetBtn = document.getElementById("timerResetBtn");
+  if(timerResetBtn) timerResetBtn.onclick = () => resetTimer();
+  document.getElementById("timerOverlay")?.addEventListener("click", e => { if(e.target.id === "timerOverlay") closeTimer(); });
+}
 document.addEventListener("keydown", e => {
   if(e.key === "Escape" && document.getElementById("timerOverlay")?.style.display === "flex") closeTimer();
 });

@@ -28,9 +28,33 @@
     return !!(input?.workoutMode || input?.timerRunning);
   }
 
+  function bindTimerOverlayControls(input) {
+    const onClose = typeof input?.onClose === "function" ? input.onClose : null;
+    const onStart = typeof input?.onStart === "function" ? input.onStart : null;
+    const onPause = typeof input?.onPause === "function" ? input.onPause : null;
+    const onReset = typeof input?.onReset === "function" ? input.onReset : null;
+
+    const timerCloseBtn = global.document.getElementById("timerCloseBtn");
+    const timerStartBtn = global.document.getElementById("timerStartBtn");
+    const timerPauseBtn = global.document.getElementById("timerPauseBtn");
+    const timerResetBtn = global.document.getElementById("timerResetBtn");
+    const timerOverlay = global.document.getElementById("timerOverlay");
+
+    if(timerCloseBtn && onClose) timerCloseBtn.onclick = () => onClose();
+    if(timerStartBtn && onStart) timerStartBtn.onclick = () => onStart();
+    if(timerPauseBtn && onPause) timerPauseBtn.onclick = () => onPause();
+    if(timerResetBtn && onReset) timerResetBtn.onclick = () => onReset();
+    if(timerOverlay && onClose) {
+      timerOverlay.addEventListener("click", e => {
+        if(e.target.id === "timerOverlay") onClose();
+      });
+    }
+  }
+
   global.TimoTrainingV2TimerRuntime = {
     getTimerElapsedMs,
     formatTimer,
-    shouldHoldWorkoutWakeLock
+    shouldHoldWorkoutWakeLock,
+    bindTimerOverlayControls
   };
 })(window);
