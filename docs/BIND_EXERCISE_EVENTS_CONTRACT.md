@@ -25,6 +25,28 @@ This makes it one of the most protected runtime zones in the app.
 
 It depends on exact DOM hooks already emitted by render helpers and `renderExercises()`.
 
+## Current Segmented Helper List
+
+`bindExerciseEvents()` is now internally segmented into small named helpers, but all runtime ownership still remains in the same file:
+
+- `bindWorkoutSetInputFields()`
+- `bindToggleSetButtons()`
+- `bindDeleteSetButtons()`
+- `bindRestFieldEvents()`
+- `bindExerciseTextFieldEvents()`
+- `bindSearchJumpEvents()`
+- `bindWorkoutPrevNextButtons()`
+- `bindAddSetButtons()`
+- `bindToggleBlockButtons()`
+- `bindDeleteExerciseButtons()`
+
+Ownership note:
+
+- all of these helpers still live in [index.html](/Users/timoanis/Documents/GitHub/training-app/index.html)
+- this phase was **segmentation only**
+- this phase was **not** a behavior refactor
+- selectors, event timing, callback logic, and runtime ownership were intentionally preserved
+
 ## Subzones
 
 ### 1. Set input `kg` / `reps`
@@ -65,6 +87,20 @@ Warnings:
 - depends on exact row DOM shape
 - depends on sibling fields inside the same `.setrow`
 - depends on `data-ex` and `data-idx`
+- preserve comma-decimal handling for `kg`
+- preserve composition-event safety
+- preserve blur fallback timing and pointer guard timing
+
+Current runtime contract summary:
+
+- typing sanitizes value immediately
+- state is updated directly on draft edit
+- volume field updates live from the same row
+- autosave runs during draft editing
+- Enter / Next / Go / Done can trigger advance
+- `kg` advances to same-row `reps`
+- `reps` advances to next-row `kg` or appends a new set
+- mobile blur fallback may trigger delayed advance if guards allow it
 
 ### 2. Done toggle
 
@@ -100,6 +136,14 @@ Warnings:
 - tightly coupled to `applySetRowGuidance()`
 - depends on `.setrow.is-next`
 
+Current runtime contract summary:
+
+- toggles `done` state through `toggleWorkoutSetDoneState(...)`
+- rerender is triggered through `commitStateUpdate(...)`
+- toast wording depends on the new done state
+- if toggled to done, next unfinished row focus is attempted in `requestAnimationFrame(...)`
+- next-row focus relies on `applySetRowGuidance()` having already marked `.is-next`
+
 ### 3. Delete set
 
 Hooks:
@@ -132,6 +176,15 @@ Warnings:
 
 - includes gesture timing behavior
 - must preserve touch and mouse parity
+
+Current runtime contract summary:
+
+- plain click is suppressed and must not delete
+- delete only happens through hold-to-delete path
+- mouse uses left-button hold
+- touch sets `_ignoreMouseUntil` to block synthetic follow-up mouse events
+- release / leave / cancel must clear the hold timer
+- deletion rerenders exercises and shows `Set removed`
 
 ### 4. Add set
 
@@ -280,6 +333,15 @@ Warnings:
 
 Any refactor here must audit both layers together.
 
+Current runtime contract summary:
+
+- local `rest` binding still lives inside `bindExerciseEvents()` through `bindRestFieldEvents()`
+- document-level `keydown`, `blur`, and `change` listeners still also exist
+- ArrowUp / ArrowDown step by 15 seconds
+- local typing autosaves drafts
+- `change` path commits through `commitTextFieldWithoutRender()`
+- any future cleanup must treat local and document-level behavior as one shared contract
+
 ### 9. Search jump
 
 Hooks:
@@ -401,6 +463,21 @@ Does not use `commitStateUpdate()` for normal field editing:
 
 These use direct mutation plus local save / no-render commit helpers.
 
+## Remaining Protected Zones
+
+Even after internal segmentation, these zones remain protected:
+
+- `bindWorkoutSetInputFields()`
+- `bindToggleSetButtons()`
+- `bindDeleteSetButtons()`
+- document-level `rest` listeners
+- `applySetRowGuidance()`
+- `handleWorkoutSetAdvance(...)`
+- timer runtime
+- focus / viewport restore runtime
+- `finishWorkoutNow()`
+- workout mode active-group orchestration in `renderExercises()`
+
 ## Protected / No-Touch Warnings
 
 Do not casually refactor:
@@ -439,6 +516,13 @@ Before touching `bindExerciseEvents()` structurally, the following should exist:
 
 Only after that should refactor work begin.
 
+Additional prerequisites after segmentation:
+
+6. Confirm all segmented internal helpers still preserve exact event order and callback behavior
+7. Confirm protected timer / focus / finish flows remain untouched
+8. Confirm `rest` local and document-level listeners are audited together before any consolidation
+9. Confirm `kg/reps`, `toggle-set`, and `delete-set` each have their own runtime checkpoint notes
+
 ## Refactor Safety Recommendation
 
 If refactoring becomes necessary later:
@@ -448,4 +532,3 @@ If refactoring becomes necessary later:
 - do not move event ownership out until contracts are verified
 
 For now, `bindExerciseEvents()` should remain a protected runtime boundary.
-
