@@ -9820,6 +9820,26 @@ function bindDeleteExerciseButtons() {
   });
 }
 
+function bindToggleSetButtons() {
+  document.querySelectorAll("[data-role='toggle-set']").forEach(el => el.onclick = e => {
+    const btn = e.currentTarget;
+    const ex = btn.dataset.ex;
+    const idx = Number(btn.dataset.idx);
+    const updated = toggleWorkoutSetDoneState(ex, idx);
+    const shouldAdvance = String(updated.done||"")==="1";
+    commitStateUpdate(() => {}, { renderMode:"exercises", toast: String(updated.done||"")==="1" ? "Set done" : "Set updated" });
+    if(shouldAdvance){
+      requestAnimationFrame(() => {
+        const nextRow = Array.from(document.querySelectorAll(".setrow")).find(row => row.classList.contains("is-next"));
+        if(nextRow){
+          const nextInput = nextRow.querySelector("[data-role='kg'], [data-role='reps']");
+          if(nextInput) nextInput.focus();
+        }
+      });
+    }
+  });
+}
+
 function bindExerciseEvents(all) {
   ensureWorkoutInputAdvanceGuards();
   document.querySelectorAll("[data-role='kg'],[data-role='reps']").forEach(el => {
@@ -9912,23 +9932,7 @@ function bindExerciseEvents(all) {
       commitTextFieldWithoutRender();
     };
   });
-  document.querySelectorAll("[data-role='toggle-set']").forEach(el => el.onclick = e => {
-    const btn = e.currentTarget;
-    const ex = btn.dataset.ex;
-    const idx = Number(btn.dataset.idx);
-    const updated = toggleWorkoutSetDoneState(ex, idx);
-    const shouldAdvance = String(updated.done||"")==="1";
-    commitStateUpdate(() => {}, { renderMode:"exercises", toast: String(updated.done||"")==="1" ? "Set done" : "Set updated" });
-    if(shouldAdvance){
-      requestAnimationFrame(() => {
-        const nextRow = Array.from(document.querySelectorAll(".setrow")).find(row => row.classList.contains("is-next"));
-        if(nextRow){
-          const nextInput = nextRow.querySelector("[data-role='kg'], [data-role='reps']");
-          if(nextInput) nextInput.focus();
-        }
-      });
-    }
-  });
+  bindToggleSetButtons();
   bindToggleBlockButtons();
   bindAddSetButtons();
   document.querySelectorAll("[data-role='delete-set']").forEach(el => {
