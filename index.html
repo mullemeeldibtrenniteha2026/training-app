@@ -6424,6 +6424,7 @@ textarea.exercise-name{
 <script src="./v2/feedback-helpers.js"></script>
 <script src="./v2/workout-mode-helpers.js"></script>
 <script src="./v2/workout-runtime-helpers.js"></script>
+<script src="./v2/timer-runtime-helpers.js"></script>
 </head>
 <body>
 
@@ -6769,6 +6770,7 @@ const V2_ONBOARDING = window.TimoTrainingV2Onboarding || null;
 const V2_FEEDBACK = window.TimoTrainingV2Feedback || null;
 const V2_WORKOUT_MODE = window.TimoTrainingV2WorkoutMode || null;
 const V2_WORKOUT_RUNTIME = window.TimoTrainingV2WorkoutRuntime || null;
+const V2_TIMER_RUNTIME = window.TimoTrainingV2TimerRuntime || null;
 const PROGRAM_START = new Date("2026-02-16T00:00:00");
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 const DAY_ORDER = ["mon","tue","wed","thu","fri","sat","sun"];
@@ -10802,12 +10804,21 @@ const timerState = { elapsedMs: 0, startedAt: null, interval: null, running: fal
 // TIMER ZONE
 // ============================================================
 function getTimerElapsedMs() {
+  if(V2_TIMER_RUNTIME?.getTimerElapsedMs) {
+    return V2_TIMER_RUNTIME.getTimerElapsedMs({
+      timerState,
+      now: () => Date.now()
+    });
+  }
   if(timerState.running && timerState.startedAt) {
     return Math.max(0, timerState.elapsedMs + (Date.now() - timerState.startedAt));
   }
   return Math.max(0, timerState.elapsedMs || 0);
 }
 function formatTimer(totalSeconds) {
+  if(V2_TIMER_RUNTIME?.formatTimer) {
+    return V2_TIMER_RUNTIME.formatTimer({ totalSeconds });
+  }
   const total = Math.max(0, Math.floor(Number(totalSeconds) || 0));
   const hours = Math.floor(total / 3600);
   const mins = Math.floor((total % 3600) / 60).toString().padStart(2, "0");
@@ -10932,6 +10943,12 @@ async function releaseWorkoutWakeLock() {
   workoutWakeLock = null;
 }
 function shouldHoldWorkoutWakeLock() {
+  if(V2_TIMER_RUNTIME?.shouldHoldWorkoutWakeLock) {
+    return V2_TIMER_RUNTIME.shouldHoldWorkoutWakeLock({
+      workoutMode: ui.workoutMode,
+      timerRunning: timerState.running
+    });
+  }
   return !!(ui.workoutMode || timerState.running);
 }
 function syncWorkoutWakeLock() {
